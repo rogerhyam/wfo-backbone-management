@@ -8,6 +8,7 @@
 // using the data from Missouri originally destined for Botalista
 
 require_once('../config.php');
+require_once('../include/WfoDbObject.php');
 require_once('../include/Name.php');
 
 

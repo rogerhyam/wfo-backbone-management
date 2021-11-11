@@ -8,9 +8,8 @@
  * Full integrity checking is done when checkIntegrity is called.
  * 
  */
-class Name{
+class Name extends WfoDbObject{
 
-    private ?string $id = null;
     private ?string $prescribed_wfo_id = null;
     private ?string $rank = null; // enumeration
     private ?string $name = null; // 100 char max
@@ -24,23 +23,12 @@ class Name{
     private ?string $citation_id = null; // 45
     private ?string $publication_id = null; // 45
     private ?int $basionym_id = null;
-    private ?string $comment = null;
-    private ?string $issue = null;
-    private ?int $user_id = null;
-    private ?string $source = null; // 45 chars
-    private ?string $created = null;
-    private ?string $modified = null;
 
     private Array $all_ids = array();
     private Array $hints = array();
 
     private Array $status_enumeration = array(); // list of possible status values
     private Array $rank_enumeration = array(); // list of all possible ranks
-
-    // We need to be careful we run 
-    // singletons on primary objects so only create
-    // Name using factory methods.
-    protected static $loaded_db_ids = array();
 
 
     /**
@@ -56,6 +44,7 @@ class Name{
         if($init_value != -1){
             $this->id = $init_value;
             $this->load();
+            self::$loaded[$init_value] = $this;
         }
     }
 
@@ -118,8 +107,8 @@ class Name{
         if(filter_var($init_value, FILTER_VALIDATE_INT)){
 
             // we are singleton so if it is already loaded return that.
-            if(isset(self::$loaded_db_ids[$init_value])){
-                return self::$loaded_db_ids[$init_value];
+            if(isset(self::$loaded[$init_value])){
+                return self::$loaded[$init_value];
             }else{
                 return new Name($init_value);
             }
@@ -144,8 +133,8 @@ class Name{
 
                     // return the cached one if we have one or call for 
                     // a new one
-                    if(isset(self::$loaded_db_ids[$name_id])){
-                        return self::$loaded_db_ids[$name_id];
+                    if(isset(self::$loaded[$name_id])){
+                        return self::$loaded[$name_id];
                     }else{
                         return new Name($name_id);
                     }
@@ -165,7 +154,7 @@ class Name{
             return new Name(-1);
         }else{
             // don't know what you asked for but you get nothing!
-            error_log("No taxon for init value: " . $init_value);
+            error_log("No name for init value: " . $init_value);
             return null;
         }
 
@@ -176,13 +165,6 @@ class Name{
         G E T T E R  &  S E T T E R  M E T H O D S
 
     */
-
-    /**
-     * Get the database id (if there is one)
-     */
-    public function getId(){
-        return $this->id;
-    }
 
     public function setRank($rank){
         $this->rank = strtolower(trim($rank));
@@ -262,37 +244,6 @@ class Name{
     public function getBasionym(){
         if($this->basionym_id === NULL) return NULL;
         return Name::getName($this->basionym_id);
-    }
-
-    public function setUserId($id){
-        $this->user_id = $id;
-    }
-
-    public function getUserId(){
-        return $this->user_id;
-    }
-
-
-    public function setSource($source){
-        $this->source = $source;
-    }
-
-    public function getSource(){
-        return $this->source;
-    }
-
-    public function setComment($comment){
-        $this->comment = $comment;
-    }
-
-    public function appendToComment($appendix){
-        if(!trim($appendix)) return;
-        if($this->comment) $this->comment .= "\n";
-        $this->comment .= $appendix;
-    }
-
-    public function getComment(){
-        return $this->comment;
     }
 
     public function setCitationMicro($cite){
@@ -633,6 +584,8 @@ ao.
     }
 
     public function save(){
+
+        // FIXME: add in issue 
         
         global $mysqli;
 
@@ -753,7 +706,7 @@ ao.
             $stmt->close();
 
             // we now become a singleton so we don't have to be loaded again
-            self::$loaded_db_ids[$this->id] = $this;
+            self::$loaded[$this->id] = $this;
 
             // we have just inserted a new record which means the associated WFO-ID in the identifiers table 
             // has a null name_id. We need to fix this.
