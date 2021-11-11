@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * 
+ * A base class for some common stuff between Name and Taxon
+ * 
+ */
+class WfoDbObject{
+
+    protected ?int $id = null;
+    protected ?string $comment = null;
+    protected ?string $issue = null;
+    protected ?int $user_id = null;
+    protected ?string $source = null; // 45 chars
+    protected ?string $created = null;
+    protected ?string $modified = null;
+
+    // for working the singletons
+    protected static $loaded = array();
+
+
+    /**
+     * Get the database id (if there is one)
+     */
+    public function getId(){
+        return $this->id;
+    }
+
+
+    public function setComment($comment){
+        $this->comment = $comment;
+    }
+
+    public function appendToComment($appendix){
+        if(!trim($appendix)) return;
+        if($this->comment) $this->comment .= "\n";
+        $this->comment .= $appendix;
+    }
+
+    public function getComment(){
+        return $this->comment;
+    }
+
+    public function setIssue($issue){
+        $this->issue = $issue;
+    }
+
+    public function appendToIssue($appendix){
+        if(!trim($appendix)) return;
+        if($this->issue) $this->issue .= "\n";
+        $this->issue .= $issue;
+    }
+
+    public function getIssue(){
+        return $this->issue;
+    }
+
+    public function setSource($source){
+        $this->source = $source;
+    }
+
+    public function getSource(){
+        return $this->source;
+    }
+
+    public function setUserId($id){
+        $this->user_id = $id;
+    }
+
+    public function getUserId(){
+        return $this->user_id;
+    }
+}
