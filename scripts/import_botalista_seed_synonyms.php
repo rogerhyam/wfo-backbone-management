@@ -1,0 +1,35 @@
+<?php
+
+
+// php -d memory_limit=5G import_botalista_seed_synonyms.php 2>&1
+
+require_once('../config.php');
+require_once('../include/WfoDbObject.php');
+require_once('../include/Name.php');
+require_once('../include/Taxon.php');
+
+$result = $mysqli->query("SELECT taxonID, acceptedNameUsageID FROM promethius.botalista_dump_1 where length(acceptedNameUsageID) != 0 and taxonomicStatus != 'Accepted' order by taxonID");
+$counter = 0;
+while($row = $result->fetch_assoc()){
+
+    $counter++;
+    echo "\n$counter\t{$row['taxonID']}\t=>\t{$row['taxonID']}";
+
+    // get the name objects
+    $accepted_name = Name::getName($row['acceptedNameUsageID']);
+    $synonymous_name = Name::getName($row['taxonID']);
+
+    // get the taxon for the accepted name
+    $taxon = Taxon::getTaxonForName($accepted_name);
+
+    // does it exit in the db (there is a chance it is a synonym synonym relationship or some trash)
+    if(!$taxon->getId()){
+        echo "\n\tNo taxon for {$row['acceptedNameUsageID']} so ignoring;";
+        continue;
+    }
+
+    $taxon->addSynonym($synonymous_name);
+    
+    // job done!
+
+}

@@ -6,10 +6,13 @@ class Taxon extends WfoDbObject{
     // We need to be careful we run 
     // singletons on primary objects so only create
     // Taxa using factory methods.
-    public ?Name $name = null;
-    public ?Taxon $parent = null;
-    public ?Array $children = null;
-    public ?Array $synonyms = null;
+    private ?Name $name = null;
+    private ?Taxon $parent = null;
+
+    private ?String $unspecified_rank = null;
+
+    private ?Array $children = null;
+    private ?Array $synonyms = null;
 
     protected static $loaded = array();
 
@@ -55,6 +58,7 @@ class Taxon extends WfoDbObject{
             $this->parent = Taxon::getById($row['parent_id']);
         }
         
+        $this->unspecified_rank = $row['unspecified_rank'];
         $this->comment = $row['comment'];
         $this->issue = $row['issue'];
         $this->user_id = $row['user_id'];
@@ -169,12 +173,23 @@ class Taxon extends WfoDbObject{
         return $this->parent;
     }
 
+
+    /**
+     * Checks the overall integrity of the values set in the
+     * Taxon. Will call other integrity check methods
+     * 
+     * @return Array An array of data about the integrity of the current values set in the Taxon
+     * 
+     */
     public function checkIntegrity(){
 
         global $mysqli;
 
-        $out = array();
-        $out['ok'] = true; 
+        $integrity = array();
+        $integrity['status'] = WFO_INTEGRITY_OK; 
+
+        $integrity = $this->checkRank($integrity);
+        $integrity = $this->checkAutonym($integrity);
 
         // Call integrity check on the accepted name?
 
@@ -191,16 +206,213 @@ class Taxon extends WfoDbObject{
         // Unspecified taxa should disappear if they don't have children but not if they are autonyms
 
 
-        return $out;
+        return $integrity;
     }
 
+    /**
+     * Checks the integrity of the rank set in the taxon.
+     * and updates the supplied integrity array
+     * Is this rank appropriate for the parent taxon?
+     * Is this rank appropriate for the siblings of the taxon?
+     * 
+     * @param Array $integrity a summary of integrity so far
+     * @return Array An updated version of the integrity
+     */
+
+    public function checkRank($integrity){
+
+        global $ranks_table;
+
+        $integrity['rank']['status'] = null;
+
+        // no parent no go
+        if (!$this->parent){
+            $integrity['status'] = WFO_INTEGRITY_FAIL;
+            $integrity['rank']['message'] = "No parent is defined so correct rank can't be ascertained.";
+            return $integrity;
+        }
+
+        // we are root it is OK
+        if($this->parent == $this){
+            $integrity['rank']['message'] = "This is the root taxon so no rank evaluation needed.";
+            return $integrity;
+        }
+
+        // we have a parent how does their rank compare to ours
+        $parent_r = $this->parent->getRank();
+        $my_rank = $this->getRank();
+
+        if(!$parent_r || !$my_rank){
+            //print_r($this->parent);
+            throw new ErrorException("No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.");
+            $integrity['status'] = WFO_INTEGRITY_FAIL;
+            return $integrity;
+        }
+
+        // check if we are of permissible rank to be a child of our parent
+        $permissable  = $ranks_table[$parent_r]['children'];
+        if(!in_array($my_rank, $permissable)){
+            $perms = implode(',', $permissable);
+            $integrity['status'] = WFO_INTEGRITY_FAIL;
+            $integrity['rank']['message'] = "You can't add a taxon of rank $my_rank to parent of rank $parent_r. Permissible ranks are $perms.";
+            return $integrity;
+        }
+
+        // got to here so we have good ranks
+        $integrity['rank']['message'] = "Adding taxon of rank $my_rank to parent of rank $parent_r is permissible.";
+        
+        // we should be the same rank as our siblings
+        $siblings = $this->parent->getChildren();
+        $my_level = array_search($my_rank, array_keys($ranks_table));
+        $higher_level_siblings = array();
+        foreach ($siblings as $bro) {
+            $bro_level = array_search($bro->getRank(), array_keys($ranks_table));
+            if($bro_level < $my_level){
+                $higher_level_siblings[$bro_level][] = $bro;
+            }
+        }
+        // sort them so they are in kingdom -> form
+        ksort($higher_level_siblings);
+        $potential_parents = array_pop($higher_level_siblings);
+
+        // we only need to worry about the lowest level (highest number) siblings 
+        // imagine is we were a subform being added to a species and there were already subspecies and varieties
+        // we'd be added to the autonym of the varieties. An autonym at subspecies level would be created 
+        // when the autonym at variety level was created - so we don't need to worry about that here.
+        // as being potential parents 
+        // the act of creating a new parent will sort out anything beyond that.
+
+        // if there are siblings with higher rank then throw a wobbly
+        if(count($higher_level_siblings)){
+            $integrity['status'] = WFO_INTEGRITY_WARN;
+            $integrity['rank']['status'] = WFO_RANK_REBALANCE;
+            $integrity['rank'] .= " There is an imbalance of ranks at this point in the hierarchy. These will be rebalanced on save.";
+            $integrity['rank']['potential_parents'] = $potential_parents;
+        }
+
+        return $integrity;
+
+    }
+
+    /**
+     * 
+     * Taxa have a rank based on their name
+     * or if they are unspecified taxa based on their siblings 
+     * 
+     */
+    public function getRank(){
+
+        // we are a normal taxon
+        if($this->name){
+            return $this->name->getRank();
+        }
+
+        // we are an unspecified taxon
+        if($this->unspecified_rank){
+            return $this->unspecified_rank;
+        }
+
+        // we don't know what we are - probably an error!
+        return null;
+
+    }
+
+    public function setRank($rank){
+        if($this->name){
+            return $this->name->setRank($rank);
+        }else{
+            $this->unspecified_rank = $rank;
+        }
+    }
+
+    /**
+     * An integrity check of whether an autonym is needed 
+     * alongside this taxon and whether one is present or not.
+     * 
+     * 
+     */
+    public function checkAutonym($integrity){
+
+        global $ranks_table;
+        global $mysqli;
+
+        // is this a subdivision of a genus or species?
+        // if not return that autonym stuff is N/A
+        $genus_index = array_search('genus', array_keys($ranks_table));
+        $species_index = array_search('species', array_keys($ranks_table));
+        $rank_index = array_search($this->getRank(), array_keys($ranks_table));
+        
+        if($rank_index <= $genus_index || $rank_index == $species_index){
+            $integrity['autonym'] = array(
+                'status' => WFO_AUTONYM_NA,
+                'message' => "Autonyms are not applicable at the rank " . $this->getRank() . "."
+            );
+            return $integrity;
+        }
+
+        // Am I the autonym?
+        if($this->isAutonym()){
+            $integrity['autonym'] = array(
+                'status' => WFO_AUTONYM,
+                'message' => "This taxon is an autonym"
+            );
+            return $integrity;
+        }
+
+
+        // if we are here then it has been established 
+        // we are at the rank that autonyms occur and 
+        // we are not an autonym 
+
+        // does the autonym exist?
+        $siblings = $this->parent->getChildren();
+        foreach ($siblings as $bro) {     
+            
+            if($bro->isAutonym()){
+                  // we have found the autonym amongst our siblings
+                    $integrity['autonym'] = array(
+                        'status' => WFO_AUTONYM_EXISTS,
+                        'message' => "There is an autonym at this level in the hierarchy.",
+                        'taxon_id' => $bro->getId()
+                    );
+                    return $integrity;
+              }
+        }
+
+        // can't find an autonym but there should be one
+        $integrity['autonym'] = array('status' => WFO_AUTONYM_REQUIRED );
+
+        $integrity['autonym']['candidate_names'] = $this->findAutonymNames(
+            $this->getAcceptedName()->getRank(), 
+            $this->getAcceptedName()->getGenusString(), 
+            $this->getAcceptedName()->getSpeciesString()
+        );
+
+        return $integrity;
+
+    }
+
+    /**
+     * A wrapper around the function in the name
+     * 
+     */
+    public function isAutonym(){
+        if(!$this->name) return false;
+        return $this->name->isAutonym();
+    }
+
+    /**
+     * Write this core values of this Taxon to the database
+     * This will also check integrity of the Taxon
+     */
     public function save(){
 
         global $mysqli;
+        global $ranks_table;
 
         // check validity and refuse to proceed if we aren't valid
-        $check = $this->checkIntegrity();
-        if(!$check['ok']) return false;
+        $integrity = $this->checkIntegrity();
+        if($integrity['status'] == WFO_INTEGRITY_FAIL) return false;
 
         // Integrity checks out so it is OK to proceed
 
@@ -217,6 +429,7 @@ class Taxon extends WfoDbObject{
                 SET 
                 `parent_id` = ?,
                 `user_id` = ?,
+                `unspecified_rank` = ?,
                 `comment` = ?, 
                 `issue` = ?,
                 `source` = ? 
@@ -225,9 +438,10 @@ class Taxon extends WfoDbObject{
             );
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $parent_id = $this->parent->getId();
-             $stmt->bind_param("iisssi",
+             $stmt->bind_param("iissssi",
                 $parent_id,
                 $this->user_id,
+                $this->unspecified_rank,
                 $this->comment,
                 $this->issue,
                 $this->source,
@@ -244,14 +458,15 @@ class Taxon extends WfoDbObject{
             // we don't have a db id so we are creating
 
              $stmt = $mysqli->prepare("INSERT 
-                INTO `taxa` (`parent_id`, `user_id`, `comment`,`issue`,`source`) 
-                VALUES (?,?,?,?,?)");
+                INTO `taxa` (`parent_id`, `user_id`,`unspecified_rank`, `comment`,`issue`,`source`) 
+                VALUES (?,?,?,?,?,?)");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $parent_id = $this->parent->getId();
 
-            $stmt->bind_param("iisss",
+            $stmt->bind_param("iissss",
                 $parent_id,
                 $this->user_id,
+                $this->unspecified_rank,
                 $this->comment,
                 $this->issue,
                 $this->source
@@ -272,9 +487,272 @@ class Taxon extends WfoDbObject{
         // assign the accepted name whether we have created or updated
         $this->assignAcceptedName($this->name);
 
+        // do we need to create an associated autonym?
+        if($integrity['autonym']['status'] == WFO_AUTONYM_REQUIRED){
+
+            echo "\n\t Autonym required for : {$this->getId()} with parent {$this->parent->getId()}";
+            
+            foreach($this->parent->getChildren() as $kid){
+                echo "\n\t {$kid->getAcceptedName()->getNameString()} \t {$kid->getId()}";
+            }
+
+            // create a name to base the taxon on
+            $autonym = $this->createAutonym(
+                $this->parent,
+                $this->getRank()
+            );
+        
+        } // end autonym
+
+
+        // do we need to rebalance the tree at this point?
+        if($integrity['rank']['status'] == WFO_RANK_REBALANCE){
+
+            $potential_parents = array_keys($integrity['rank']['potential_parents']);
+
+            // are any of them suitable parents?
+            $new_parent = null;
+            foreach ($potential_parents as $pot){
+                if($pot->isAutonym() || $pot->isUnspecified()){
+                    // we have a suitable parent.
+                    $new_parent = $pot;
+                    break;
+                }
+            }
+
+            // if we haven't found a parent we need to create one
+            if(!$new_parent){
+
+                // different things above and below species level
+                $genus_level = array_search('genus', array_keys($ranks_table));
+                $my_level = array_search($this->getRank(), array_keys($ranks_table));
+
+                if($my_level > $genus_level){
+                    // below species level
+                    $new_parent = $this->createAutonym($this->parent,  $potential_parents[0]->getRank());
+                }else{
+                    // must be above genus - the land of unspecified taxa
+                    $new_parent = $this->createUnspecifiedTaxon($this->parent,  $potential_parents[0]->getRank());
+                }
+
+            }
+
+            // OK we have the new parent - let's set it
+            if($new_parent){
+                $this->setParent($new_parent);
+                $this->save();
+                $this->load(); // will update the parents and synonyms
+            }else{
+                throw new ErrorException("Unable to set new parent for taxon {$this->id} in order to balance the tree.");
+            }
+
+
+        }
 
     }
 
+    /**
+     * Looks for suitable autonym names in the names table
+     * 
+     * @param String $rank The rank of the autonym name
+     * @param String $genus The name string of the genus
+     * @param String $species The (optional) species name string
+     * @return Name[] An array of names found (we hope just one!)
+     */
+    private function findAutonymNames($rank, $genus, $species){
+
+        global $mysqli;
+        global $ranks_table;
+
+        $out = array();
+
+        $genus_index = array_search('genus', array_keys($ranks_table));
+        $species_index = array_search('species', array_keys($ranks_table));
+        $rank_index = array_search($rank, array_keys($ranks_table));
+
+        if($rank_index > $species_index){
+            
+            // we are a subdivision of a species therefore name has to == species
+            // it also has to be in this genus
+            $result = $mysqli->query(
+                "SELECT id
+                    from `names` 
+                    where length(`authors`) = 0 
+                    and `name` = `species`
+                    and `genus` = '$genus'
+                    and `species` = '$species'
+                    and `rank` = '$rank'
+            ");
+            while($row = $result->fetch_assoc()){
+                $out[] = Name::getName($row['id']);
+            }
+
+        }else{
+            
+            // we are subdivision of a genus
+            // the name is the same as the genus
+            $result = $mysqli->query(
+                "SELECT id
+                    from `names` 
+                    where length(`authors`) = 0 
+                    and `name` = `genus`
+                    and `genus` = '$genus'
+                    and `rank` = '$rank'
+            ");
+            while($row = $result->fetch_assoc()){
+                $out[] = Name::getName($row['id']);
+            }
+
+        }
+
+        return $out;
+    
+    }
+
+    /**
+     * Creates a new autonym (Taxon) and possibly associated Name 
+     * 
+     * @param Taxon $parent The taxon that will be the parent of this autonym
+     * @param String $rank The rank the autonym will be created at
+     * 
+     */
+    private function createAutonym($parent, $rank){
+
+        // see if we have a name
+        $names = $this->findAutonymNames($rank, $parent->getAcceptedName()->getGenusString(), $parent->getAcceptedName()->getSpeciesString());
+
+        if(count($names) == 0){
+            // We didn't find a name so create on
+            $name = $this->createAutonymName($rank, $parent->getAcceptedName()->getGenusString(), $parent->getAcceptedName()->getNameString());
+        }elseif(count($names) == 1){
+            // we found a single name so can use that
+            $name = $names[0];
+        }else{
+            // we found multiple names so throw a wobbly
+            $c_ids = array();
+            foreach($names as $c){
+                $c_ids[] = $c->getId();
+            }
+            $c_ids = implode(",", $c_ids);
+
+            throw new ErrorException("Searching for autonym name for {$this->parent->getId()}, {$this->getRank()} and found multiple candidates. These names need to be deduplicated. Name IDs are: $c_ids");
+            return null;
+        }
+
+        // we have got to here so we must have a name and we know the parent
+        // so we can return the autonym
+        return $this->createAutonymTaxon($name, $parent);  
+
+    }
+
+    /**
+     * Create a new Name object as an autonym
+     * Used in conjunction with createAutonym and creatAutonymTaxon
+     * 
+     * @param String $rank the rank of the new name
+     * @param String $genus the genus name string of the new Name
+     * @param String $name The name string of the new Name (will be used as name string and/or species string depending on rank)
+     * @return Name The new name or null on failure.
+     */
+    private function createAutonymName($rank, $genus, $name){
+
+            global $ranks_table;
+
+            $autonym_name = Name::getName(-1);
+
+            // meta fields are quite simply copies or ours
+            $autonym_name->setSource($this->getSource());
+            $autonym_name->setUserId($this->getUserId());
+            $autonym_name->setComment("Name automatically created to support autonym taxon.");
+
+            // it has to be the same rank as us because it is an autonym next to us on the hierarchy
+            $autonym_name->setRank($rank);
+            $autonym_name->setGenusString($genus);
+
+            // the other two strings depend on if we are above or below species level
+            $species_level = array_search('species', array_keys($ranks_table));
+            $our_level = array_search($rank, array_keys($ranks_table));
+
+            if($our_level > $species_level){
+                
+                // we are below species - rank levels count up from Kingdom
+
+                // the species is the same as ours as we are in this species
+                $autonym_name->setSpeciesString($name);
+            
+                // the name of the autonym is the same as the species name
+                $autonym_name->setNameString($name);
+                
+
+            }else{
+
+                // we are above species level
+                // the species isn't set - we are not in a species this is a subgenus or something.
+                // the name is the same as the genus name
+                $autonym_name->setNameString($name);
+
+
+            } 
+
+            // save the name
+            $autonym_name->save();
+
+            return $autonym_name;
+
+    }
+
+    /**
+     * Creates a taxon based on an autonym name
+     * 
+     * @param Name $name  object that the autonym taxon will be based on (have as its accepted name)
+     * @param Taxon $parent object that will be the parent of the new taxon
+     * @return Taxon The new autonym taxon
+     */
+    private function createAutonymTaxon($name, $parent){
+        $autonym = Taxon::getTaxonForName($name);
+        $autonym->setSource($this->getSource());
+        $autonym->setUserId($this->getUserId());
+        $autonym->setComment("Taxon automatically created as autonym.");
+        $autonym->setParent($parent);
+        $autonym->save();
+        $parent->load();
+        return $autonym;
+    }
+
+    /**
+     * Creates an unspecified taxon
+     * Unspecified taxa don't have names but they do have a rank
+     * 
+     * @param Taxon $parent object that will be the parent of the new taxon
+     * @param String $rank is the rank this new taxon will hold (from ranks_table)
+     * @return Taxon The new taxon.
+     */
+    private function createUnspecifiedTaxon($parent, $rank){
+
+        // a naked taxon
+        $un = Taxon::getById(-1);
+        // don't set the name!
+        $un->setRank($rank); // set the rank - this will set the unspecified rank
+        $un->setParent($parent);
+        $un->save();
+        
+        exit; // FIXME - run till we find one!
+        return $un;
+
+
+    }
+
+    /**
+     * Is this an unspecified taxon (lacking an accepted name) or is it 
+     * a regular taxon
+     * 
+     * 
+     * 
+     */
+
+    public function isUnspecified(){
+        return false; // FIXME 
+    }
 
     /**
      * Not to be confused associated public functions
@@ -294,17 +772,23 @@ class Taxon extends WfoDbObject{
 
         if($taxon_names_id){
             $result = $mysqli->query("UPDATE taxa SET taxon_name_id = {$taxon_names_id} WHERE id = {$this->id}");
-            if($mysqli->affected_rows != 1){
-                throw new ErrorException("Failed to update taxa with taxon_name_id {$taxon_names_id} for taxon id {$this->id}. Rows affected: {$mysqli->affected_rows}");
-                return false;
-            }else{
-                return true;
-            }
+            return true;
         }else{
             // exceptions will have been thrown by assignName
             return false;
         }
 
+    }
+
+
+    public function addSynonym($name){
+        // we might do some checking in the future
+        return $this->assignName($name);
+    }
+
+    public function removeSynonym($name){
+        // FIXME
+        throw new ErrorException("removeSynonym not implemented yet");
     }
 
     /**
@@ -338,7 +822,8 @@ class Taxon extends WfoDbObject{
         }else{
 
             // the name is assigned to something.
-            $row = $mysqli->fetch_assoc();
+           // print_r($this);
+            $row = $result->fetch_assoc();
 
             // is it us? If so nothing to do
             if($row['taxon_id'] == $this->id) return $row['id'];
@@ -362,8 +847,6 @@ class Taxon extends WfoDbObject{
 
     }
 
-    
-
     // ------------ R E L A T I O N S ----------------
 
     /**
@@ -375,12 +858,24 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
-        if($this->children === null){
-            $this->children = array();
-            $result = $mysqli->query("SELECT id FROM taxa WHERE parent_id = {$this->id} AND id != {$this->id}"); // don't get the root
-            while($row = $result->fetch_assoc()){
-                $this->children[] = Taxon::getById($row['id']);
-            }
+        // currently make no attempt to cache this list as 
+        // when we are adding and removing kids it causes havoc
+        // this call is quite cheap and objects may already be loaded.
+        $this->children = array();
+        $sql = "SELECT t.id FROM taxa as t
+            join `taxon_names` as tn on t.`taxon_name_id` = tn.id
+            join `names` as n on n.id = tn.`name_id`
+            WHERE `parent_id` = {$this->id} 
+            AND t.`id` != {$this->id}
+            order by n.`name`";
+        $result = $mysqli->query($sql); 
+        if($mysqli->error){
+            echo $mysqli->error;
+            echo "\n$sql\n";
+            //print_r($this);
+        }
+        while($row = $result->fetch_assoc()){
+            $this->children[] = Taxon::getById($row['id']);
         }
 
         return $this->children;
@@ -389,6 +884,29 @@ class Taxon extends WfoDbObject{
 
     public function isRoot(){
         return $this->parent == $this;
+    }
+
+    public function getSynonyms(){
+
+        global $mysqli;
+
+        $this->synonyms = array();
+
+        $sql = "SELECT name_id FROM taxon_names WHERE taxon_id = {$this->getId()}";
+
+        // if we aren't root we exclude ourselves
+        if($this->getAcceptedName()){
+            $sql .= " and name_id != {$this->getAcceptedName()->getId()} ";
+        }
+
+        $result = $mysqli->query($sql); // FIXME should be in some order
+        while($row = $result->fetch_assoc()){
+            $this->synonyms[] = Name::getName($row['name_id']);
+        }
+
+
+        return $this->synonyms;
+
     }
 
 

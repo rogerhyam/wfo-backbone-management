@@ -4,13 +4,15 @@ This describes how the fields in the seed data used to initiate this system was 
 
 Seed data will be kept as a table in the db and we should be able to map back across to if we find something has been lost - but there will be no mistakes!
 
-The import is done in three passes:
+The import is done in phases (with appropriate tweaking):
 
-1. Import of records with doNotProcess=0. Each one becomes a row in the names table.
-1. Import of records with doNotProcess=1.
-    1. Rows that match the rows of scientificName and scientificNameAuthors that are already in the names table are merged with the existing names. Their IDs are copied to the IDs table for the existing name. This is the simple deduplication process. (maybe more complex matching in future?)
-    1. Rows that don't match existing names are imported as rows in the name table and the names.status field set to 'deprecated' (controversial? - see the Green Book)
-1. Records that have a value in their originalNameUsageID field are used to build basionym links in the names table.
+1. Import all records to the names table. Those marked "doNotProcess" are set to status "deprecated" (script: import_botalista_seed.php)
+1. Link up basionyms using the import_botalista_seed_basionyms.php script.
+1. Create taxa and link them to names by crawling the parentNameUsageID tree down from Angiosperms (import_botalista_seed_taxa.php) - this will like the taxa to names for their accpeted names.
+1. Link the synonyms up. (import_botalista_seed_synonyms.php). This uses the acceptednameusageId values to join names to the taxa we created above.
+1. Not really an import but a merge of all the "deprecated" names that are definite duplicates.
+
+
 
 ## taxonID
 

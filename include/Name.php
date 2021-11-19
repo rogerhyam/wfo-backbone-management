@@ -209,6 +209,32 @@ class Name extends WfoDbObject{
     }
 
 
+    public function isAutonym(){
+
+        global $ranks_table;
+        
+        // get the ordinal position of the ranks (they count up towards subvar)
+        $genus_index = array_search('genus', array_keys($ranks_table));
+        $species_index = array_search('species', array_keys($ranks_table));
+        $rank_index = array_search($this->getRank(), array_keys($ranks_table));
+
+        // autonyms only apply to ranks below genus that aren't the species
+        if($rank_index <= $genus_index || $rank_index == $species_index) return false;
+
+        // autonyms have no author string
+        if($this->getAuthorsString()) return false;
+
+        // autonyms at ranks below species (subsp, var and form) have the same name as the species name
+        if($rank_index > $species_index &&  $this->name == $this->species) return true;
+
+        // autonyms at other ranks (those left over!) have the same name as the genus
+        if($this->name == $this->genus) return true;
+
+        // we may be at autonym rank level but we don't have matching names so we aren't
+        return false;
+
+    }
+
     /**
      * 
      * Set the basionym for this Name
@@ -485,17 +511,17 @@ class Name extends WfoDbObject{
         global $mysqli;
 
         $out = array();
-        $out['ok'] = true; 
+        $out['status'] = WFO_INTEGRITY_OK; 
 
         // is the rank valid?
         if(!$this->rank){
-            $out['ok'] = false;
+            $out['ok'] = WFO_INTEGRITY_FAIL;
             $out['status'][] = "No rank is set.";
         }
         $ranks = $this->getRankEnumeration();
 
         if(!in_array($this->rank, $ranks)){
-            $out['ok'] = false;
+            $out['ok'] = WFO_INTEGRITY_FAIL;
             $possibles = implode(',', $ranks);
             $out['status'][] = "Unrecognised rank '{$this->rank}'. Possible values are: $possibles";
         }
@@ -503,15 +529,15 @@ class Name extends WfoDbObject{
         // is the status valid?
         $statuses = $this->getStatusEnumeration();
         if($this->status && !in_array($this->status, $statuses)){
-            $out['ok'] = false;
+            $out['ok'] = WFO_INTEGRITY_FAIL;
             $possibles = implode(',', $statuses);
             $out['status'][] = "Unrecognised nomenclatural status '{$this->status}'. Possible values are: $possibles";
         }
 
         //  Does the basionym have a basionym
         $basionym = $this->getBasionym();
-        if($basionym->getBasionym()){
-            $out['ok'] = false;
+        if($basionym){
+            $out['ok'] = WFO_INTEGRITY_FAIL;
             $out['status'][] = "The basionym is set to {$basionym->getPrescribedWfoId()} but that also has a basionym of {$basionym->getBasionym()->getPrescribedWfoId()}. You can't chain basionyms.";
         }
 
@@ -591,7 +617,7 @@ ao.
 
         // check validity and refuse to proceed if we aren't valid
         $check = $this->checkIntegrity();
-        if(!$check['ok']) return false;
+        if($check['status'] == WFO_INTEGRITY_FAIL) return false;
 
         // before we do anything we need to check we have a WFO-ID and the db id of it.
 
