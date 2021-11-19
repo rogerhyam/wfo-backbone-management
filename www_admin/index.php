@@ -34,17 +34,20 @@ if($taxon->isRoot()){
     }
 
     $name = $taxon->getAcceptedName();
-    echo "<h2>{$name->getNameString()}</h2>";
+    echo "<h2>{$name->getRank()}: {$name->getNameString()}</h2>";
     echo "<pre>";
     //print_r($name);
     echo "</pre>";
 
 }
 
-
-
-
-
+echo "<h2>Synonyms</h2>";
+echo "<ul>";
+$syns = $taxon->getSynonyms();
+foreach($syns as $syn){
+    echo "<li>{$syn->getGenusString()} {$syn->getSpeciesString()} {$syn->getNameString()} - {$syn->getAuthorsString()} </li>";
+}
+echo "</ul>";
 
 echo "<h2>Child taxa</h2>";
 echo "<ul>";
@@ -52,6 +55,6 @@ $kids = $taxon->getChildren();
 foreach($kids as $kid){
     $name = $kid->getAcceptedName()->getNameString();
     $id = $kid->getId();
-    echo "<li><a href=\"?taxon_id=$id\">$name</a></li>";
+    echo "<li><a href=\"?taxon_id=$id\">$name</a> ({$kid->getAcceptedName()->getId()}) & isAutonym = {$kid->isAutonym()}</li>";
 }
 echo "</ul>";

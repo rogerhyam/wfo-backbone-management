@@ -140,9 +140,9 @@ carried out during import.
 |subsection|series, species||
 |series|subseries, species||
 |subseries|species||
-|species|subspecies, variety, forma|nothospecies|
+|species|subspecies, variety, form|nothospecies|
 |subspecies|variety, form|nothosubspecies|
-|variety|subvariety, form|nothosubsp.|
+|variety|subvariety, form|nothovar.|
 |subvariety|form||
 |form|subform|forma|
 |subform||subforma|
