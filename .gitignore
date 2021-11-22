@@ -1,3 +1,6 @@
 data/sources/.DS_Store
 data/sources/seed
+vendor/
+composer.phar
+
 

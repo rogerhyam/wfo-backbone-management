@@ -1,7 +1,7 @@
 <?php
 
 // configuration variables used across the scripts and applications
-
+require_once('../vendor/autoload.php');
 include_once("../../backbone_secrets.php");
 
 // create and initialise the database connection
