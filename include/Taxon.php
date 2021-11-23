@@ -170,7 +170,13 @@ class Taxon extends WfoDbObject{
     }
     
     public function getParent(){
-        return $this->parent;
+        if($this->parent == $this){
+            // we are the root
+            return null;
+        }else{
+            return $this->parent;
+        }
+        
     }
 
 
@@ -735,10 +741,7 @@ class Taxon extends WfoDbObject{
         $un->setRank($rank); // set the rank - this will set the unspecified rank
         $un->setParent($parent);
         $un->save();
-        
-        exit; // FIXME - run till we find one!
         return $un;
-
 
     }
 
@@ -751,7 +754,8 @@ class Taxon extends WfoDbObject{
      */
 
     public function isUnspecified(){
-        return false; // FIXME 
+        if($this->getAcceptedName()) return false;
+        return true;
     }
 
     /**
@@ -880,6 +884,15 @@ class Taxon extends WfoDbObject{
 
         return $this->children;
 
+    }
+
+    public function getAncestors(){
+        $ancestors = array();
+        $dad = $this;
+        while($dad = $dad->getParent()){
+            $ancestors[] = $dad;
+        }
+        return $ancestors;
     }
 
     public function isRoot(){

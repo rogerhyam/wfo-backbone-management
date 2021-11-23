@@ -13,10 +13,59 @@ class TaxonGqlType extends ObjectType
             'fields' => function() {
                 return [
                     'id' => [
-                        'type' => Type::string(),
+                        'type' => Type::int(),
                         'description' => "database id for the taxon",
                         'resolve' => function($taxon){
                             return $taxon->getId();
+                        }
+                    ],
+                    'acceptedName' => [
+                        'type' => TypeRegister::nameType(),
+                        'description' => "The accepted name for this taxon",
+                        'resolve' => function($taxon){
+                            return $taxon->getAcceptedName();
+                        }
+                    ],
+                    'synonyms' => [
+                        'type' => Type::listOf(TypeRegister::nameType()),
+                        'description' => "The names that are considered synonyms of this taxon.",
+                        'resolve' => function($taxon){
+                            return $taxon->getSynonyms();
+                        }
+                    ],
+                    'children' => [
+                        'type' => Type::listOf(TypeRegister::taxonType()),
+                        'description' => "The taxa that are part of this taxon.",
+                        'resolve' => function($taxon){
+                            return $taxon->getChildren();
+                        }
+                    ],
+                    'ancestors' => [
+                        'type' => Type::listOf(TypeRegister::taxonType()),
+                        'description' => "This taxon all the way back to the root.",
+                        'resolve' => function($taxon){
+                            return $taxon->getAncestors();
+                        }
+                    ],
+                    'parent' => [
+                        'type' => TypeRegister::taxonType(),
+                        'description' => "The taxon that contains this taxon.",
+                        'resolve' => function($taxon){
+                            return $taxon->getParent();
+                        }
+                    ],
+                    'rank' => [
+                        'type' => Type::string(),
+                        'description' => "The rank of this taxon. This is a wrapper around the rank of the accepted name except where this is a unspecified taxon.",
+                        'resolve' => function($taxon){
+                            return $taxon->getParent();
+                        }
+                    ],
+                    'isUnspecified' => [
+                        'type' => Type::boolean(),
+                        'description' => "Is this taxon an unspecified one (without a name).",
+                        'resolve' => function($taxon){
+                            return $taxon->isUnspecified();
                         }
                     ]
                 ];

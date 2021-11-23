@@ -1,6 +1,7 @@
 <?php
 
 require_once('../include/TaxonGqlType.php');
+require_once('../include/NameGqlType.php');
 
 /*
 
@@ -12,9 +13,13 @@ require_once('../include/TaxonGqlType.php');
 class TypeRegister {
 
     private static $taxonType;
+    private static $nameType;
 
     public static function taxonType(){
         return self::$taxonType ?: (self::$taxonType = new TaxonGqlType());
     }
 
+    public static function nameType(){
+        return self::$nameType ?: (self::$nameType = new NameGqlType());
+    }
 }

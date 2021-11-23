@@ -20,6 +20,24 @@ $schema = new Schema([
         'description' => 
             "This is the WFO Taxonomic Backbone management API",
         'fields' => [
+            'getNameForWfoId' => [
+                'type' => TypeRegister::nameType(),
+                'args' => [
+                    'id' => [
+                        'type' => Type::string(),
+                        'description' => "A WFO ID associated with this name. Does not have to be the prescribed WFO ID but could be a deduplicated one.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    // this method not used for creation or db retrieval so force wfo id
+                    if(preg_match('/wfo-[0-9]{10}/', $args['id'])){
+                        return Name::getName($args['id']);
+                    }else{
+                        return null;
+                    }
+                }
+            ],
             'getTaxonById' => [
                 'type' => TypeRegister::taxonType(),
                 'args' => [
@@ -48,6 +66,13 @@ $schema = new Schema([
 ]); // schema
 
 
+// these may need removing in production
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Credentials: true");
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Accept');
+
+
 $rawInput = file_get_contents('php://input');
 
 if(!trim($rawInput)){
@@ -74,6 +99,7 @@ try {
         ]
     ];
 }
+
 header('Content-Type: application/json');
 echo json_encode($output);
 
