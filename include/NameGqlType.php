@@ -1,0 +1,133 @@
+<?php
+
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ListOfType;
+
+class NameGqlType extends ObjectType
+{
+    public function __construct()
+    {
+        $config = [
+            'description' => "A Name governed by the the code",
+            'fields' => function() {
+                return [
+                    'id' => [
+                        'type' => Type::int(),
+                        'description' => "database id for the name",
+                        'resolve' => function($name){
+                            return $name->getId();
+                        }
+                    ],
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The prescribed WFO ID to use for this name",
+                        'resolve' => function($name){
+                            return $name->getPrescribedWfoId();
+                        }
+                    ],
+                    'rank' => [
+                        'type' => Type::string(),
+                        'description' => "The rank string for this name",
+                        'resolve' => function($name){
+                            return $name->getRank();
+                        }
+                    ],
+                    'nameString' => [
+                        'type' => Type::string(),
+                        'description' => "The principle name string for this name.",
+                        'resolve' => function($name){
+                            return $name->getNameString();
+                        }
+                    ],
+                    'genusString' => [
+                        'type' => Type::string(),
+                        'description' => "The genus name string for names below the rank of genus.",
+                        'resolve' => function($name){
+                            return $name->getGenusString();
+                        }
+                    ],
+                    'speciesString' => [
+                        'type' => Type::string(),
+                        'description' => "The species name string for names below the rank of species.",
+                        'resolve' => function($name){
+                            return $name->getSpeciesString();
+                        }
+                    ],
+                    'authorsString' => [
+                        'type' => Type::string(),
+                        'description' => "The string representing the author abbreviations for this name.",
+                        'resolve' => function($name){
+                            return $name->getAuthorsString();
+                        }
+                    ],
+                    'status' => [
+                        'type' => Type::string(),
+                        'description' => "The nomenclatural status of this name.",
+                        'resolve' => function($name){
+                            return $name->getStatus();
+                        }
+                    ],
+                    'isAutonym' => [
+                        'type' => Type::boolean(),
+                        'description' => "True if this is an autonym name.",
+                        'resolve' => function($name){
+                            return $name->isAutonym();
+                        }
+                    ],
+                    'basionym' => [
+                        'type' => TypeRegister::nameType(),
+                        'description' => "The type bearing name for this name.",
+                        'resolve' => function($name){
+                            return $name->getBasionym();
+                        }
+                    ],
+                    'citationMicro' => [
+                        'type' => Type::string(),
+                        'description' => "The standard form short citation for where this name was published.",
+                        'resolve' => function($name){
+                            return $name->getCitationMicro();
+                        }
+                    ],
+                    'citationId' => [
+                        'type' => Type::string(),
+                        'description' => "An identifier for the citation of where this name was published.",
+                        'resolve' => function($name){
+                            return $name->getCitationID();
+                        }
+                    ],
+                    'year' => [
+                        'type' => Type::int(),
+                        'description' => "The year of valid publication of this name",
+                        'resolve' => function($name){
+                            return $name->getYear();
+                        }
+                    ],
+
+                    // note that strictly Names know nothing of Taxa but because this is an
+                    // API interface is seems OK to join them up here - but never in the Name object!!
+                    'taxonPlacement' => [
+                        'type' => TypeRegister::taxonType(),
+                        'resolve' => function($name) {
+
+                            $taxon = Taxon::getTaxonForName($name);
+
+                            // a blank taxon is created if the name is not placed (it is how we create new ones)
+                            // and we don't want to return that for a query
+                            if($taxon->getId()){
+                                return $taxon;
+                            }else{
+                                return null;
+                            }
+
+                        }
+                    ]
+                    
+                ];
+            }
+        ];
+        parent::__construct($config);
+
+    }
+
+}
