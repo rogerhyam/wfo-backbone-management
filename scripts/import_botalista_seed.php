@@ -1,7 +1,7 @@
 <?php
 
 
-// php -d memory_limit=4G import_botalista_seed.php 2>&1
+// php -d memory_limit=10G import_botalista_seed.php 2>&1
 
 
 // this script will probably only be used at the initiation of the database
@@ -146,6 +146,7 @@ while($row = $response->fetch_assoc()){
         $nomenclaturalStatus = 'deprecated';
     }else{
         $nomenclaturalStatus = mb_strtolower(trim($row['nomenclaturalStatus']));
+        $processComment = "";
     }
 
     switch ($nomenclaturalStatus) {

@@ -1,7 +1,7 @@
 <?php
 
 
-// php -d memory_limit=5G import_botalista_seed_synonyms.php 2>&1
+// php -d memory_limit=10G import_botalista_seed_synonyms.php 2>&1
 
 require_once('../config.php');
 require_once('../include/WfoDbObject.php');

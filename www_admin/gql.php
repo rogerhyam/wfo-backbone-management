@@ -11,6 +11,10 @@ require_once('../include/GqlTypeRegister.php');
 require_once('../include/WfoDbObject.php');
 require_once('../include/Taxon.php');
 require_once('../include/Name.php');
+require_once('../include/NameMatcher.php');
+require_once('../include/NameMatches.php');
+
+
 
 $typeReg = new TypeRegister();
 
@@ -49,6 +53,21 @@ $schema = new Schema([
                 ],
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return Taxon::getById($args['id']);
+                }
+            ],
+            'getNamesByStringMatch' => [
+                'type' => TypeRegister::nameMatchesType(),
+                'description' => "Get a list of names that match the query string.",
+                'args' => [
+                    'queryString' => [
+                        'type' => Type::string(),
+                        'description' => "A string that resembles a correctly cited botanical name",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info){
+                    $matcher = new NameMatcher();
+                    return $matcher->stringMatch($args['queryString']);
                 }
             ]
         ]// fields

@@ -6,13 +6,11 @@ Seed data will be kept as a table in the db and we should be able to map back ac
 
 The import is done in phases (with appropriate tweaking):
 
-1. Import all records to the names table. Those marked "doNotProcess" are set to status "deprecated" (script: import_botalista_seed.php)
-1. Link up basionyms using the import_botalista_seed_basionyms.php script.
-1. Create taxa and link them to names by crawling the parentNameUsageID tree down from Angiosperms (import_botalista_seed_taxa.php) - this will like the taxa to names for their accpeted names.
+1. Import all records to the names table. Those marked "doNotProcess" are set to status "deprecated" (script: import_botalista_seed.php - about 3 hours)
+1. Link up basionyms using the import_botalista_seed_basionyms.php script - about half and hour.
+1. Create taxa and link them to names by crawling the parentNameUsageID tree down from Angiosperms (import_botalista_seed_taxa.php) - this will like the taxa to names for their accpeted names. Under an hour.
 1. Link the synonyms up. (import_botalista_seed_synonyms.php). This uses the acceptednameusageId values to join names to the taxa we created above.
 1. Not really an import but a merge of all the "deprecated" names that are definite duplicates.
-
-
 
 ## taxonID
 
@@ -127,3 +125,30 @@ Added to the comments in identifiers table. i.e. this is why this WFO ID is a de
 ## comments
 
 Copied into the names.comments field.
+
+## Reset Database between failed runs
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+truncate taxon_names;
+truncate identifiers;
+truncate matching_hints;
+truncate `names`;
+delete FROM taxa where id != 39;
+
+ALTER TABLE taxon_names AUTO_INCREMENT = 1;
+ALTER TABLE identifiers AUTO_INCREMENT = 1;
+ALTER TABLE matching_hints AUTO_INCREMENT = 1;
+ALTER TABLE `names` AUTO_INCREMENT = 1;
+ALTER TABLE taxon_names AUTO_INCREMENT = 1;
+ALTER TABLE taxa AUTO_INCREMENT = 100;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+### during dev delete name and its identifiers.
+SET @name_id = '1351026';
+SET FOREIGN_KEY_CHECKS = 0;
+delete from identifiers where name_id = @name_id;
+delete from `names` where id = @name_id;
+delete from `taxon_names` where name_id = @name_id;
+SET FOREIGN_KEY_CHECKS = 1;

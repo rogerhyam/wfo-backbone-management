@@ -70,4 +70,25 @@ class WfoDbObject{
     public function getUserId(){
         return $this->user_id;
     }
+
+    /**
+     * Write this core values of this Object to database safely
+    */
+    public function save(){
+        global $mysqli;
+
+        /* Start transaction */
+        $mysqli->begin_transaction();
+
+        try {
+            $this->saveDangerously();
+            /* If code reaches this point without errors then commit the data in the database */
+            $mysqli->commit();
+        } catch (mysqli_sql_exception $exception) {
+            $mysqli->rollback();
+            throw $exception;
+        }
+
+    }
+
 }

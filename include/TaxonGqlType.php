@@ -47,6 +47,20 @@ class TaxonGqlType extends ObjectType
                             return $taxon->getAncestors();
                         }
                     ],
+                    'ancestorAtRank' => [
+                        'type' => TypeRegister::taxonType(),
+                        'description' => "Looks up the ancestor lineage and returns the ancestor with the specified rank or null if one isn't found.",
+                        'args' => [
+                            'rank' => [
+                                'type' => Type::string(),
+                                'description' => "The rank of interest.",
+                                'required' => true
+                            ]
+                        ],
+                        'resolve' => function($taxon, $args, $context, $info){
+                            return $taxon->getAncestorAtRank($args['rank']);
+                        }
+                    ],
                     'parent' => [
                         'type' => TypeRegister::taxonType(),
                         'description' => "The taxon that contains this taxon.",
@@ -58,7 +72,7 @@ class TaxonGqlType extends ObjectType
                         'type' => Type::string(),
                         'description' => "The rank of this taxon. This is a wrapper around the rank of the accepted name except where this is a unspecified taxon.",
                         'resolve' => function($taxon){
-                            return $taxon->getParent();
+                            return $taxon->getRank();
                         }
                     ],
                     'isUnspecified' => [
