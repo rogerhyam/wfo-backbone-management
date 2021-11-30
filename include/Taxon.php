@@ -176,9 +176,7 @@ class Taxon extends WfoDbObject{
         }else{
             return $this->parent;
         }
-        
     }
-
 
     /**
      * Checks the overall integrity of the values set in the
@@ -372,7 +370,8 @@ class Taxon extends WfoDbObject{
 
         // does the autonym exist?
         $siblings = $this->parent->getChildren();
-        foreach ($siblings as $bro) {     
+   
+        foreach ($siblings as $bro) { 
             
             if($bro->isAutonym()){
                   // we have found the autonym amongst our siblings
@@ -408,10 +407,10 @@ class Taxon extends WfoDbObject{
     }
 
     /**
-     * Write this core values of this Taxon to the database
-     * This will also check integrity of the Taxon
+     * Does the work or save but should 
+     * always be called via save (from WfoDbObject ) which wraps it in a db transaction.
      */
-    public function save(){
+    protected function saveDangerously(){
 
         global $mysqli;
         global $ranks_table;
@@ -495,13 +494,7 @@ class Taxon extends WfoDbObject{
 
         // do we need to create an associated autonym?
         if($integrity['autonym']['status'] == WFO_AUTONYM_REQUIRED){
-
-            echo "\n\t Autonym required for : {$this->getId()} with parent {$this->parent->getId()}";
             
-            foreach($this->parent->getChildren() as $kid){
-                echo "\n\t {$kid->getAcceptedName()->getNameString()} \t {$kid->getId()}";
-            }
-
             // create a name to base the taxon on
             $autonym = $this->createAutonym(
                 $this->parent,
@@ -580,15 +573,14 @@ class Taxon extends WfoDbObject{
             
             // we are a subdivision of a species therefore name has to == species
             // it also has to be in this genus
-            $result = $mysqli->query(
-                "SELECT id
+            $sql = "SELECT id
                     from `names` 
-                    where length(`authors`) = 0 
+                    where (length(`authors`) = 0 OR `authors` is null)
                     and `name` = `species`
                     and `genus` = '$genus'
                     and `species` = '$species'
-                    and `rank` = '$rank'
-            ");
+                    and `rank` = '$rank'";
+            $result = $mysqli->query($sql);
             while($row = $result->fetch_assoc()){
                 $out[] = Name::getName($row['id']);
             }
@@ -600,7 +592,7 @@ class Taxon extends WfoDbObject{
             $result = $mysqli->query(
                 "SELECT id
                     from `names` 
-                    where length(`authors`) = 0 
+                    where (length(`authors`) = 0 OR `authors` is null)
                     and `name` = `genus`
                     and `genus` = '$genus'
                     and `rank` = '$rank'
@@ -625,7 +617,7 @@ class Taxon extends WfoDbObject{
     private function createAutonym($parent, $rank){
 
         // see if we have a name
-        $names = $this->findAutonymNames($rank, $parent->getAcceptedName()->getGenusString(), $parent->getAcceptedName()->getSpeciesString());
+        $names = $this->findAutonymNames($rank, $parent->getAcceptedName()->getGenusString(), $parent->getAcceptedName()->getNameString());
 
         if(count($names) == 0){
             // We didn't find a name so create on
@@ -635,6 +627,9 @@ class Taxon extends WfoDbObject{
             $name = $names[0];
         }else{
             // we found multiple names so throw a wobbly
+
+            // FIXME - for import we just pick the first one!
+            /*
             $c_ids = array();
             foreach($names as $c){
                 $c_ids[] = $c->getId();
@@ -643,6 +638,10 @@ class Taxon extends WfoDbObject{
 
             throw new ErrorException("Searching for autonym name for {$this->parent->getId()}, {$this->getRank()} and found multiple candidates. These names need to be deduplicated. Name IDs are: $c_ids");
             return null;
+            */
+            error_log("Searching for autonym name for {$this->parent->getId()}, {$this->getRank()} and found multiple candidates. These names need to be deduplicated. Name IDs are: $c_ids");
+            error_log("Picking first one");
+            $name = $names[0];
         }
 
         // we have got to here so we must have a name and we know the parent
@@ -834,16 +833,24 @@ class Taxon extends WfoDbObject{
 
             // it is not so we need to highjack it - but first we double check it isn't in use as an accepted name of another taxon
             $result = $mysqli->query("SELECT * FROM taxa WHERE taxon_name_id = {$row['id']} AND id != {$this->id}");
-            if($result->num_rows > 0) throw new ErrorException("Trying to assign taxon_name {$row['id']} to {$this->id} when it is already in use as an accepted taxon.");
-
-            // now the highjack
-            $mysqli->query("UPDATE taxon_names SET taxon_id = {$this->id} WHERE id = {$row['id']}");
-             if($mysqli->affected_rows == 1){
-                return $row['id'];
+            if($result->num_rows > 0){
+                // FIXME - during import of seed data we are just ignoring these
+                error_log("Trying to assign taxon_name {$row['id']} to {$this->id} when it is already in use as an accepted taxon.");
+                // throw new ErrorException("Trying to assign taxon_name {$row['id']} to {$this->id} when it is already in use as an accepted taxon.");
             }else{
-                throw new ErrorException("Failed to update taxon_names row {$row['id']} for taxon_id {$this->id} and name_id {$name->id}");
-                return false;
+
+                // now the highjack
+                $mysqli->query("UPDATE taxon_names SET taxon_id = {$this->id} WHERE id = {$row['id']}");
+                if($mysqli->affected_rows == 1){
+                    return $row['id'];
+                }else{
+                    throw new ErrorException("Failed to update taxon_names row {$row['id']} for taxon_id {$this->id} and name_id {$name->id}");
+                    return false;
+                }
+
             }
+
+
             
 
         }
@@ -893,6 +900,14 @@ class Taxon extends WfoDbObject{
             $ancestors[] = $dad;
         }
         return $ancestors;
+    }
+
+    public function getAncestorAtRank($rank){
+        $dad = $this;
+        while($dad = $dad->getParent()){
+            if($dad->getRank() == $rank) return $dad;
+        }
+        return null;
     }
 
     public function isRoot(){

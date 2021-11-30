@@ -61,6 +61,39 @@ class NameGqlType extends ObjectType
                             return $name->getAuthorsString();
                         }
                     ],
+                    'fullNameString' => [
+                        'type' => Type::string(),
+                        'description' => "The full name for display purposes.",
+                        'args' => [
+                            'italics' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether words in names at and below the genus level should be italicized. Defaults true.",
+                                'required' => false,
+                                'defaultValue' => true
+                            ],
+                            'authors' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether the authors string (abbreviated authors) should be included. Defaults true.",
+                                'required' => false,
+                                'defaultValue' => true
+                            ],
+                            'abbreviateRank' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether the rank (always included in names below genus) should be abbreviated. Defaults true.",
+                                'required' => false,
+                                'defaultValue' => true
+                            ],
+                            'abbreviateGenus' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether the genus word (in names below the rank of genus) should be abbreviated. Defaults false.",
+                                'required' => false,
+                                'defaultValue' => false
+                            ],
+                        ],
+                        'resolve' => function($name, $args, $context, $info){
+                            return $name->getFullNameString( $args['italics'], $args['authors'], $args['abbreviateRank'], $args['abbreviateGenus'] );
+                        }
+                    ],
                     'status' => [
                         'type' => Type::string(),
                         'description' => "The nomenclatural status of this name.",

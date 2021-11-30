@@ -296,6 +296,80 @@ class Name extends WfoDbObject{
         return $this->year;
     }
 
+    public function getFullNameString($italics = true, $authors = true, $abbreviate_rank = true, $abbreviate_genus = false){
+
+        global $ranks_table;
+
+        $out = "";
+
+        $my_level = array_search($this->rank, array_keys($ranks_table));
+        $genus_level = array_search('genus', array_keys($ranks_table));
+        $species_level = array_search('species', array_keys($ranks_table));
+
+        if($my_level > $genus_level){            
+            
+            // we are below genus level
+
+            // always include the genus
+            if($abbreviate_genus){
+                $genus = substr($this->genus, 0, 1) . ".";
+            }else{
+                $genus = $this->genus;
+            }
+
+            if($italics){
+                $out .= "<i>$genus</i>";
+            }else{
+                $out .= $genus;
+            }
+
+            // if we are below the species we include the species epithet
+            if($my_level > $species_level){
+                if($italics){
+                    $out .= " <i>{$this->species}</i>";
+                }else{
+                    $out .= " {$this->species}";
+                }
+            }
+
+            // next the rank for non species
+            if($my_level != $species_level){
+                if($abbreviate_rank){
+                    $rank = $ranks_table[$this->rank]['abbreviation'];
+                }else{
+                    $rank = ucfirst($this->rank);
+                }
+                $out .= " $rank";
+            }
+
+            // now the actual name
+             if($italics){
+                $out .= " <i>{$this->name}</i>";
+            }else{
+                $out .= " {$this->name}";
+            }
+
+        }elseif($my_level == $genus_level){
+            // we are a genus
+            if($italics){
+                $out .= "<i>{$this->name}</i>";
+            }else{
+                $out .= $this->name;
+            }
+        }else{
+            // we are above genus level - easy!
+            $out .= $this->name;
+        }
+    
+
+        if($authors){
+            $out .= " {$this->authors}";
+        }
+
+        return $out;
+
+    }
+
     /**
      * 
      * Sets a hint word to use when doing name matching
@@ -536,9 +610,9 @@ class Name extends WfoDbObject{
 
         //  Does the basionym have a basionym
         $basionym = $this->getBasionym();
-        if($basionym){
+        if($basionym && $basionym->getBasionym()){
             $out['ok'] = WFO_INTEGRITY_FAIL;
-            $out['status'][] = "The basionym is set to {$basionym->getPrescribedWfoId()} but that also has a basionym of {$basionym->getBasionym()->getPrescribedWfoId()}. You can't chain basionyms.";
+            $out['status'] = "The basionym is set to {$basionym->getPrescribedWfoId()} but that also has a basionym of {$basionym->getBasionym()->getPrescribedWfoId()}. You can't chain basionyms.";
         }
 
         // fixme - check my values are cool
@@ -609,7 +683,13 @@ ao.
         return $this->rank_enumeration;
     }
 
-    public function save(){
+    /**
+     * This is always called via inherited
+     * save() method in WfoDbObject which 
+     * wraps all these calls in a transaction
+     * 
+     */
+    protected function saveDangerously(){
 
         // FIXME: add in issue 
         

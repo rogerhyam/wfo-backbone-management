@@ -1,8 +1,10 @@
 <?php
 
 require_once('../config.php');
+require_once('../include/WfoDbObject.php');
 require_once('../include/Name.php');
 
+// php -d memory_limit=10G import_botalista_seed_basionyms.php 2>&1
 
 // work through all the rows - may take a while
 $sql = "SELECT * FROM botalista_dump_1 where length(originalNameUsageID) >0";
@@ -45,6 +47,7 @@ while($row = $response->fetch_assoc()){
     $basionym = Name::getName($row['originalNameUsageID']);
     if(!$basionym) continue; // malformed wfo id ?
     if(!$basionym->getId()){
+        
         echo "We have not seen this basionym id before! " . $row['originalNameUsageID'];
         exit;
     }
