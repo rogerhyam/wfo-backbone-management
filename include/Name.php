@@ -300,7 +300,7 @@ class Name extends WfoDbObject{
 
         global $ranks_table;
 
-        $out = "";
+        $out = '<span class="wfo-name-full"><span class="wfo-name">';
 
         $my_level = array_search($this->rank, array_keys($ranks_table));
         $genus_level = array_search('genus', array_keys($ranks_table));
@@ -361,10 +361,13 @@ class Name extends WfoDbObject{
             $out .= $this->name;
         }
     
+        $out .= "</span>";
 
         if($authors){
-            $out .= " {$this->authors}";
+            $out .= " <span class=\"wfo-name-authors\">{$this->authors}</span>";
         }
+
+        $out .= "</span>";
 
         return $out;
 
@@ -823,5 +826,16 @@ ao.
 
     } // save()
 
+    /**
+     * An update function for the name parts
+     * that follows the update -> UpdateResponse pattern for GraphQL (or other) API
+     * 
+     */
+
+    public function updateNameParts($args,$response){
+        $response->success = true;
+        $response->message = "Somebody should implement something here!";
+        $response->feedback['nameString'] = "What a pretty name!";
+     }
 
 } // name

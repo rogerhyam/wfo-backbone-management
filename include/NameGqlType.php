@@ -27,10 +27,10 @@ class NameGqlType extends ObjectType
                         }
                     ],
                     'rank' => [
-                        'type' => Type::string(),
+                        'type' => TypeRegister::rankType(),
                         'description' => "The rank string for this name",
                         'resolve' => function($name){
-                            return $name->getRank();
+                            return Rank::getRank($name->getRank());
                         }
                     ],
                     'nameString' => [
