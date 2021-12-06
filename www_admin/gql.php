@@ -13,8 +13,8 @@ require_once('../include/Taxon.php');
 require_once('../include/Name.php');
 require_once('../include/NameMatcher.php');
 require_once('../include/NameMatches.php');
-
-
+require_once('../include/Rank.php');
+require_once('../include/UpdateResponse.php');
 
 $typeReg = new TypeRegister();
 
@@ -69,16 +69,69 @@ $schema = new Schema([
                     $matcher = new NameMatcher();
                     return $matcher->stringMatch($args['queryString']);
                 }
+            ],
+            'getAllRanks' => [
+                'type' => Type::listOf(TypeRegister::rankType()),
+                'description' => "A list of all recognized ranks from highest to lowest",
+                'resolve' => function(){
+                    global $ranks_table;
+                    $ranks = array();
+                    foreach(array_keys($ranks_table) as $rankName){
+                        $ranks[] = Rank::getRank($rankName);
+                    }
+                    return $ranks;
+                }
             ]
         ]// fields
     ]), // query object type
     'mutation' => new ObjectType([
         'name' => "Mutation",
-        'description' => "This is how you change stuff",
+        'description' => "Update and create taxa and names.",
         'fields' => [
-            'createTaxon' => [
-                'type' => TypeRegister::taxonType()
-            ] // createTaxon
+            'updateNameParts' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Get a list of names that match the query string.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'genusString' => [
+                        'type' => Type::string(),
+                        'description' => "The string to be used in the genus part of the name.",
+                        'required' => true
+                    ],
+                    'speciesString' => [
+                        'type' => Type::string(),
+                        'description' => "A string to be used in the species part of the name.",
+                        'required' => true
+                    ],
+                    'nameString' => [
+                        'type' => Type::string(),
+                        'description' => "The actual name string (single word) for this name",
+                        'required' => true
+                    ],
+                    'rankString' => [
+                        'type' => Type::string(),
+                        'description' => "The name of the rank (from the ranks table) for this name.",
+                        'required' => true
+                    ],
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    //print_r($context);
+                    error_log(print_r($context, true));
+                    $response = new UpdateResponse();
+                    $name = Name::getName($args['wfo']);
+                    if(!$name || !$name->getId()){
+                        $response->success = false;
+                        $response->message = "Couldn't find name for WFO ID '{$args['wfo']}'"; 
+                    }else{
+                        $name->updateNameParts($args,$response);
+                    }
+                    return $response;
+                }
+            ] // updateNameParts
         ]// fields
     ])// mutations
              
