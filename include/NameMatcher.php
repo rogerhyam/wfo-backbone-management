@@ -117,29 +117,18 @@ class NameMatcher{
         global $mysqli;
         $out = array();
 
-        if($this->queryString){
-            $out['Query String'] = $this->queryString;
-        }
+        // the object we will return
+        $matches = new NameMatches();
+        $matches->queryString = $this->queryString;
+        $matches->nameParts = $this->name_parts;
+        $matches->rank = $this->rank;
+        $matches->authors = $this->authors;
+        $matches->distances = array();
+        $matches->names = array();
 
-        // name parts
-        $out['Name Parts']['message'] = count($this->name_parts) . " name parts found from beginning of string.";
-        $out['Name Parts']['parts'] = $this->name_parts;
+        // do nothing if we have nothing to work with
+        if(!trim($this->queryString)) return $matches;
 
-        // rank
-        if($this->rank){
-            $out['Rank Part']['message'] = "A rank word was found that could be parsed to a rank";
-            $out['Rank Part']['rank'] = $this->rank;
-        }else{
-            $out['Rank Part']['message'] = "No word signifying rank was found";
-        }
-        
-        // authors
-        if($this->authors){
-            $out['Authors Part']['message'] = "An authors string was identified";
-            $out['Authors Part']['authors'] = $this->authors;
-        }else{
-            $out['Authors Part']['message'] = "No authors string was found";
-        }
 
         // if the query string ends in a space then they may be looking for more
         // e.g they have typed a genus name and are looking for a list of species in the genus
@@ -191,32 +180,24 @@ class NameMatcher{
 
         $sql .= " LIMIT 1000";
 
-        $out['sql'][] = $sql;
 
         $result = $mysqli->query($sql);
 
-        $out['Search']['num_rows'] = $result->num_rows;
 
         // Score them all
-        $out['candidates'] = array();
+        $candidates = array();
         while($row = $result->fetch_assoc()){
-            $out['candidates'][] = $this->scoreRow($row);
+            $candidates[] = $this->scoreRow($row);
         }
 
         // sort them all
-        usort($out['candidates'], function($a, $b){
+        usort($candidates, function($a, $b){
                 if ($a['distance'] == $b['distance']) return 0;
                 return ($a['distance'] < $b['distance']) ? -1 : 1;
             });
 
         // we return a subset maximum of 50 objects
-        $matches = new NameMatches();
-        $matches->queryString = $this->queryString;
-        $matches->nameParts = $this->name_parts;
-        $matches->rank = $this->rank;
-        $matches->authors = $this->authors;
-        $matches->distances = array();
-        foreach(array_slice($out['candidates'], 0, 50) as $m){
+        foreach(array_slice($candidates, 0, 50) as $m){
             $matches->names[] =  Name::getName($m['row']['id']);
             $matches->distances[] = $m['distance'];
         }
@@ -258,6 +239,9 @@ class NameMatcher{
 
             // desperation just look for author string!
             default:
+                $out['name'] = levenshtein($row['name'], "");
+                $out['genus'] = levenshtein($row['genus'], "");
+                $out['species'] = levenshtein($row['species'], "");
                 $out['authors'] = levenshtein($row['authors'], $this->authors);
                 break;
         }
