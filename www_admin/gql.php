@@ -121,7 +121,7 @@ $schema = new Schema([
                 'resolve' => function($rootValue, $args, $context, $info) {
                     //print_r($context);
                     error_log(print_r($context, true));
-                    $response = new UpdateResponse();
+                    $response = new UpdateResponse('UpdateNameParts', true, "Updating the name parts");
                     $name = Name::getName($args['wfo']);
                     if(!$name || !$name->getId()){
                         $response->success = false;

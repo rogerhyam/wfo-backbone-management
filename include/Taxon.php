@@ -189,11 +189,11 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
-        $integrity = array();
-        $integrity['status'] = WFO_INTEGRITY_OK; 
+        $integrity = new UpdateResponse('taxon', true, "Taxon integrity check");
+        $integrity->status = WFO_INTEGRITY_OK;
 
-        $integrity = $this->checkRank($integrity);
-        $integrity = $this->checkAutonym($integrity);
+        $integrity->children[] = $this->checkRank();
+        $integrity->children[] = $this->checkAutonym();
 
         // Call integrity check on the accepted name?
 
@@ -209,6 +209,26 @@ class Taxon extends WfoDbObject{
 
         // Unspecified taxa should disappear if they don't have children but not if they are autonyms
 
+        
+        foreach ($integrity->children as $check) {
+
+            // one fails we all fail
+            if(!$check->status == WFO_INTEGRITY_FAIL){
+                $integrity->status = WFO_INTEGRITY_FAIL;
+                $integrity->success = false;
+                $integrity->message = "Failed on {$check->name}";
+                break;
+            }
+
+            // if on is not success then we add a warning
+            if(!$check->status != WFO_INTEGRITY_OK){
+                $integrity->status = WFO_INTEGRITY_WARN;
+                $integrity->success = true;
+                $integrity->message = "Warning on {$check->name}";
+            }
+
+        }
+
 
         return $integrity;
     }
@@ -223,22 +243,23 @@ class Taxon extends WfoDbObject{
      * @return Array An updated version of the integrity
      */
 
-    public function checkRank($integrity){
+    public function checkRank(){
 
         global $ranks_table;
 
-        $integrity['rank']['status'] = null;
+        $integrity = new UpdateResponse('rank', true, 'Rank OK');
+        $integrity->status = WFO_INTEGRITY_OK;
 
         // no parent no go
         if (!$this->parent){
-            $integrity['status'] = WFO_INTEGRITY_FAIL;
-            $integrity['rank']['message'] = "No parent is defined so correct rank can't be ascertained.";
+            $integrity->success = false;
+            $integrity->message = "No parent is defined so correct rank can't be ascertained.";
             return $integrity;
         }
 
         // we are root it is OK
         if($this->parent == $this){
-            $integrity['rank']['message'] = "This is the root taxon so no rank evaluation needed.";
+            $integrity->message = "This is the root taxon so no rank evaluation needed.";
             return $integrity;
         }
 
@@ -249,7 +270,10 @@ class Taxon extends WfoDbObject{
         if(!$parent_r || !$my_rank){
             //print_r($this->parent);
             throw new ErrorException("No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.");
-            $integrity['status'] = WFO_INTEGRITY_FAIL;
+            $integrity->status = WFO_INTEGRITY_FAIL;
+            $integrity->success = false;
+            $integrity->message = "No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.";
+            
             return $integrity;
         }
 
@@ -257,13 +281,14 @@ class Taxon extends WfoDbObject{
         $permissable  = $ranks_table[$parent_r]['children'];
         if(!in_array($my_rank, $permissable)){
             $perms = implode(',', $permissable);
-            $integrity['status'] = WFO_INTEGRITY_FAIL;
-            $integrity['rank']['message'] = "You can't add a taxon of rank $my_rank to parent of rank $parent_r. Permissible ranks are $perms.";
+            $integrity->status = WFO_INTEGRITY_FAIL;
+            $integrity->success = false;
+            $integrity->message = "You can't add a taxon of rank $my_rank to parent of rank $parent_r. Permissible ranks are $perms.";
             return $integrity;
         }
 
         // got to here so we have good ranks
-        $integrity['rank']['message'] = "Adding taxon of rank $my_rank to parent of rank $parent_r is permissible.";
+        $integrity->message = "Adding taxon of rank $my_rank to parent of rank $parent_r is permissible.";
         
         // we should be the same rank as our siblings
         $siblings = $this->parent->getChildren();
@@ -288,10 +313,10 @@ class Taxon extends WfoDbObject{
 
         // if there are siblings with higher rank then throw a wobbly
         if(count($higher_level_siblings)){
-            $integrity['status'] = WFO_INTEGRITY_WARN;
-            $integrity['rank']['status'] = WFO_RANK_REBALANCE;
-            $integrity['rank'] .= " There is an imbalance of ranks at this point in the hierarchy. These will be rebalanced on save.";
-            $integrity['rank']['potential_parents'] = $potential_parents;
+            $integrity->status = WFO_RANK_REBALANCE;
+            $integrity->success = false;
+            $integrity->message = "There is an imbalance of ranks at this point in the hierarchy. These will be rebalanced on save.";
+            $integrity->taxa = $potential_parents;
         }
 
         return $integrity;
@@ -335,10 +360,13 @@ class Taxon extends WfoDbObject{
      * 
      * 
      */
-    public function checkAutonym($integrity){
+    public function checkAutonym(){
 
         global $ranks_table;
         global $mysqli;
+
+        $integrity = new UpdateResponse('autonym', true, 'Autonym OK');
+        $integrity->status = WFO_INTEGRITY_OK;
 
         // is this a subdivision of a genus or species?
         // if not return that autonym stuff is N/A
@@ -347,19 +375,17 @@ class Taxon extends WfoDbObject{
         $rank_index = array_search($this->getRank(), array_keys($ranks_table));
         
         if($rank_index <= $genus_index || $rank_index == $species_index){
-            $integrity['autonym'] = array(
-                'status' => WFO_AUTONYM_NA,
-                'message' => "Autonyms are not applicable at the rank " . $this->getRank() . "."
-            );
+            $integrity->status = WFO_AUTONYM_NA;
+            $integrity->success = true;
+            $integrity->message = "Autonyms are not applicable at the rank " . $this->getRank() . ".";
             return $integrity;
         }
 
         // Am I the autonym?
         if($this->isAutonym()){
-            $integrity['autonym'] = array(
-                'status' => WFO_AUTONYM,
-                'message' => "This taxon is an autonym"
-            );
+            $integrity->status = WFO_AUTONYM;
+            $integrity->success = true;
+            $integrity->message = "This taxon is an autonym";
             return $integrity;
         }
 
@@ -375,24 +401,23 @@ class Taxon extends WfoDbObject{
             
             if($bro->isAutonym()){
                   // we have found the autonym amongst our siblings
-                    $integrity['autonym'] = array(
-                        'status' => WFO_AUTONYM_EXISTS,
-                        'message' => "There is an autonym at this level in the hierarchy.",
-                        'taxon_id' => $bro->getId()
-                    );
-                    return $integrity;
+                $integrity->status = WFO_AUTONYM_EXISTS;
+                $integrity->success = true;
+                $integrity->message = "There is an autonym at this level in the hierarchy.";
+                $integrity->taxa[] = $bro;
+                return $integrity;
               }
         }
 
         // can't find an autonym but there should be one
-        $integrity['autonym'] = array('status' => WFO_AUTONYM_REQUIRED );
-
-        $integrity['autonym']['candidate_names'] = $this->findAutonymNames(
+        $integrity->status = WFO_AUTONYM_REQUIRED;
+        $integrity->success = true;
+        $integrity->message = "Can't find an autonym but there should be one";
+        $integrity->names[] = $this->findAutonymNames(
             $this->getAcceptedName()->getRank(), 
             $this->getAcceptedName()->getGenusString(), 
             $this->getAcceptedName()->getSpeciesString()
         );
-
         return $integrity;
 
     }
@@ -417,7 +442,10 @@ class Taxon extends WfoDbObject{
 
         // check validity and refuse to proceed if we aren't valid
         $integrity = $this->checkIntegrity();
-        if($integrity['status'] == WFO_INTEGRITY_FAIL) return false;
+        if($integrity->status == WFO_INTEGRITY_FAIL){
+            $integrity->success = false;
+            return $integrity;
+        } 
 
         // Integrity checks out so it is OK to proceed
 
@@ -493,7 +521,11 @@ class Taxon extends WfoDbObject{
         $this->assignAcceptedName($this->name);
 
         // do we need to create an associated autonym?
-        if($integrity['autonym']['status'] == WFO_AUTONYM_REQUIRED){
+        $autonym_integrity = null;
+        foreach ($integrity->children as $check) {
+            if($check->name = 'autonym') $autonym_integrity = $check;
+        }
+        if($autonym_integrity && $autonym_integrity->status == WFO_AUTONYM_REQUIRED){
             
             // create a name to base the taxon on
             $autonym = $this->createAutonym(
@@ -505,9 +537,18 @@ class Taxon extends WfoDbObject{
 
 
         // do we need to rebalance the tree at this point?
-        if($integrity['rank']['status'] == WFO_RANK_REBALANCE){
+        $rank_integrity = null;
+        foreach ($integrity->children as $check) {
+            if($check->name = 'rank'){
+                $rank_integrity = $check;
+                break;
+            }
+        }
 
-            $potential_parents = array_keys($integrity['rank']['potential_parents']);
+
+        if($rank_integrity && $rank_integrity->status == WFO_RANK_REBALANCE){
+
+            $potential_parents = $rank_integrity->taxa;
 
             // are any of them suitable parents?
             $new_parent = null;

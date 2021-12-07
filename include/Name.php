@@ -587,35 +587,39 @@ class Name extends WfoDbObject{
 
         global $mysqli;
 
-        $out = array();
-        $out['status'] = WFO_INTEGRITY_OK; 
+        $out = new UpdateResponse('name', true, "Name integrity check");
+        $out->status = WFO_INTEGRITY_OK; 
 
         // is the rank valid?
         if(!$this->rank){
-            $out['ok'] = WFO_INTEGRITY_FAIL;
-            $out['status'][] = "No rank is set.";
+            $out->status = WFO_INTEGRITY_FAIL;
+            $out->success = false;
+            $out->children[] = new UpdateResponse('rank', false, 'No rank is set');
         }
         $ranks = $this->getRankEnumeration();
 
         if(!in_array($this->rank, $ranks)){
-            $out['ok'] = WFO_INTEGRITY_FAIL;
+            $out->status = WFO_INTEGRITY_FAIL;
+            $out->success = false;
             $possibles = implode(',', $ranks);
-            $out['status'][] = "Unrecognised rank '{$this->rank}'. Possible values are: $possibles";
+            $out->children[] = new UpdateResponse('rank', false, "Unrecognised rank '{$this->rank}'. Possible values are: $possibles");
         }
 
         // is the status valid?
         $statuses = $this->getStatusEnumeration();
         if($this->status && !in_array($this->status, $statuses)){
-            $out['ok'] = WFO_INTEGRITY_FAIL;
+            $out->status = WFO_INTEGRITY_FAIL;
+            $out->success = false;
             $possibles = implode(',', $statuses);
-            $out['status'][] = "Unrecognised nomenclatural status '{$this->status}'. Possible values are: $possibles";
+            $out->children[] = new UpdateResponse('status', false, "Unrecognised nomenclatural status '{$this->status}'. Possible values are: $possibles");
         }
 
         //  Does the basionym have a basionym
         $basionym = $this->getBasionym();
         if($basionym && $basionym->getBasionym()){
-            $out['ok'] = WFO_INTEGRITY_FAIL;
-            $out['status'] = "The basionym is set to {$basionym->getPrescribedWfoId()} but that also has a basionym of {$basionym->getBasionym()->getPrescribedWfoId()}. You can't chain basionyms.";
+            $out->status = WFO_INTEGRITY_FAIL;
+            $out->success = false;
+            $out->children[] = new UpdateResponse('basionym', false, "The basionym is set to {$basionym->getPrescribedWfoId()} but that also has a basionym of {$basionym->getBasionym()->getPrescribedWfoId()}. You can't chain basionyms.");
         }
 
         // fixme - check my values are cool
@@ -699,8 +703,11 @@ ao.
         global $mysqli;
 
         // check validity and refuse to proceed if we aren't valid
-        $check = $this->checkIntegrity();
-        if($check['status'] == WFO_INTEGRITY_FAIL) return false;
+        $updateResponse = $this->checkIntegrity();
+        if($updateResponse->status == WFO_INTEGRITY_FAIL){
+            $updateResponse->success = false;
+            return $updateResponse;
+        } 
 
         // before we do anything we need to check we have a WFO-ID and the db id of it.
 
@@ -824,6 +831,8 @@ ao.
 
         }
 
+        return $updateResponse;
+
     } // save()
 
     /**
@@ -831,11 +840,20 @@ ao.
      * that follows the update -> UpdateResponse pattern for GraphQL (or other) API
      * 
      */
-
     public function updateNameParts($args,$response){
+
+        $this->setNameString($args['nameString']);
+        $this->setGenusString($args['genusString']);
+        $this->setSpeciesString($args['speciesString']);
+        $this->setRank($args['rankString']);
+        return $this->save();
+/*
         $response->success = true;
-        $response->message = "Somebody should implement something here!";
+        $response->message = "Somebody should implement something here! " . $args['wfo'];
         $response->feedback['nameString'] = "What a pretty name!";
-     }
+
+        return $response;
+*/
+    }
 
 } // name

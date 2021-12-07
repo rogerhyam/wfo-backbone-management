@@ -81,12 +81,15 @@ class WfoDbObject{
         $mysqli->begin_transaction();
 
         try {
-            $this->saveDangerously();
+            $response = $this->saveDangerously();
             /* If code reaches this point without errors then commit the data in the database */
             $mysqli->commit();
+            $response->success = true;
+            return $response;
         } catch (mysqli_sql_exception $exception) {
             $mysqli->rollback();
             throw $exception;
+            return new UpdateResponse('database', false, "Errors occurred on writing to the database");
         }
 
     }
