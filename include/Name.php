@@ -563,7 +563,16 @@ class Name extends WfoDbObject{
     } 
 
     private function generateWfoId(){
-        return uniqid('tmp-'); // FIXME: This shouldn't happen yet
+
+        global $mysqli;
+
+        $mysqli->query("UPDATE wfo_mint SET next_id = (@new_id := next_id) + 1 WHERE `rank` = '{$this->rank}';");
+        $response = $mysqli->query("select @new_id as wfo_id");
+        $row = $response->fetch_assoc();
+        return 'wfo-' . $row['wfo_id'];
+
+        // FIXME - this could do with limits checks on it but can run for many millions before we run out of space.
+
     }
 
     /**
@@ -713,7 +722,7 @@ ao.
 
         // if we don't have a wfo_id we create one
         if(!$this->prescribed_wfo_id){
-            $this->setPrescribedWfoId($this->generateWfoId());
+            $this->setPrescribedWfoId( $this->generateWfoId() );
         }
 
         // get the wfo_id_id so we can link to it

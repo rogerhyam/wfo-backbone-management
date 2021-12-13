@@ -13,6 +13,32 @@ class NameMatcher{
     private ?String $rank = null;
     private ?String $authors = null;
 
+    function alphaMatch($queryString){
+
+        global $mysqli;
+    
+        // sanitize queryString
+        $queryString = preg_replace('/[^A-Za-z- ]/', '', $queryString);
+
+        $matches = new NameMatches();
+        $matches->queryString = $queryString;
+        $matches->nameParts = array();
+        $matches->rank = null;
+        $matches->authors = null;
+        $matches->distances = array();
+        $matches->names = array();
+
+        $response = $mysqli->query("SELECT id, `name_alpha` FROM `names` WHERE `name_alpha` LIKE '$queryString%' ORDER BY `name_alpha` LIMIT 50");
+
+        while($row = $response->fetch_assoc()){
+            $matches->names[] = Name::getName($row['id']);
+            $matches->distances[] = levenshtein($row['name_alpha'], $queryString);
+        }
+
+        return $matches;
+
+    }
+
     /**
      * Parse a string to find the best matches
      * 

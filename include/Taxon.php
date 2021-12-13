@@ -9,8 +9,6 @@ class Taxon extends WfoDbObject{
     private ?Name $name = null;
     private ?Taxon $parent = null;
 
-    private ?String $unspecified_rank = null;
-
     private ?Array $children = null;
     private ?Array $synonyms = null;
 
@@ -57,8 +55,7 @@ class Taxon extends WfoDbObject{
         }else{
             $this->parent = Taxon::getById($row['parent_id']);
         }
-        
-        $this->unspecified_rank = $row['unspecified_rank'];
+
         $this->comment = $row['comment'];
         $this->issue = $row['issue'];
         $this->user_id = $row['user_id'];
@@ -202,12 +199,6 @@ class Taxon extends WfoDbObject{
         // I should be a correct lower rank to my parent
 
         // I should be same rank as my siblings
-        
-        // I should have a name or I should be unspecified
-
-        // There should only be one unspecified taxon among siblings
-
-        // Unspecified taxa should disappear if they don't have children but not if they are autonyms
 
         
         foreach ($integrity->children as $check) {
@@ -326,7 +317,6 @@ class Taxon extends WfoDbObject{
     /**
      * 
      * Taxa have a rank based on their name
-     * or if they are unspecified taxa based on their siblings 
      * 
      */
     public function getRank(){
@@ -334,11 +324,6 @@ class Taxon extends WfoDbObject{
         // we are a normal taxon
         if($this->name){
             return $this->name->getRank();
-        }
-
-        // we are an unspecified taxon
-        if($this->unspecified_rank){
-            return $this->unspecified_rank;
         }
 
         // we don't know what we are - probably an error!
@@ -349,8 +334,6 @@ class Taxon extends WfoDbObject{
     public function setRank($rank){
         if($this->name){
             return $this->name->setRank($rank);
-        }else{
-            $this->unspecified_rank = $rank;
         }
     }
 
@@ -462,7 +445,6 @@ class Taxon extends WfoDbObject{
                 SET 
                 `parent_id` = ?,
                 `user_id` = ?,
-                `unspecified_rank` = ?,
                 `comment` = ?, 
                 `issue` = ?,
                 `source` = ? 
@@ -471,10 +453,9 @@ class Taxon extends WfoDbObject{
             );
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $parent_id = $this->parent->getId();
-             $stmt->bind_param("iissssi",
+             $stmt->bind_param("iisssi",
                 $parent_id,
                 $this->user_id,
-                $this->unspecified_rank,
                 $this->comment,
                 $this->issue,
                 $this->source,
@@ -491,15 +472,14 @@ class Taxon extends WfoDbObject{
             // we don't have a db id so we are creating
 
              $stmt = $mysqli->prepare("INSERT 
-                INTO `taxa` (`parent_id`, `user_id`,`unspecified_rank`, `comment`,`issue`,`source`) 
-                VALUES (?,?,?,?,?,?)");
+                INTO `taxa` (`parent_id`, `user_id`, `comment`,`issue`,`source`) 
+                VALUES (?,?,?,?,?)");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $parent_id = $this->parent->getId();
 
-            $stmt->bind_param("iissss",
+            $stmt->bind_param("iisss",
                 $parent_id,
                 $this->user_id,
-                $this->unspecified_rank,
                 $this->comment,
                 $this->issue,
                 $this->source
@@ -553,7 +533,7 @@ class Taxon extends WfoDbObject{
             // are any of them suitable parents?
             $new_parent = null;
             foreach ($potential_parents as $pot){
-                if($pot->isAutonym() || $pot->isUnspecified()){
+                if($pot->isAutonym()){
                     // we have a suitable parent.
                     $new_parent = $pot;
                     break;
@@ -567,12 +547,11 @@ class Taxon extends WfoDbObject{
                 $genus_level = array_search('genus', array_keys($ranks_table));
                 $my_level = array_search($this->getRank(), array_keys($ranks_table));
 
+                
+
                 if($my_level > $genus_level){
                     // below species level
                     $new_parent = $this->createAutonym($this->parent,  $potential_parents[0]->getRank());
-                }else{
-                    // must be above genus - the land of unspecified taxa
-                    $new_parent = $this->createUnspecifiedTaxon($this->parent,  $potential_parents[0]->getRank());
                 }
 
             }
@@ -763,39 +742,6 @@ class Taxon extends WfoDbObject{
         $autonym->save();
         $parent->load();
         return $autonym;
-    }
-
-    /**
-     * Creates an unspecified taxon
-     * Unspecified taxa don't have names but they do have a rank
-     * 
-     * @param Taxon $parent object that will be the parent of the new taxon
-     * @param String $rank is the rank this new taxon will hold (from ranks_table)
-     * @return Taxon The new taxon.
-     */
-    private function createUnspecifiedTaxon($parent, $rank){
-
-        // a naked taxon
-        $un = Taxon::getById(-1);
-        // don't set the name!
-        $un->setRank($rank); // set the rank - this will set the unspecified rank
-        $un->setParent($parent);
-        $un->save();
-        return $un;
-
-    }
-
-    /**
-     * Is this an unspecified taxon (lacking an accepted name) or is it 
-     * a regular taxon
-     * 
-     * 
-     * 
-     */
-
-    public function isUnspecified(){
-        if($this->getAcceptedName()) return false;
-        return true;
     }
 
     /**

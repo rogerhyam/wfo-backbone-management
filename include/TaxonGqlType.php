@@ -70,16 +70,9 @@ class TaxonGqlType extends ObjectType
                     ],
                     'rank' => [
                         'type' => TypeRegister::rankType(),
-                        'description' => "The rank of this taxon. This is a wrapper around the rank of the accepted name except where this is a unspecified taxon.",
+                        'description' => "The rank of this taxon. This is a wrapper around the rank of the accepted name.",
                         'resolve' => function($taxon){
                             return Rank::getRank($taxon->getRank());
-                        }
-                    ],
-                    'isUnspecified' => [
-                        'type' => Type::boolean(),
-                        'description' => "Is this taxon an unspecified one (without a name).",
-                        'resolve' => function($taxon){
-                            return $taxon->isUnspecified();
                         }
                     ]
                 ];

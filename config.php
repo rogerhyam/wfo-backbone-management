@@ -27,8 +27,11 @@ define("WFO_AUTONYM_NA", 7); // returned when this isn't the autonym and no auto
 define("WFO_RANK_REBALANCE", 8); // the ranks at this point are out of balance and need fixing.
 
 
-// the rank table
+// the rank table - having this in code saves a lot of sql queries and joins because
+// it is used everywhere.
+// -- READ -- THIS --
 // this should be kept in syn with the enumeration values in the db
+// and also the wfo_mint table to generate
 $ranks_table = array(
 
   "kingdom" => array(

@@ -57,7 +57,7 @@ $schema = new Schema([
             ],
             'getNamesByStringMatch' => [
                 'type' => TypeRegister::nameMatchesType(),
-                'description' => "Get a list of names that match the query string.",
+                'description' => "Get a list of names that match the query string using some fuzzy best we can reckoning.",
                 'args' => [
                     'queryString' => [
                         'type' => Type::string(),
@@ -68,6 +68,21 @@ $schema = new Schema([
                 'resolve' => function($rootValue, $args, $context, $info){
                     $matcher = new NameMatcher();
                     return $matcher->stringMatch($args['queryString']);
+                }
+            ],
+            'getNamesByAlphaMatch' => [
+                'type' => TypeRegister::nameMatchesType(),
+                'description' => "Get a list of names that match the query string assuming simple alphabetical matching first part (excluding rank).",
+                'args' => [
+                    'queryString' => [
+                        'type' => Type::string(),
+                        'description' => "The start of the name string excluding any rank and authors",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info){
+                    $matcher = new NameMatcher();
+                    return $matcher->alphaMatch($args['queryString']);
                 }
             ],
             'getAllRanks' => [

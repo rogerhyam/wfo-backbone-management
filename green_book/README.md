@@ -79,7 +79,7 @@ Lycium chilense var. o'donellii F.A.Barkley
 
 ## Integrity Checks on Saving a Taxon
 
-1. An accepted name must be set (unless this taxon is of kind antonym or unspecified - see below).
+1. An accepted name must be set.
 1. A parent taxon must be set (apart from the root of all taxa which has itself as its parent).
 1. The accepted name for the taxon must pass the integrity checks necessary for it to be saved as a name (see above).
 1. The accepted name must have the nomenclatural status 'valid'.
@@ -88,34 +88,17 @@ Lycium chilense var. o'donellii F.A.Barkley
 1. If the accepted name is a synonym of another taxon then that synonym link will be broken - the name is moved.
 1. If the basionym of the accepted name (or any other homotypic name) is a synonym of another taxon then that synonym link will be broken and the name moved to be a synonym of this taxon.
 1. The rank of the accepted name must be an appropriate lower rank to that of the name of the parent (see ranks table below).
-1. The siblings of the taxon within this parent must be at the same rank. If a rank in the hierarchy is skipped then the structure of the tree will be adjusted to use autonyms and "unspecified" placeholder taxa as described below.
+1. The siblings of the taxon within this parent must be at the same rank. If a rank in the hierarchy is skipped then the structure of the tree will be adjusted to use autonyms below the genus level placeholder taxa as described below.
 1. For taxa at species rank and below the genus part of the name must agree with the name part of the genus above them in the hierarchy.
 1. For taxa below species rank the species part of their names must agree with the name part of the species above them in the hierarchy.
 1. For taxa at species rank and below the year in the name can't be great than the year in name of the genus taxon (if these are set).
 
 
-## Autonyms and unspecified taxa
+## Autonyms
 
 According to the nomeclatural code the creation of a subdivision within a genus or a species automatically creates a null taxon called the autonym which holds everything that isn't specified as being part of the named subdivisions. Autonyms include the type specimen for the species and genus (Art. 22.3 and 26.3 of code). These taxa simply repeat the name of the genus or species as their own name and have no author strings. In line with these rules the WFO backbone system automatically creates and destroys autonym taxa as infrageneric and infraspecific taxa are added and removed from the taxonomic hierarchy.
 
-Above the level of genus the code has no notion of autonyms. The creation of a new subfamily does not result in the creation of an associated autonym subfamily to hold the type and all other material that wasn't considered by the author of the subfamily. In a large scale, collaborative project like the WFO backbone this can result in a counter intuitive classification. A taxon of the rank class may __directly__ contain several subclasses, some orders and a family or two. This is something that wouldn't occur in a single written publication but is the logical result of combining multiple publications. It simply reflects that the work hasn't been done to specify where all the subtaxa fall at every rank. Such a classification probably wouldn't be accepted by a journal editor! To make a more consistent, consensus classification the WFO backbone system automatically creates "unspecified" taxa at ranks above genus that are analogous to but differ from autonyms. The siblings of a taxon must all have the same rank. If a rank in the hierarchy is skipped then the structure of the tree will be automatically adjusted to use "unspecified" placeholder taxa to maintain this rule.
-
-Example 1: If an order is added to a class that already contains subclasses then a subclass with the name "unspecified" will be created automatically and the order added to that instead of directly to the class.
-
-Example 2: If a class already has orders and a subclasses is added then all the existing orders will be moved to an automatically created subclass titled "unspecified".
-
-Example 3: If a class has two subclasses one of which is an "unspecified" placeholder taxon and the other, real subgenus is deleted then the "unspecified" subclass will automatically be removed and its children assigned to the class.
-
-Example 4: If all the children of an "unspecified" taxon are removed the taxon will be deleted automatically.
-
-Unspecified taxa are __not__ direct equivalents of autonyms. They are only created to hold taxa for which the higher taxon at this rank has not yet been specified. e.g. the orders that have not yet been assigned to a subclass. Empty unspecified taxa simply cease to exist. Autonyms in contrast can never be empty because they contain the types of the higher taxa and will always exist (so long as there are sibling taxa at this rank). Autonyms have a name in the Names table and can be referenced via a WFO ID. Unspecified taxa do not. 
-
-What unspecified taxa and autoynms have in common is that they are governed purely by rules not taxonomic judgement and so their management can be entirely automated.
-
-This sounds complicated but will appear quite straight forward in the interface.
-
-Unspecified taxa are an internal construct of the WFO Backbone and not a suggestion for adoption by the code.
-
+Above the level of genus the code has no notion of autonyms. The creation of a new subfamily does not result in the creation of an associated autonym subfamily to hold the type and all other material that wasn't considered by the author of the subfamily. In a large scale, collaborative project like the WFO backbone this can result in a counter intuitive classification. A taxon of the rank class may __directly__ contain several subclasses, some orders and a family or two. This is something that wouldn't occur in a single written publication but is the logical result of combining multiple publications. It simply reflects that the work hasn't been done to specify where all the subtaxa fall at every rank. Such a classification probably wouldn't be accepted by a journal editor! The user interface will therefore always highlight where this occurs to flag it as bad practice.
 
 ## Ranks
 
