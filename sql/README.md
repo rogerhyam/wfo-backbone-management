@@ -26,5 +26,6 @@ Where convenient data integrity is built into the model but not if it would make
 - __users__ stores people and agents who make changes to the data. In addition most changes are also tracked as a 'source' this is the name of the dataset the change comes from but may not be the user making the change.
 - __\*\_log__ tables shadow the main data tables. Rows in the data table are copied to the associated log table before the modifications are set by a BEFORE UPDATE trigger. This provided minimal change tracking.
 - __matching_hints__ contains strings that might be used as hints when trying to match strings against the names. This is almost always likely to be a family name but could be any string. 
+- __wfo_mint__ contains the incrementing numbers for creating new WFO IDs for each rank.
 
 

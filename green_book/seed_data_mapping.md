@@ -126,29 +126,3 @@ Added to the comments in identifiers table. i.e. this is why this WFO ID is a de
 
 Copied into the names.comments field.
 
-## Reset Database between failed runs
-
-SET FOREIGN_KEY_CHECKS = 0;
-
-truncate taxon_names;
-truncate identifiers;
-truncate matching_hints;
-truncate `names`;
-delete FROM taxa where id != 39;
-
-ALTER TABLE taxon_names AUTO_INCREMENT = 1;
-ALTER TABLE identifiers AUTO_INCREMENT = 1;
-ALTER TABLE matching_hints AUTO_INCREMENT = 1;
-ALTER TABLE `names` AUTO_INCREMENT = 1;
-ALTER TABLE taxon_names AUTO_INCREMENT = 1;
-ALTER TABLE taxa AUTO_INCREMENT = 100;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
-### during dev delete name and its identifiers.
-SET @name_id = '1351026';
-SET FOREIGN_KEY_CHECKS = 0;
-delete from identifiers where name_id = @name_id;
-delete from `names` where id = @name_id;
-delete from `taxon_names` where name_id = @name_id;
-SET FOREIGN_KEY_CHECKS = 1;
