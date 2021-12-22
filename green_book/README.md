@@ -2,50 +2,97 @@
 
 (very much under construction)
 
+## Separation of Names and Taxa
+
+
+
+## WFO IDs and Names
 1. Each name has a single, __prescribed WFO ID__. This is the ID that is used to refer to that name whether it occurs as the accepted name of a taxon, a synonym or remains unplaced.
 1. Names may have multiple __deduplication WFO IDs__. When it is determined that two records represent the same real world name they are combined. One ID is chosen as the prescribed ID for the name and the other becomes a deduplication ID. Deduplication IDs should not used other than for the purpose of resolving to the prescribed ID.
 
+## WFO IDs and Taxa
 
-## Taxonomic status of Names
 
-A name can only have a single taxonomic status (play one role) in the system.
-1. __Accepted Name__. A taxon can only have one of these and they have to agree with the rules regarding placement.
-1. __Synonym__ A taxon can have many of these. (Note that whether synonyms are homotypic or heterotypic are tracked separately and discoverable through basionym links)
-1. __Unplaced__ A name that isn't associated with a taxon as an accepted name or synonym. This may be because the name hasn't been researched yet (it is __unchecked__) or because the name is __illegitimate__ under the code (_nom. illeg._ or _nom. superfl._) or because there will never be sufficient information to place it anywhere (in which case it will have a comment to this effect).
+## Name Parts
+
+There are never more than three words in a name in botanical nomenclature. More words maybe used when labelling taxa to indicate the taxonomic placement of the name. Internally the backbone system refers to the three words that make up any name as the Name Parts.
+
+All names have a "Name String" part. This is the word that is minted when the name is published. For a Family it is the family name. For a genus it is the genus name. For a species it is the specific epithet. For a subspecies it is the subspecific epithet.
+
+Names below the rank of genus have a "Genus Part" or "Genus String" to their names. This indicates the genus they were placed in when published or the combination made. (FIXME: Mention homotypic genera?)
+
+Names below the rank of species have a "Species Part" or "Species String" to their name indicating the combination they were published in.
+
+From the point of view of nomenclature subsubspecies and subvarieties are direct "children" of the species. There are no polynomials in botany. This is because they could be placed in any subspecies or variety within that species  without changing their name. The rank isn't part of the name. The same rule applies for divisions of the genus. See Article 53.3 of the code https://www.iapt-taxon.org/nomen/pages/main/art_53.html#Art53.3 
+
+Where it doesn't cause confusion the three parts may be referred to simply as Name, Genus and Species but care must be taken. Better to say the Name String of a name than the Name of a name!
+
+When the name parts are combined, possibly with rank and authors string, then the result is referred to as the "Full Name".
+
+This structure can be mapped onto any arbitrary use of names found in different exchange standards and publications. It can also be extended with names from other ranks in the hierarchy on export. For example it may be required to include a subspecies in the expanded full name of a variety but this reflects the taxonomy not the nomenclature.
 
 ## Nomeclatural status of Names
 
-Names can have a nomenclatural status. This is separate from their taxonomic status (within the currently accepted taxonomy). Some of these statuses may preclude their use as accepted names of taxa.
+Names can have a nomenclatural status. This is separate from their taxonomic status (within the currently accepted taxonomy). Some of these statuses may preclude their use as accepted names of taxa in the taxonomy.
 
-1. illegitimate
-1. later_homonym
-1. superfluous
-1. conserved
-1. rejected
-1. sanctioned
-1. valid
-1. invalid
-1. deprecated
+1. illegitimate - can't be used as accepted name in taxonomy as accepted name.
+1. later_homonym - can't be used as accepted name in taxonomy as accepted name.
+1. superfluous - can't be used as accepted name in taxonomy as accepted name.
+1. conserved - a later homonym that has been explicitly flagged as available for use under the code.
+1. rejected - can't be used as accepted name in taxonomy as accepted name.
+1. sanctioned - fungi specific version of conserved
+1. valid - a correctly published name.
+1. invalid - can't be used as accepted name in taxonomy as accepted name.
+1. deprecated - can't be used as accepted name in taxonomy at all.
+1. unknown - not recommended for placement in taxonomy
 
-### Deprecated!
+
+### More on Deprecation
 
 The nomenclatural status of __deprecated__ is introduced primarily as an internal device. This is not a nomenclatural status according to the botanical code. It is meant in the modern sense of the word particularly with regard to software:
 
 "_to withdraw official support for or discourage the use of_"
 
-We use it for names that we believe have been created in error and that we can't attribute clear meaning to. __It is recommended that these names are not used in future for any purpose.__ They are maintained in the database for name matching purposes and so they could be resurrected in the future if more information is discovered without creating new WFO IDs.
+We use it for names that we believe have been created in error and that we can't attribute clear meaning to. __It is recommended that these names are not used in future for any purpose.__ They are maintained in the database for name matching purposes and so they can be resurrected in the future without creating new WFO IDs if more information is discovered.
 
-The status deprecated is introduced to quell the plague of zombie names. These are names that may have occurred in the literature or a database just once and have subsequently been propagated from one list to the next without ever dying a natural death, just soaking up time and resources. Zombie names are particularly problematic in the age of big data. This is where they find peace.
+The status deprecated is introduced to quell the plague of zombie names. These are names that may have occurred in the literature or a database just once and have subsequently been propagated from one list to the next without ever dying a natural death, just soaking up time and resources. Zombie names are particularly problematic in the age of big data. This is where they find peace.
 
-## Status of Taxa
+## Taxonomic status of Names
 
-All taxa are of the same status. If they occur in the taxonomy then they are accepted taxa. 
+A name can only have a single __taxonomic__ status (that is play one role) in the system.
+1. __Accepted Name__. A taxon can only have one of these and they have to agree with the rules regarding placement. The nomenclatural status of the name must be valid, conserved or sanctioned.
+1. __Synonym__ A taxon can have many of these. They can be of any nomenclatural status apart from deprecated. (Note that whether synonyms are homotypic or heterotypic are tracked separately and discoverable through basionym links)
+1. __Unplaced__ A name that isn't associated with any taxon as an accepted name or synonym. This may be because the name hasn't been researched yet (it is __unknown__) or because the name is __illegitimate__ under the code in some way (_nom. illeg._ or _nom. superfl._) or because there will probably never be sufficient information to place it anywhere, nomenclatural status deprecated. All unplaced names (apart from deprecated names) are available for placement in the taxonomy as synonyms. 
 
-## There are never more than three words in a name in botanical nomenclature but more words maybe used when labelling taxa.
+## Placement of Names
 
-From the point of view of nomenclature subsubspecies and subvarieties are "children" of the species. This is because they could be placed in any subspecies or variety within that species  without changing their name. The rank isn't part of the name. The same rule applies for divisions of the genus.
+There are rules governing how and when names can be placed in the taxonomy. There are five possible actions  In addition there are some rules that prevent names being moved.
 
-See Article 53.3 of the code https://www.iapt-taxon.org/nomen/pages/main/art_53.html#Art53.3
+
+### Placement Actions
+
+There are five actions that can be taken to change a names placement
+
+1. __Raise to accepted name__ A name that is a synonym or not yet placed in the taxonomy and has a nomenclatural status or Valid, Conserved or Sanctioned can become the accepted name of a taxon.
+1. __Sink into synonym__ A name that is the accepted name of a taxon (which doesn't have children or synonyms) or has not yet been placed in the taxonomy can become a synonym in an accepted taxon.
+1. __Change parent taxon__ A name that is the accepted name of a taxon can be moved to another part of the taxonomy.
+1. __Change accepted taxon__ A name that is a synonym of one taxon can be moved to become the synonym of another taxon.
+1. __Remove from taxonomy__ A name that forms part of the taxon as the accepted name of a taxon (which doesn't have children or synonyms) or is a synonym can be removed from the taxonomy.
+
+### Placement Destinations
+
+There are three rules that govern where a name can be placed in the taxonomy
+
+1. __Nomenclatural Status__ Deprecated names can't be placed in the taxonomy at all. Names of all other statuses can be synonyms. Valid, Conserved and Sanctioned names can be accepted names of taxa.  
+1. __Congruent Ranks__ The rank of a child taxon must be one of the accepted ranks of the parent according to the ranks table. e.g. a subspecies can't be a direct child of a genus or family.
+1. __Congruent Name Parts__ The name parts of the parent taxon must agree with the genus string and species string part of the name. e.g. a species can only be in a genus which has a name-string that matches its genus-string and a subspecies can only be in a species that has the name-string and genus-string that agrees with its own species-string and genus-string.
+ 
+
+
+## Taxon Status
+
+All taxa are of the same status. If they occur in the taxonomy then they are accepted taxa. Taxa can't be synonyms. Synonyms are names (from the Greek "with name"). Synonymy indicates the placement of Type specimens only. 
+
 
 ## Names are only alphabetical characters without diacritics 
 
@@ -105,30 +152,6 @@ Above the level of genus the code has no notion of autonyms. The creation of a n
 Recognised ranks are listed in the table below in hierarchical order along with the ranks that are permitted to belong to taxa at that rank. The lowercase English version of the rank name is used internally. Mappings to other versions and abbreviations are
 carried out during import.
 
-| Rank | Permitted Subtaxa |Also Known As|
-|------|-------------------|-------------|
-|kingdom|phylum||
-|phylum|class, order, family||
-|class|subclass, order, family||
-|subclass|order, family||
-|order|suborder, family||
-|suborder|family||
-|family|subfamily, tribe, genus||
-|subfamily|tribe, genus||
-|tribe|subtribe, genus||
-|subtribe|genus||
-|genus|subgenus, section, series, species||
-|subgenus|section, series, species||
-|section|subsection, series, species||
-|subsection|series, species||
-|series|subseries, species||
-|subseries|species||
-|species|subspecies, variety, form|nothospecies|
-|subspecies|variety, form|nothosubspecies|
-|variety|subvariety, form|nothovar.|
-|subvariety|form||
-|form|subform|forma|
-|subform||subforma|
 
 ## Overloading Basionym
 

@@ -71,6 +71,7 @@ Mapped to a restricted enumeration and stored in the 'status' field of the names
 - __rejiciendum or Rejected__  becomes rejected in names.status (only 3 names in test data) 
 - __dubium or Doubtful__ this is the same as an unplaced/unassigned name and is ignored(doesn't occur in test data)
 
+The vast majority of names do not have a nomenclaturalStatus set and if they do they aren't code compliant ones. If the taxonomicStatus is 'synonym' and nomenclaturalStatus is null we have no idea what the actual nomenclatural status is (could be a valid name or illeg or later homonym etc) so I'm using nomenclatural status of 'unknown' where it is impossible to know. On the other hand if the taxonomicStatus is 'Accepted' then I'm setting nomenclatural status to 'valid'. The name has to be validly published if it is the accepted name of a taxon. Baring the few that are conserved (138 in last dump).
 
 ## namePublishedIn
 

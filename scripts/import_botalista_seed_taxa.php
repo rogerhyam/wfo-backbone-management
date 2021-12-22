@@ -22,6 +22,8 @@ function create_taxon($wfo_id, $parent_taxon){
 
     echo "\n$wfo_id";
 
+    // FIXME: WE NEED TO SET THE NAME STATUS TO 'VALID' FOR ANY NAME THAT IS USED AS AN ACCEPTED NAME (IF IT ISN'T ALREADY CONSERVED OR SANCTIONED)
+
     $name = Name::getName($wfo_id);
     $taxon = Taxon::getTaxonForName($name);
     $taxon->setParent($parent_taxon);

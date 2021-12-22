@@ -2,6 +2,7 @@
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\EnumType;
 use GraphQL\GraphQL;
 use GraphQL\Type\Schema;
 use GraphQL\Error\DebugFlag;
@@ -15,6 +16,8 @@ require_once('../include/NameMatcher.php');
 require_once('../include/NameMatches.php');
 require_once('../include/Rank.php');
 require_once('../include/UpdateResponse.php');
+require_once('../include/NamePlacer.php');
+
 
 $typeReg = new TypeRegister();
 
@@ -96,7 +99,30 @@ $schema = new Schema([
                     }
                     return $ranks;
                 }
-            ]
+            ],
+            'getNamePlacer' => [
+                'type' => TypeRegister::namePlacerType(),
+                'args' => [
+                    'id' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID or database ID of the name in question.",
+                        'required' => true
+                    ],
+                    'action' => [
+                        'type' => TypeRegister::getPlacementActionEnum(),
+                        'description' => "The name of the intended action ",
+                        'defaultValue' => 'none'
+                    ],
+                    'filter' => [
+                        'type' => Type::string(),
+                        'description' => "Characters to use as a filter on the suggested placements",
+                        'defaultValue' => ''
+                    ],
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return new NamePlacer($args['id'], $args['action'], $args['filter']);
+                }
+            ],
         ]// fields
     ]), // query object type
     'mutation' => new ObjectType([
@@ -105,7 +131,7 @@ $schema = new Schema([
         'fields' => [
             'updateNameParts' => [
                 'type' => TypeRegister::updateResponseType(),
-                'description' => "Get a list of names that match the query string.",
+                'description' => "Update the name parts.",
                 'args' => [
                     'wfo' => [
                         'type' => Type::string(),
@@ -146,7 +172,38 @@ $schema = new Schema([
                     }
                     return $response;
                 }
-            ] // updateNameParts
+            ], // updateNameParts
+            'updateNameStatus' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the names nomenclatural status.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'status' => [
+                        'type' => Type::string(),
+                        'description' => "The new status for the name.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    //print_r($context);
+                    error_log(print_r($context, true));
+                    $response = new UpdateResponse('UpdateNameParts', true, "Updating the name parts");
+                    $name = Name::getName($args['wfo']);
+                    if(!$name || !$name->getId()){
+                        $response->success = false;
+                        $response->message = "Couldn't find name for WFO ID '{$args['wfo']}'"; 
+                    }else{
+                        $name->updateStatus($args['status'],$response);
+                    }
+                    return $response;
+                }
+            ],
+
+
         ]// fields
     ])// mutations
              
