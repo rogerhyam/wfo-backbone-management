@@ -856,13 +856,13 @@ ao.
         $this->setSpeciesString($args['speciesString']);
         $this->setRank($args['rankString']);
         return $this->save();
-/*
-        $response->success = true;
-        $response->message = "Somebody should implement something here! " . $args['wfo'];
-        $response->feedback['nameString'] = "What a pretty name!";
 
-        return $response;
-*/
     }
+
+    public function updateStatus($new_status, $response){
+        $this->setStatus($new_status);
+        return $this->save();
+    }
+
 
 } // name
