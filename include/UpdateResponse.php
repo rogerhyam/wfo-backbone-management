@@ -9,8 +9,8 @@ class UpdateResponse{
     public bool $success; // did it work?
     public string $message; // an overall message on success or failure of update
     public Array $children = array(); // a list of sub-UpdateResponses (typically one for each field)
-    public Array $taxa = array();
-    public Array $names = array();
+    public Array $taxonIds = array();
+    public Array $nameIds = array();
 
     public function __construct($name, $success, $message){
         $this->name = $name;

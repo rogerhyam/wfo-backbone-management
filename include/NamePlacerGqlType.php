@@ -42,6 +42,10 @@ class NamePlacerGqlType extends ObjectType
                         'type' => Type::string(),
                         'description' => "A name that forms part of the taxon as the accepted name of a taxon (which doesn't have children or synonyms) or is a synonym can be removed from the taxonomy."
                     ],
+                    'filter' => [
+                        'type' => Type::string(),
+                        'description' => "The text used to filter the possibleTaxa returned. Initially the first few letters of the name_alpha"
+                    ],
                     'filterNeeded' => [
                         'type' => Type::boolean(),
                         'description' => "Whether a filter string is needed to display more taxon placements"
