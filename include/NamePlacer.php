@@ -56,7 +56,7 @@ There are three rules that govern where a name can be placed in the taxonomy
      * 
      * @param int $init_value either a primary key in the database or a wfo-id for a name.
      */
-    public function __construct($name_id, $action, $filter){
+    public function __construct($name_id, $action, $filter = ''){
 
         $this->name = Name::getName($name_id);
         $taxon = Taxon::getTaxonForName($this->name);
@@ -81,7 +81,8 @@ There are three rules that govern where a name can be placed in the taxonomy
         $this->setCanChangeAccepted();
         $this->setCanBeRemoved();
 
-        // then where we are headed
+        error_log($this->action);
+
         switch ($this->action) {
      
             // if we are going to be a accepted by raising or 
@@ -299,6 +300,8 @@ There are three rules that govern where a name can be placed in the taxonomy
         // order and limit
         $sql .= " ORDER BY n.name_alpha LIMIT 30";
 
+        //error_log($sql);
+
         // run the query
         $response = $mysqli->query($sql);
 
@@ -328,7 +331,8 @@ There are three rules that govern where a name can be placed in the taxonomy
                  JOIN taxa AS t ON t.taxon_name_id = tn.id
                  AND `name_alpha` LIKE '{$this->filter}%' 
                  ORDER BY n.name_alpha LIMIT 30";
-        
+    
+
         // run the query
         $response = $mysqli->query($sql);
 
@@ -367,8 +371,166 @@ There are three rules that govern where a name can be placed in the taxonomy
         
     }
 
-    public function getPossiblePlaces($filter = false){
+    /**
+     * Actually move the name that the placer 
+     * was initialized with according to the
+     * action it was initialized with
+     * to the destitation passed in.
+     * 
+     * @param $destination_wfo The wfo of the taxon that is the going to be the parent or accepted name. Null if it is being removed.
+     * 
+     */
+    public function updatePlacement($destination_wfo){
 
-    }
+        // all the error checking has been done in the construtor
+        // but we do need to check if the destination is kosher 
+
+        // remove
+        if($this->action == 'remove'){
+            
+            // they should not have sent a destination if they are removing it from taxonomy
+            if($destination_wfo != null){
+                return new UpdateResponse('UpdatePlacement', false, "Trying to remove name from taxonomy but also setting a destination");
+            }
+
+            // it should have a taxon placement already
+            if(!$this->taxon){
+                return new UpdateResponse('UpdatePlacement', false, "Trying to remove name from taxonomy which isn't in the taxonomy");
+            }
+
+            // is it the accepted name
+            if($this->name == $this->taxon->getAcceptedName()){
+
+                // we need to actually delete the taxon!
+                try{
+                    $r = new UpdateResponse('UpdatePlacement', true, "Successfully removed accepted name from taxonomy");
+                    $r->taxonIds[] = $this->taxon->getParent()->getId(); // flag the fact that the parent has changed
+                    $this->taxon->delete();
+                    return $r;
+                }catch(Exception $e){
+                    return new UpdateResponse('UpdatePlacement', false, "Failed to remove taxon from taxonomy. " .  $e->getMessage());
+                }
+
+            }else{
+                try{
+                    $this->taxon->removeSynonym($this->name);
+                    $this->taxon->save();
+                    $r = new UpdateResponse('UpdatePlacement', true, "Removed from taxonomy as synonym.");
+                    $r->taxonIds[] = $this->taxon->getId();
+                    return $r;
+                }catch(Exception $e){
+                    return new UpdateResponse('UpdatePlacement', false, "Failed to remove synonym from taxonomy. " .  $e->getMessage());
+                }
+
+            }
+
+        }
+
+        // sink into synonym
+        if($this->action == 'sink' || $this->action == 'change_accepted'){
+
+            // it must have a destination to go to
+            if($destination_wfo == null){
+                return new UpdateResponse('UpdatePlacement', false, "Trying to sink name into synonym without specifying destination");
+            }
+
+            // check we have a good place to go
+            $destination_name = Name::getName($destination_wfo);
+            $destination_taxon = Taxon::getTaxonForName($destination_name);
+            if($destination_taxon->getId()){
+
+                $r = new UpdateResponse('UpdatePlacement', true, "Successfully sunk name into synonymy");
+
+                // it may be an accepted name if so delete the associated taxon
+                // so it becomes an unplaced name
+
+                // is the name already in the taxonomy
+                if($this->taxon){
+                    if( $this->taxon->getAcceptedName() == $this->name ){
+                        // we are an accepted name so sinking us destroys the taxon
+                        $r->taxonIds[] = $this->taxon->getParent()->getId(); // flag the fact that the parent has changed
+                        $this->taxon->delete();
+                    }else{
+                        // we are a synonym so flag the fact that this taxon will changed ( loss of synonym)
+                        $r->taxonIds[] = $this->taxon->getId();
+                    }
+                }
+
+                // add it as a synonym to the destination
+                // the add synonym code takes care of moving it from another place
+                // if this can be done non-destructively
+                $destination_taxon->addSynonym($this->name);
+
+                // the destination taxon has always changed.
+                $r->taxonIds[] = $destination_taxon->getId();
+
+                return $r;
+
+            }else{
+                return new UpdateResponse('UpdatePlacement', false, "Trying to sink name into taxon that doesn't exist {$destination_wfo}");
+            }
+
+        } // sinking
+
+        // raise to being a taxon or being a parent
+        if($this->action == 'raise' || $this->action == 'change_parent'){
+
+
+            // it must have a destination to go to
+            if($destination_wfo == null){
+                return new UpdateResponse('UpdatePlacement', false, "Trying to place taxon without specifying parent");
+            }
+
+            // check we have a good place to go
+            $destination_name = Name::getName($destination_wfo);
+            $destination_taxon = Taxon::getTaxonForName($destination_name);
+            if($destination_taxon->getId()){
+
+                $r = new UpdateResponse('UpdatePlacement', true, "Successfully placed accepted name");
+
+                // are we accepted taxon?
+                if($this->taxon){
+
+                    if($this->taxon->getAcceptedName() == $this->name ){
+                        // we are an accepted name so we are just going to swap parent
+                        // flag the fact that the old parent has changed
+                        $r->taxonIds[] = $this->taxon->getParent()->getId();
+                        $this->taxon->setParent($destination_taxon);
+                        $this->taxon->save();
+                        // our work here is done
+                        return $r;
+                    }else{
+                        
+                        // we are a synonym so flag the fact that this taxon will changed ( loss of synonym)
+                        $r->taxonIds[] = $this->taxon->getId();
+
+                        // remove the synonym
+                        $this->taxon->removeSynonym($this->name);
+
+                    }
+
+                }
+                
+                // name is now floating free and needs a taxon
+                $this->taxon = Taxon::getTaxonForName($this->name);
+                $this->taxon->setParent($destination_taxon);
+                $this->taxon->setUserId(1); // FIXME - this should come from the session, probably within the taxon object.
+                $this->taxon->save();
+
+                // the destination taxon has always changed.
+                $r->taxonIds[] = $destination_taxon->getId();
+
+                return $r;
+
+            }else{
+                return new UpdateResponse('UpdatePlacement', false, "Trying to place name into taxon that doesn't exist {$destination_wfo}");
+            }     
+
+        }
+
+
+    } // update placement
+
+
 
 }

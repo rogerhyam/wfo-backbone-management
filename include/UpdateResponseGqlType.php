@@ -28,6 +28,14 @@ class UpdateResponseGqlType extends ObjectType
                     'children' => [
                         'type' => Type::listOf(TypeRegister::updateResponseType()),
                         'description' => "The update response for any sub parts of the update e.g. the fields in the form."
+                    ],
+                    'taxonIds' => [
+                        'type' => Type::listOf(Type::int()),
+                        'description' => "A list of affected taxon db ids. This is useful for clearing cached data"
+                    ],
+                    'nameIds' => [
+                        'type' => Type::listOf(Type::int()),
+                        'description' => "A list of affected name db ids. This is useful for clearing cached data"
                     ]
                 ];
             }

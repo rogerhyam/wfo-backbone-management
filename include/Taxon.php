@@ -463,7 +463,8 @@ class Taxon extends WfoDbObject{
             );
             if(!$stmt->execute()){
                 throw new ErrorException($mysqli->error);
-                return false; // let them know we failed
+                $integrity->success = false;
+                return $integrity;
             }
 
         }else{
@@ -486,7 +487,8 @@ class Taxon extends WfoDbObject{
             );
             if(!$stmt->execute()){
                 throw new ErrorException($mysqli->error);
-                return false; // let them know we failed
+                $integrity->success = false;
+                return $integrity;
             }else{
                 // get our db id
                 $this->id = $mysqli->insert_id;
@@ -565,8 +567,10 @@ class Taxon extends WfoDbObject{
                 throw new ErrorException("Unable to set new parent for taxon {$this->id} in order to balance the tree.");
             }
 
-
         }
+
+        $integrity->success = true;
+        return $integrity;
 
     }
 
@@ -777,8 +781,73 @@ class Taxon extends WfoDbObject{
     }
 
     public function removeSynonym($name){
-        // FIXME
-        throw new ErrorException("removeSynonym not implemented yet");
+
+        // check the name isn't the accepted name
+        if($this->getAcceptedName() == $name){
+            throw new ErrorException("Trying to remove accepted name as if it were a synonym. name_id {$name->id} and taxon_id {$this->id}.");
+            return false;
+        }
+
+        // actually do it
+        $this->unassignName($name);
+    
+    }
+
+    public function delete(){
+
+        global $mysqli;
+
+        // we should have no children
+        if(count($this->getChildren()) > 0){
+            throw new ErrorException("Trying to delete a taxon that has children. name_id {$name->id} and taxon_id {$this->id}.");
+            return false;
+        }
+
+        // we should have no synonyms        
+        if(count($this->getSynonyms()) > 0){
+            throw new ErrorException("Trying to delete a taxon that has synonyms. name_id {$name->id} and taxon_id {$this->id}.");
+            return false;
+        }
+
+        // unplace my name
+        $this->unassignName($this->getAcceptedName());
+
+        // delete my row
+        $result = $mysqli->query("DELETE FROM taxa WHERE id = {$this->id}");
+        if($mysqli->affected_rows == 1){
+            return true;
+        }else{
+            throw new ErrorException("Failed to remove taxon {$this->id} no rows affected.");
+            return false;
+        }
+
+    }
+
+    /**
+     * 
+     * Makes necessary changes to taxon_names table 
+     * to remove a name. Could be called when removing 
+     * taxon or synonym
+     * 
+     */
+    private function unassignName($name){
+
+        global $mysqli;
+
+        // we are extra cautious only remove a name if we own it and we do it by primary key
+        $result = $mysqli->query("SELECT id FROM taxon_names WHERE name_id = {$name->id} AND taxon_id = {$this->id}");
+        if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->id} and taxon_id {$this->id}.");
+        if($result->num_rows == 0){
+            throw new ErrorException("Trying to remove name {$name->id} from taxon {$this->id} when that name isn't assigned to that taxon.");
+        }else{
+            $result = $mysqli->query("DELETE FROM taxon_names WHERE name_id = {$name->id} AND taxon_id = {$this->id}");
+            if($mysqli->affected_rows == 1){
+                return true;
+            }else{
+                throw new ErrorException("Failed to remove {$name->id} from taxon {$this->id} no rows affected.");
+                return false;
+            }
+        }
     }
 
     /**
@@ -836,9 +905,6 @@ class Taxon extends WfoDbObject{
                 }
 
             }
-
-
-            
 
         }
 

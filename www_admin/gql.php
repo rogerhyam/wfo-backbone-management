@@ -125,6 +125,10 @@ $schema = new Schema([
             ],
         ]// fields
     ]), // query object type
+
+
+    // -- M U T A T I O N S --
+
     'mutation' => new ObjectType([
         'name' => "Mutation",
         'description' => "Update and create taxa and names.",
@@ -189,8 +193,6 @@ $schema = new Schema([
                     ]
                 ],
                 'resolve' => function($rootValue, $args, $context, $info) {
-                    //print_r($context);
-                    error_log(print_r($context, true));
                     $response = new UpdateResponse('UpdateNameParts', true, "Updating the name parts");
                     $name = Name::getName($args['wfo']);
                     if(!$name || !$name->getId()){
@@ -201,8 +203,33 @@ $schema = new Schema([
                     }
                     return $response;
                 }
-            ],
-
+            ], // updateNameStatus
+            'updatePlacement' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the placement of a name within the taxonomy (or remove it).",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'action' => [
+                        'type' => TypeRegister::getPlacementActionEnum(),
+                        'description' => "The action to perform.",
+                        'required' => true
+                    ],
+                    'destinationWfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the destination taxon (could be null if we are removing).",
+                        'required' => false,
+                        'defaultValue' => null
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $placer = new NamePlacer($args['wfo'], $args['action']);
+                    return $placer->updatePlacement($args['destinationWfo']);
+                }
+            ], // updatePlacement
 
         ]// fields
     ])// mutations
