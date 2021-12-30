@@ -17,7 +17,7 @@ require_once('../include/NameMatches.php');
 require_once('../include/Rank.php');
 require_once('../include/UpdateResponse.php');
 require_once('../include/NamePlacer.php');
-
+require_once('../include/UnplacedFinder.php');
 
 $typeReg = new TypeRegister();
 
@@ -121,6 +121,35 @@ $schema = new Schema([
                 ],
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return new NamePlacer($args['id'], $args['action'], $args['filter']);
+                }
+            ],
+            'getUnplacedNames' => [
+                'type' => TypeRegister::unplacedFinderType(),
+                'description' => 'Return list of unplaced names associated with a name.',
+                'args' => [
+                    'id' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID or database ID of the name in question.",
+                        'required' => true
+                    ],
+                    'offset' => [
+                        'type' => Type::int(),
+                        'description' => "Where to start from in the list.",
+                        'defaultValue' => 0
+                    ],
+                    'limit' => [
+                        'type' => Type::int(),
+                        'description' => "Maximum results to return.",
+                        'defaultValue' => 100
+                    ],
+                    'includeDeprecated' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether to include names with nomenclatural status 'deprecated",
+                        'defaultValue' => false
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return new UnplacedFinder($args['id'], $args['offset'], $args['limit'], $args['includeDeprecated']);
                 }
             ],
         ]// fields
