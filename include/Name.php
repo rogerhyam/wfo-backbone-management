@@ -864,5 +864,15 @@ ao.
         return $this->save();
     }
 
+    public function updateAuthorsString($new_authors, $response){
+        $this->setAuthorsString($new_authors);
+        return $this->save();
+    }
+
+    public function updatePublication($new_citation_micro, $year, $response){
+        $this->setCitationMicro($new_citation_micro);
+        $this->setYear($year);
+        return $this->save();
+    }
 
 } // name
