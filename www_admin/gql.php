@@ -233,6 +233,66 @@ $schema = new Schema([
                     return $response;
                 }
             ], // updateNameStatus
+            'updateAuthorsString' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the author string of a name.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'authorsString' => [
+                        'type' => Type::string(),
+                        'description' => "The new authorsString for the name.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $response = new UpdateResponse('UpdateNameParts', true, "Updating the name parts");
+                    $name = Name::getName($args['wfo']);
+                    if(!$name || !$name->getId()){
+                        $response->success = false;
+                        $response->message = "Couldn't find name for WFO ID '{$args['wfo']}'"; 
+                    }else{
+                        $name->updateAuthorsString($args['authorsString'],$response);
+                    }
+                    return $response;
+                }
+            ], // updateAuthorsString
+            'updatePublication' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the publication details of a name.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'citationMicro' => [
+                        'type' => Type::string(),
+                        'description' => "The abbreviated publication string",
+                        'required' => true
+                    ],
+                    'year' => [
+                        'type' => Type::int(),
+                        'description' => "The year of publication as an integer",
+                        'required' => false,
+                        'defaultValue' => null
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $response = new UpdateResponse('UpdatePublication', true, "Updating the name publication details");
+                    $name = Name::getName($args['wfo']);
+                    if(!$name || !$name->getId()){
+                        $response->success = false;
+                        $response->message = "Couldn't find name for WFO ID '{$args['wfo']}'"; 
+                    }else{
+                        $name->updatePublication($args['citationMicro'],$args['year'],$response);
+                    }
+                    return $response;
+                }
+            ], // updatePublication
             'updatePlacement' => [
                 'type' => TypeRegister::updateResponseType(),
                 'description' => "Update the placement of a name within the taxonomy (or remove it).",
