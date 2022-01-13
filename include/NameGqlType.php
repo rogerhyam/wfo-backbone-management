@@ -115,6 +115,13 @@ class NameGqlType extends ObjectType
                             return $name->getBasionym();
                         }
                     ],
+                    'homotypicNames' => [
+                        'type' => Type::listOf(TypeRegister::nameType()),
+                        'description' => "Names that share the same type as this name.",
+                        'resolve' => function($name){
+                            return $name->getHomotypicNames();
+                        }
+                    ],
                     'citationMicro' => [
                         'type' => Type::string(),
                         'description' => "The standard form short citation for where this name was published.",
@@ -127,6 +134,13 @@ class NameGqlType extends ObjectType
                         'description' => "An identifier for the citation of where this name was published.",
                         'resolve' => function($name){
                             return $name->getCitationID();
+                        }
+                    ],
+                    'comment' => [
+                        'type' => Type::string(),
+                        'description' => "A comment on the name",
+                        'resolve' => function($name){
+                            return $name->getComment();
                         }
                     ],
                     'year' => [

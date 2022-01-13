@@ -247,8 +247,9 @@ class Name extends WfoDbObject{
     public function setBasionym($basionym){
 
         // ok to set null
-        if($basionym === NULL){
+        if(is_null($basionym)){
             $this->basionym_id = NULL;
+            return;
         }
 
         // we are given a value so check it is an OK one
@@ -845,6 +846,35 @@ ao.
     } // save()
 
     /**
+     * 
+     * Homotypic Names synonyms are fetched on request.
+     */
+
+     public function getHomotypicNames(){
+
+        global $mysqli;
+
+        $out = array();
+
+        // do we have a basionym set (i.e. are we a comb nov )
+        if($this->basionym_id){
+            $type_id = $this->basionym_id;
+        }else{
+            $type_id = $this->getId();
+        }
+
+        // find all the things that have this set as the basionym (excluding ourselves )
+        $result = $mysqli->query("SELECT id FROM `names` WHERE basionym_id = $type_id AND id != {$this->getId()} order by `name_alpha`");
+        while($row = $result->fetch_assoc()){
+            $out[] = Name::getName($row['id']);
+        }
+
+        return $out;
+
+     }
+
+
+    /**
      * An update function for the name parts
      * that follows the update -> UpdateResponse pattern for GraphQL (or other) API
      * 
@@ -872,6 +902,16 @@ ao.
     public function updatePublication($new_citation_micro, $year, $response){
         $this->setCitationMicro($new_citation_micro);
         $this->setYear($year);
+        return $this->save();
+    }
+
+    public function updateComment($new_comment, $response){
+        $this->setComment($new_comment);
+        return $this->save();
+    }
+
+    public function updateBasionym($new_basionym, $response){
+        $this->setBasionym($new_basionym);
         return $this->save();
     }
 

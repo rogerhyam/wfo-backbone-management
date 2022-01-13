@@ -10,6 +10,7 @@ require_once('../include/UpdateResponseGqlType.php');
 require_once('../include/NamePlacerGqlType.php');
 require_once('../include/NamePlacer.php');
 require_once('../include/UnplacedFinderGqlType.php');
+require_once('../include/BasionymFinderGqlType.php');
 
 /*
 
@@ -28,6 +29,7 @@ class TypeRegister {
     private static $namePlacerType;
     private static $placementActionEnum;
     private static $unplacedFinderType;
+    private static $basionymFinderType;
 
     public static function taxonType(){
         return self::$taxonType ?: (self::$taxonType = new TaxonGqlType());
@@ -52,8 +54,13 @@ class TypeRegister {
     public static function namePlacerType(){
         return self::$namePlacerType ?: (self::$namePlacerType = new NamePlacerGqlType());
     }
+    
     public static function unplacedFinderType(){
         return self::$unplacedFinderType ?: (self::$unplacedFinderType = new UnplacedFinderGqlType());
+    }
+
+    public static function basionymFinderType(){
+        return self::$basionymFinderType ?: (self::$basionymFinderType = new BasionymFinderGqlType());
     }
 
     public static function getPlacementActionEnum(){
