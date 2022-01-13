@@ -18,6 +18,7 @@ require_once('../include/Rank.php');
 require_once('../include/UpdateResponse.php');
 require_once('../include/NamePlacer.php');
 require_once('../include/UnplacedFinder.php');
+require_once('../include/BasionymFinder.php');
 
 $typeReg = new TypeRegister();
 
@@ -151,7 +152,26 @@ $schema = new Schema([
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return new UnplacedFinder($args['id'], $args['offset'], $args['limit'], $args['includeDeprecated']);
                 }
-            ],
+            ],// unplaced names
+            'getPossibleBasionyms' => [
+                'type' => TypeRegister::basionymFinderType(),
+                'description' => 'Return list of possible basionyms for a name.',
+                'args' => [
+                    'id' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID or database ID of the name in question.",
+                        'required' => true
+                    ],
+                    'filter' => [
+                        'type' => Type::string(),
+                        'description' => "Narrow down the search by including the first few letters of a name.",
+                        'defaultValue' => ''
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return new BasionymFinder($args['id'], $args['filter']);
+                }
+            ]
         ]// fields
     ]), // query object type
 
@@ -293,6 +313,34 @@ $schema = new Schema([
                     return $response;
                 }
             ], // updatePublication
+
+            'updateComment' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the comment on a name.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'comment' => [
+                        'type' => Type::string(),
+                        'description' => "The new comment for the name.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $response = new UpdateResponse('UpdateComment', true, "Updating the comment.");
+                    $name = Name::getName($args['wfo']);
+                    if(!$name || !$name->getId()){
+                        $response->success = false;
+                        $response->message = "Couldn't find name for WFO ID '{$args['wfo']}'"; 
+                    }else{
+                        $name->updateComment($args['comment'],$response);
+                    }
+                    return $response;
+                }
+            ], // updateComment
             'updatePlacement' => [
                 'type' => TypeRegister::updateResponseType(),
                 'description' => "Update the placement of a name within the taxonomy (or remove it).",
@@ -319,6 +367,32 @@ $schema = new Schema([
                     return $placer->updatePlacement($args['destinationWfo']);
                 }
             ], // updatePlacement
+            'updateBasionym' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the basionym of this name.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'basionymWfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name to be set as the basionym. This could be the prescribed WFO ID or one from a deduplication exercise.",
+                        'required' => false,
+                        'defaultValue' => null
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $name = Name::getName($args['wfo']);
+                    if($args['basionymWfo']){
+                        $basionym = Name::getName($args['basionymWfo']);
+                    }else{
+                        $basionym = null;
+                    }
+                    return $name->updateBasionym($basionym, new UpdateResponse('UpdateBasionym', true, "Updating the basionym.") );
+                }
+            ],// updateBasionym
 
         ]// fields
     ])// mutations
