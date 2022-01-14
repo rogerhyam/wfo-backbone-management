@@ -394,6 +394,36 @@ $schema = new Schema([
                 }
             ],// updateBasionym
 
+            'updateHybridStatus' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update the hybrid status of a taxon.",
+                'args' => [
+                    'id' => [
+                        'type' => Type::int(),
+                        'description' => "The database ID of the taxon record.",
+                        'required' => true
+                    ],
+                    'isHybrid' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether this taxon is a hybrid or not.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $response = new UpdateResponse('UpdatingHybridSatus', true, "Updating the hybrid status.");
+                    $taxon = Taxon::getById($args['id']);
+                    if(!$taxon || !$taxon->getId()){
+                        $response->success = false;
+                        $response->message = "Couldn't find taxon for  ID '{$args['id']}'"; 
+                    }else{
+                        // we don't have much validity checking for taxa so can set directly.
+                        $taxon->setHybridStatus($args['isHybrid']);
+                        $taxon->save();
+                    }
+                    return $response;
+                }
+            ], // updateComment
+
         ]// fields
     ])// mutations
              
