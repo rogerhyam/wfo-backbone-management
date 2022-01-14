@@ -26,6 +26,46 @@ class TaxonGqlType extends ObjectType
                             return $taxon->getAcceptedName();
                         }
                     ],
+                    'fullNameString' => [
+                        'type' => Type::string(),
+                        'description' => "The full name string of the accepted name of the taxon with hybrid markings if appropriate.",
+                        'args' => [
+                            'italics' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether words in names at and below the genus level should be italicized. Defaults true.",
+                                'required' => false,
+                                'defaultValue' => true
+                            ],
+                            'authors' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether the authors string (abbreviated authors) should be included. Defaults true.",
+                                'required' => false,
+                                'defaultValue' => true
+                            ],
+                            'abbreviateRank' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether the rank (always included in names below genus) should be abbreviated. Defaults true.",
+                                'required' => false,
+                                'defaultValue' => true
+                            ],
+                            'abbreviateGenus' => [
+                                'type' => Type::boolean(),
+                                'description' => "Whether the genus word (in names below the rank of genus) should be abbreviated. Defaults false.",
+                                'required' => false,
+                                'defaultValue' => false
+                            ],
+                        ],
+                        'resolve' => function($taxon, $args, $context, $info){
+                            return $taxon->getFullNameString( $args['italics'], $args['authors'], $args['abbreviateRank'], $args['abbreviateGenus'] );
+                        }
+                    ],
+                    'isHybrid' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether this taxon is a hybrid taxon or not.",
+                        'resolve' => function($taxon){
+                            return $taxon->getHybridStatus();
+                        }
+                    ],
                     'synonyms' => [
                         'type' => Type::listOf(TypeRegister::nameType()),
                         'description' => "The names that are considered synonyms of this taxon.",

@@ -12,6 +12,8 @@ class Taxon extends WfoDbObject{
     private ?Array $children = null;
     private ?Array $synonyms = null;
 
+    private bool $isHybrid = false;
+
     protected static $loaded = array();
 
     /**
@@ -56,6 +58,7 @@ class Taxon extends WfoDbObject{
             $this->parent = Taxon::getById($row['parent_id']);
         }
 
+        $this->isHybrid = $row['is_hybrid'] > 0 ? true : false;
         $this->comment = $row['comment'];
         $this->issue = $row['issue'];
         $this->user_id = $row['user_id'];
@@ -142,6 +145,76 @@ class Taxon extends WfoDbObject{
         G E T T E R  &  S E T T E R  M E T H O D S
 
     */
+
+    /**
+     * Set if this is a hybrid or not
+     * 
+     * @param boolean True if it is a hybrid taxon
+     */
+    public function setHybridStatus($is_hybrid){
+        $this->isHybrid = $is_hybrid;
+    }
+
+    public function getHybridStatus(){
+        return $this->isHybrid;
+    }
+
+    /**
+     * 
+     * This is a wrapper around the same
+     * method in the accepted name but adds in the hybrid status
+     * 
+     */
+    public function getFullNameString($italics = true, $authors = true, $abbreviate_rank = true, $abbreviate_genus = false){
+
+        // no name if we have no name
+        if(!$this->getAcceptedName()) return "no name";
+
+        // Insert X if any of our name parts are hybrid
+        $fns = $this->getAcceptedName()->getFullNameString($italics, $authors, $abbreviate_rank, $abbreviate_genus);
+
+        $genus_is_hybrid = false;
+        $species_is_hybrid = false;
+
+        if($this->name->getGenusString()){
+            $ancestor = $this;
+            while($ancestor = $ancestor->getParent()){
+
+                if($ancestor->getRank() == 'species'){
+                    $species_is_hybrid = $ancestor->getHybridStatus();
+                }
+
+                if($ancestor->getRank() == 'genus'){
+                    $genus_is_hybrid = $ancestor->getHybridStatus();
+                    break;
+                }
+
+            }
+        }
+
+        $hybrid_symbol = '× ';
+        if($italics) $hybrid_symbol = "</i>$hybrid_symbol<i>";
+
+        if($this->isHybrid){
+            $n = $this->name->getNameString();
+            $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+        }
+
+        if($genus_is_hybrid){
+            $n = $this->name->getGenusString();
+            $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+        }
+
+
+        if($species_is_hybrid){
+            $n = $this->name->getSpeciesString();
+            $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+        }    
+
+        return $fns;
+
+
+    }
 
     /**
      * Sets the name of this taxon.
@@ -258,25 +331,31 @@ class Taxon extends WfoDbObject{
         $parent_r = $this->parent->getRank();
         $my_rank = $this->getRank();
 
-        if(!$parent_r || !$my_rank){
-            //print_r($this->parent);
-            throw new ErrorException("No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.");
-            $integrity->status = WFO_INTEGRITY_FAIL;
-            $integrity->success = false;
-            $integrity->message = "No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.";
-            
-            return $integrity;
-        }
+        // if the parent is the root then all ranks are permissible
+        // otherwise we have to do some checking
+        if($this->parent->getParent() != null){
 
-        // check if we are of permissible rank to be a child of our parent
-        $permissable  = $ranks_table[$parent_r]['children'];
-        if(!in_array($my_rank, $permissable)){
-            $perms = implode(',', $permissable);
-            $integrity->status = WFO_INTEGRITY_FAIL;
-            $integrity->success = false;
-            $integrity->message = "You can't add a taxon of rank $my_rank to parent of rank $parent_r. Permissible ranks are $perms.";
-            return $integrity;
-        }
+                if(!$parent_r || !$my_rank){
+                    //print_r($this->parent);
+                    throw new ErrorException("No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.");
+                    $integrity->status = WFO_INTEGRITY_FAIL;
+                    $integrity->success = false;
+                    $integrity->message = "No rank found for rank comparison. Parent rank: $parent_r. Taxon rank $my_rank.";
+                    
+                    return $integrity;
+                }
+
+                // check if we are of permissible rank to be a child of our parent
+                $permissable  = $ranks_table[$parent_r]['children'];
+                if(!in_array($my_rank, $permissable)){
+                    $perms = implode(',', $permissable);
+                    $integrity->status = WFO_INTEGRITY_FAIL;
+                    $integrity->success = false;
+                    $integrity->message = "You can't add a taxon of rank $my_rank to parent of rank $parent_r. Permissible ranks are $perms.";
+                    return $integrity;
+                }
+
+        }        
 
         // got to here so we have good ranks
         $integrity->message = "Adding taxon of rank $my_rank to parent of rank $parent_r is permissible.";
@@ -445,6 +524,7 @@ class Taxon extends WfoDbObject{
                 SET 
                 `parent_id` = ?,
                 `user_id` = ?,
+                `is_hybrid` = ?,
                 `comment` = ?, 
                 `issue` = ?,
                 `source` = ? 
@@ -453,9 +533,10 @@ class Taxon extends WfoDbObject{
             );
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $parent_id = $this->parent->getId();
-             $stmt->bind_param("iisssi",
+             $stmt->bind_param("iiisssi",
                 $parent_id,
                 $this->user_id,
+                $this->isHybrid,
                 $this->comment,
                 $this->issue,
                 $this->source,
@@ -473,14 +554,15 @@ class Taxon extends WfoDbObject{
             // we don't have a db id so we are creating
 
              $stmt = $mysqli->prepare("INSERT 
-                INTO `taxa` (`parent_id`, `user_id`, `comment`,`issue`,`source`) 
-                VALUES (?,?,?,?,?)");
+                INTO `taxa` (`parent_id`, `user_id`, `is_hybrid`, `comment`,`issue`,`source`) 
+                VALUES (?,?,?,?,?,?)");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $parent_id = $this->parent->getId();
 
-            $stmt->bind_param("iisss",
+            $stmt->bind_param("iiisss",
                 $parent_id,
                 $this->user_id,
+                $this->isHybrid,
                 $this->comment,
                 $this->issue,
                 $this->source
