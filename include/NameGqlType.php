@@ -26,6 +26,13 @@ class NameGqlType extends ObjectType
                             return $name->getPrescribedWfoId();
                         }
                     ],
+                    'identifiers' => [
+                        'type' => Type::listOf(TypeRegister::identifierType()),
+                        'description' => "A list of know identifiers (excluding the db on) for this name.",
+                        'resolve' => function($name){
+                            return $name->getIdentifiers();
+                        }
+                    ],
                     'rank' => [
                         'type' => TypeRegister::rankType(),
                         'description' => "The rank string for this name",
@@ -120,6 +127,13 @@ class NameGqlType extends ObjectType
                         'description' => "Names that share the same type as this name.",
                         'resolve' => function($name){
                             return $name->getHomotypicNames();
+                        }
+                    ],
+                    'homonyms' => [
+                        'type' => Type::listOf(TypeRegister::nameType()),
+                        'description' => "Names that are homonyms of this name i.e. have the same name parts.",
+                        'resolve' => function($name){
+                            return $name->getHomonyms();
                         }
                     ],
                     'citationMicro' => [

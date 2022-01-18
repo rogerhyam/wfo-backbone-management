@@ -19,6 +19,7 @@ require_once('../include/UpdateResponse.php');
 require_once('../include/NamePlacer.php');
 require_once('../include/UnplacedFinder.php');
 require_once('../include/BasionymFinder.php');
+require_once('../include/Identifier.php');
 
 $typeReg = new TypeRegister();
 
@@ -423,6 +424,39 @@ $schema = new Schema([
                     return $response;
                 }
             ], // updateComment
+
+            'createName' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Create a new name - or get feedback on creating a new name. It takes a monomial, binomial or trinomial and creates a basic name record with a default rank set. This record can then be edited.",
+                'args' => [
+                    'proposedName' => [
+                        'type' => Type::string(),
+                        'description' => "The proposed new name. This will be a string containing 1,2 or 3 words. Do not include ranks, hybrid markers or author string.",
+                        'required' => true
+                    ],
+                    'create' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether to actually create the name. If false then only a validity test will be run.",
+                        'required' => false,
+                        'defaultValue' => false
+                    ],
+                    'forceHomonym' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether to create a name when there are know to be homonyms for this name. The WFO IDs of the known homonyms must be included in the knownHomonyms property. This prevents the temptation to just set this to true and be damned!",
+                        'required' => false,
+                        'defaultValue' => false
+                    ],
+                    'knownHomonyms' => [
+                        'type' => Type::listOf(Type::string()),
+                        'description' => "When creating a new name that it is known will be a homonym you must provide a list of the WFO IDs of the existing names to show you know what you are doing. You must also set the forceHomonym to true.",
+                        'required' => false,
+                        'defaultValue' => array()
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return Name::createName($args['proposedName'], $args['create'], $args['forceHomonym'], $args['knownHomonyms']);
+                }
+            ], // createName
 
         ]// fields
     ])// mutations

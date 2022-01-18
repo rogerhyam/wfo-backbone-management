@@ -1,6 +1,7 @@
 <?php
 
 // Something to return from all mutation calls to the GraphQL interface
+// Isn't meant to contain data but just information on success and use error messages.
 
 class UpdateResponse{
 
@@ -11,11 +12,27 @@ class UpdateResponse{
     public Array $children = array(); // a list of sub-UpdateResponses (typically one for each field)
     public Array $taxonIds = array();
     public Array $nameIds = array();
+    public Array $names = array();
 
     public function __construct($name, $success, $message){
         $this->name = $name;
         $this->success = $success;
         $this->message = $message;
+    }
+
+    /**
+     * Run through the descendants and if any
+     * have failed then set the top level to 
+     * fail.
+     */
+    public function consolidateSuccess(){
+        foreach ($this->children as $kid) {
+            $kid->consolidateSuccess();
+            if(!$kid->success){
+                $this->success = false;
+                break;
+            } 
+        }
     }
 
 }

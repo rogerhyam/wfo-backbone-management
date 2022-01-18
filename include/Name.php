@@ -82,14 +82,12 @@ class Name extends WfoDbObject{
         $this->issue = $row['issue'];
         $this->user_id = $row['user_id'];
         $this->source = $row['source'];
-        $this->created = $row['created'];
         $this->modified = $row['modified'];
         $this->created = $row['created'];
 
         $result->close();
 
         $this->loadHints();
-        $this->loadIdentifiers();
 
     }
 
@@ -527,23 +525,27 @@ class Name extends WfoDbObject{
     }
 
     public function getIdentifiers(){
-        return $this->all_ids;
-    }
-
-    public function loadIdentifiers(){
 
         global $mysqli;
 
         if(!$this->id) throw new ErrorException("Attempt to load identifiers for Name which doesn't have a db id.");
 
-        $this->all_ids = array();
+        // build a consolidated list
+        $all_ids = array();
         $result = $mysqli->query("SELECT * FROM `identifiers` WHERE `name_id` = {$this->id} ");
         while($row = $result->fetch_assoc()){
-            $this->all_ids[] = array("identifier" => $row['value'], "kind" =>$row['kind']);
+            $all_ids[$row['kind']][] = $row['value'];
         }
 
-    }
+        // turn that into objects
+        $out = array();
+        foreach ($all_ids as $kind => $values) {
+           $out[] = new Identifier($kind, $values);
+        }
 
+        return $out;
+
+    }
 
     /*
         W F O - I D  S T U F F 
@@ -598,7 +600,12 @@ class Name extends WfoDbObject{
         global $mysqli;
 
         $out = new UpdateResponse('name', true, "Name integrity check");
-        $out->status = WFO_INTEGRITY_OK; 
+        $out->status = WFO_INTEGRITY_OK;
+
+        // the name has to be at least two characters long!
+        if(strlen($this->getNameString()) < 2){
+            $out->children[] = new UpdateResponse('name', false, "Name string is less than 2 characters long");
+        }
 
         // is the rank valid?
         if(!$this->rank){
@@ -661,6 +668,8 @@ ao.
     */
 
         // the WFO-ID must either not exist or if it does exist have us as its name_id
+
+        $out->consolidateSuccess();
 
         return $out;
     }
@@ -789,7 +798,9 @@ ao.
             );
             if(!$stmt->execute()){
                 echo $mysqli->error;
-                return false; // let them know we failed
+                $updateResponse->message = $mysqli->error;
+                $updateResponse->success = false;
+                return $updateResponse; // let them know we failed
             }
             $stmt->close();
 
@@ -823,7 +834,9 @@ ao.
                 // we must delete it.
                 $mysqli->query("DELETE identifiers WHERE `id` = $wfo_id_db_id AND `name_id` is NULL");
 
-                return false; // let them know we failed
+                $updateResponse->message = $mysqli->error;
+                $updateResponse->success = false;
+                return $updateResponse; // let them know we failed
             }
 
             // get our real id
@@ -873,6 +886,41 @@ ao.
 
      }
 
+     public function getHomonyms(){
+
+        global $mysqli;
+
+        $homonyms = array();
+
+        // lets get right to it and look to see if we have matching names
+        $sql = "SELECT id FROM `names` WHERE `name` = '{$this->getNameString()}' ";
+
+        if($this->getId()){
+            $sql .=  " AND `id` != '{$this->getId()}'";
+        }
+
+        if($this->getGenusString()){
+            $sql .=  " AND `genus` = '{$this->getGenusString()}'";
+        }else{
+            $sql .=  " AND (length(`genus`) = 0 || `genus` IS NULL)";
+        }
+
+        if($this->getSpeciesString()){
+            $sql .=  " AND `species` = '{$this->getSpeciesString()}'";
+        }else{
+            $sql .=  " AND (length(`species`) = 0 || `species` IS NULL)";
+        }
+
+        $result = $mysqli->query($sql);
+        while($row = $result->fetch_assoc()){
+            $homonyms[] = Name::getName($row['id']);
+        }
+        $result->free();
+
+        return $homonyms;
+
+     }
+
 
     /**
      * An update function for the name parts
@@ -913,6 +961,110 @@ ao.
     public function updateBasionym($new_basionym, $response){
         $this->setBasionym($new_basionym);
         return $this->save();
+    }
+
+
+    /**
+     * Static function to create a new name
+     * Has controls on creating homonyms.
+     * If the name is a homonym you just include a list of homonyms WFO IDs to show
+     * that you know they exist and are doing it anyway.
+     * 
+     */
+    public static function createName($proposed_name, $create, $force_homonym, $known_homonyms){
+
+        global $mysqli;
+
+        $updateResponse = new UpdateResponse("NewName", true, "Starting check");
+
+        $updateResponse->children[] = new UpdateResponse("ProposedName", true, $proposed_name);
+        $updateResponse->children[] = new UpdateResponse("ForceHomonym", true, $force_homonym);
+        
+        // at the same time we create an empty name object - we can throw it away later if needed.
+        $name = Name::getName(-1);
+        $name->setStatus('unknown');
+        $name->setUserId(1); // FIXME: should be pulled from session.
+
+        // let's start by parsing out the name into parts.
+        $parts = explode(' ', trim($proposed_name));
+        switch (count($parts)) {
+
+            case 1:
+                $name->setNameString($parts[0]);
+                $name->setRank('genus');
+                break;
+            
+            case 2:
+                $name->setNameString($parts[1]);
+                $name->setGenusString($parts[0]);
+                $name->setRank('species');
+                break;
+
+            case 3:
+                $name->setNameString($parts[2]);
+                $name->setSpeciesString($parts[1]);
+                $name->setGenusString($parts[0]);
+                $name->setRank('subspecies');
+                break;
+            
+            default:
+                $n = count($parts);
+                $updateResponse->children[] = new UpdateResponse("NamePartsCount", false, "The name string should contain 1, 2 or 3 words, $n found.");
+                return $updateResponse; // we can do no more if we don't have name parts.
+                break;
+        
+        }
+
+        $homonymList = $name->getHomonyms();
+
+        // report that list
+        $homoResponse = new UpdateResponse("HomonymsFound", true, "These are the homonyms found for this name.");
+        $homoResponse->names = $homonymList;
+        $updateResponse->children[] = $homoResponse;
+
+        // do we have homonyms for this name?
+        if($homonymList){
+
+            // but wait! we have a list of known homonyms
+
+            foreach ($homonymList as $homonym) {
+                if(!in_array($homonym->getPrescribedWfoId(), $known_homonyms)){
+                    // found one not in the list provided
+                    $updateResponse->children[] = new UpdateResponse("HomonymCheck", false, "{$homonym->getPrescribedWfoId()} is a homonym NOT provided in the list");
+                }else{
+                    $updateResponse->children[] = new UpdateResponse("HomonymCheck", true, "{$homonym->getPrescribedWfoId()} is a homonym and is provided in the list");
+                }
+            }
+
+        }
+
+        // total up any errors
+        $updateResponse->consolidateSuccess();
+
+        // should we actually create the name?
+        // if we are asking to create and we either don't have homonyms or 
+        // or we 
+        if(
+            $create 
+            &&
+            (
+                !$homonymList // no homonyms
+                ||
+                ($updateResponse->success && $force_homonym) // homonyms but they are kosher 
+            )){
+                $saveResponse = $name->save();
+                $updateResponse->children[] = $saveResponse; // add the validation response to the response tree.
+                if($saveResponse->success){
+                    $updateResponse->names[] = $name; // store the new name in the top level response
+                }
+        }else{
+                $updateResponse->children[] = $name->checkIntegrity(); // just add the validity check to the response tree
+        }
+
+        $updateResponse->consolidateSuccess(); // wrap up all the responses so the top level success reflects truth
+
+        return $updateResponse;
+
     }
 
 } // name
