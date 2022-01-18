@@ -36,6 +36,10 @@ class UpdateResponseGqlType extends ObjectType
                     'nameIds' => [
                         'type' => Type::listOf(Type::int()),
                         'description' => "A list of affected name db ids. This is useful for clearing cached data"
+                    ],
+                    'names' => [
+                        'type' => Type::listOf(TypeRegister::nameType()),
+                        'description' => "A list of actual name objects"
                     ]
                 ];
             }
