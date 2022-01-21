@@ -4,6 +4,8 @@
 require_once('../vendor/autoload.php');
 include_once("../../backbone_secrets.php");
 
+session_start();
+
 // create and initialise the database connection
 $mysqli = new mysqli($db_host, $db_user, $db_password, $db_database);  
 

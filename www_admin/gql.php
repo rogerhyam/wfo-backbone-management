@@ -20,6 +20,7 @@ require_once('../include/NamePlacer.php');
 require_once('../include/UnplacedFinder.php');
 require_once('../include/BasionymFinder.php');
 require_once('../include/Identifier.php');
+require_once('../include/User.php');
 
 $typeReg = new TypeRegister();
 
@@ -468,7 +469,7 @@ $schema = new Schema([
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Credentials: true");
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Accept');
+header('Access-Control-Allow-Headers: Content-Type, Accept, wfo_access_token');
 
 
 $rawInput = file_get_contents('php://input');
@@ -477,6 +478,59 @@ if(!trim($rawInput)){
     echo "<h1>WFO Taxonomic Backbone Management Interface</h1>";
     echo "<p>You don't seem to have given us a query to work with. Please use a GraphQL client to pass query info.</p>";
     exit;
+}
+
+/*
+
+They are posting some data so we need to engage authentication.
+
+------------------------
+How authentication works
+------------------------
+
+Narrative 
+- There must be a user object in the PHP session for processing to continue.
+- This user object is either already there because they have a PHP session and have visited before
+  or we are being called from a stateless script or from the UI for the first time and the user will need to be added.
+- If there is no user in the session we create one using the wfo_access_token provided in the header.
+- Every user in the users table has a wfo_access_token
+- Regular users keep their tokens secret and only use them if they are running a stateless script.
+- There is one special user called "web-ui" who has a well known access token embedded in the web ui code. This user has few powers.
+- When the web client connects to the API it passes the well known token and the web-ui user is added to the PHP session.
+- The human user can then use the web client to login with ORCID credentials and the user in their session is swapped from the web-ui user to the actual user from the db table.
+- If the human user wants to run a command line script as themselves they can access their own wfo_access_token and use that in the script.
+- All communications are kept https so tokens shouldn't leak but if they do they can be changed.
+- Any public DB dumps will need to omit wfo_access_token (and probably other users table fields) for security and anonymity.
+
+*/
+
+// no user in session and we need on
+if(!@$_SESSION['user']){
+
+    // pull out the access token.
+    $wfo_access_token = null;
+    $headers = apache_request_headers();
+    foreach ($headers as $header => $value) {
+        if($header == 'wfo_access_token') $wfo_access_token = $value;
+    }
+
+    // no access token no go
+    // key generated like this  echo bin2hex(openssl_random_pseudo_bytes(24));
+    if(!$wfo_access_token ){
+        http_response_code(403);
+        die('Forbidden: No wfo_access_token provided.');
+    }
+
+    // we have a token so lets load the user
+    $user = User::loadUserForWfoToken($wfo_access_token);
+    if(!$user){
+        http_response_code(403);
+        die('Forbidden: Failed to load user for access token: ' . $wfo_access_token);
+    }else{ 
+        $_SESSION['user'] = $user;
+    }
+    
+
 }
 
 $input = json_decode($rawInput, true);
