@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        function closeWindowAndRefresh() {
+            //window.opener.location.reload(); // doesn't work in dev environment
+            window.close();
+        }
+    </script>
+</head>
+
+<body>
+    <script>
+        fetch('orcid_redirect.php' + window.location.search)
+            .then(response => response.text())
+            .then(text => document.write(text));
+    </script>
+</body>
+
+</html>

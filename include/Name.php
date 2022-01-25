@@ -299,7 +299,8 @@ class Name extends WfoDbObject{
 
         global $ranks_table;
 
-        $out = '<span class="wfo-name-full"><span class="wfo-name">';
+
+        $out = '<span class="wfo-name-full" ><span class="wfo-name">';
 
         $my_level = array_search($this->rank, array_keys($ranks_table));
         $genus_level = array_search('genus', array_keys($ranks_table));
@@ -363,7 +364,7 @@ class Name extends WfoDbObject{
         $out .= "</span>";
 
         if($authors){
-            $out .= " <span class=\"wfo-name-authors\">{$this->authors}</span>";
+            $out .= " <span class=\"wfo-name-authors\" >{$this->authors}</span>";
         }
 
         $out .= "</span>";

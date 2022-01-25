@@ -30,6 +30,12 @@ $schema = new Schema([
         'description' => 
             "This is the WFO Taxonomic Backbone management API",
         'fields' => [
+            'getUser' => [
+                'type' => TypeRegister::userType(),
+                'resolve' => function() {
+                    return unserialize($_SESSION['user']);
+                }
+            ],
             'getNameForWfoId' => [
                 'type' => TypeRegister::nameType(),
                 'args' => [
@@ -215,8 +221,6 @@ $schema = new Schema([
                     ],
                 ],
                 'resolve' => function($rootValue, $args, $context, $info) {
-                    //print_r($context);
-                    error_log(print_r($context, true));
                     $response = new UpdateResponse('UpdateNameParts', true, "Updating the name parts");
                     $name = Name::getName($args['wfo']);
                     if(!$name || !$name->getId()){
@@ -466,7 +470,7 @@ $schema = new Schema([
 
 
 // these may need removing in production
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Credentials: true");
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Accept, wfo_access_token');
@@ -504,8 +508,15 @@ Narrative
 
 */
 
+
+//unset($_SESSION['user']);
+
+// check the session doesn't have a broken user object in it
+// mainly 
+
+
 // no user in session and we need on
-if(!@$_SESSION['user']){
+if(!isset($_SESSION['user'])){
 
     // pull out the access token.
     $wfo_access_token = null;
@@ -523,15 +534,19 @@ if(!@$_SESSION['user']){
 
     // we have a token so lets load the user
     $user = User::loadUserForWfoToken($wfo_access_token);
+    error_log("got user from db via token: " .  $user->getId());
     if(!$user){
         http_response_code(403);
         die('Forbidden: Failed to load user for access token: ' . $wfo_access_token);
     }else{ 
-        $_SESSION['user'] = $user;
+         error_log('Adding user to session');
+        $_SESSION['user'] = serialize($user);
     }
     
-
+}else{
+    error_log('user is in session');
 }
+
 
 $input = json_decode($rawInput, true);
 $query = $input['query'];

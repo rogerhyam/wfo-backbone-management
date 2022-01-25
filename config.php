@@ -18,6 +18,25 @@ if (!$mysqli->set_charset("utf8")) {
   echo printf("Error loading character set utf8: %s\n", $mysqli->error);
 }
 
+// ORCID Connection details
+// client id and secret are loaded in the secret file
+define('ORCID_CLIENT_ID', $orcid_client_id);
+define('ORCID_CLIENT_SECRET', $orcid_client_secret);
+define('ORCID_TOKEN_URI', 'https://orcid.org/oauth/token');
+
+// the redirect uri depends on live or not
+// FIXME for live more smoothly
+if(getenv('WFO_EDIT_DEV')){
+  define('ORCID_REDIRECT_URI', 'http://localhost:1756/orcid_redirect.html');
+  define('ORCID_LOG_OUT_URI', 'http://localhost:1756/orcid_log_out.php');
+}else{
+  define('ORCID_REDIRECT_URI', 'https://list.worldfloraonline.org/edit/orcid_redirect.html');
+  define('ORCID_LOG_OUT_URI', 'http://localhost:1756/orcid_log_out.php');
+}
+
+// the login uri is constructed from variables above
+define('ORCID_LOG_IN_URI', 'https://orcid.org/oauth/authorize?client_id='. ORCID_CLIENT_ID .'&response_type=code&scope=/authenticate&redirect_uri=' . ORCID_REDIRECT_URI);
+
 // status flags
 define("WFO_INTEGRITY_OK", 1); // when the integrity of a name or taxon checks out
 define("WFO_INTEGRITY_FAIL", 2); // when the integrity of a name or taxon does not check out
