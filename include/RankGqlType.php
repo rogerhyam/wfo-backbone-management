@@ -13,6 +13,13 @@ class RankGqlType extends ObjectType
             'description' => "A rank recognized in the system",
             'fields' => function() {
                 return [
+                    'id' => [
+                        'type' => Type::string(),
+                        'description' => "Object id. Actually just the same as the name.",
+                        'resolve' => function($rank, $args, $context, $info){
+                            return $rank->name;
+                        }
+                    ],
                     'name' => [
                         'type' => Type::string(),
                         'description' => "The official name of the rank used as an identifier internally"
