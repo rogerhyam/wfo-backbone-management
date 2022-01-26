@@ -28,6 +28,20 @@ class UserGqlType extends ObjectType
                             return $user->isAnonymous();
                         }
                     ],
+                    'isEditor' => [
+                        'type' => Type::boolean(),
+                        'description' => "This is a real user with permission to edit at least one taxon somewhere in the system",
+                        'resolve' => function($user){
+                            return $user->isEditor();
+                        }
+                    ],
+                    'isGod' => [
+                        'type' => Type::boolean(),
+                        'description' => "A user with godlike powers (might be an admin in lesser systems)",
+                        'resolve' => function($user){
+                            return $user->isGod();
+                        }
+                    ],
                     'name' => [
                         'type' => Type::string(),
                         'description' => "The name of the field or the mutation called.",

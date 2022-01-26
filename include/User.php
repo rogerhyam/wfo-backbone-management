@@ -2,7 +2,6 @@
 
 class User{
 
-    
     private ?int $id = null;
     private ?string $name = null;
     private ?string $email = null;
@@ -12,6 +11,9 @@ class User{
     private ?string $orcidRefreshToken = null;
     private ?string $orcidExpiresIn = null;
     private ?string $orcidRaw = null;
+    private ?string $role = null;
+
+    private array $roles = array('anonymous', 'nobody', 'editor', 'god');
 
     /**
      * Initiated with a row from the 
@@ -30,7 +32,9 @@ class User{
             $this->orcidAccessToken = $args['orcid_access_token'];
             $this->orcidRefreshToken = $args['orcid_refresh_token'];
             $this->orcidExpiresIn = $args['orcid_expires_in'];
-            $this->orcidRaw = $args['orcid_raw'];
+            $this->role = $args['role'];
+        }else{
+            $this->role = 'anonymous';
         }
     
     }
@@ -57,6 +61,7 @@ class User{
                 SET 
                 `name` = ?,
                 `email` = ?,
+                `role` = ?,
                 `wfo_access_token` = ?,
                 `orcid_id` = ?,
                 `orcid_access_token` = ?,
@@ -67,9 +72,10 @@ class User{
                 `id` = ? "
             );
             if($mysqli->error) error_log($mysqli->error); // should only have prepare errors during dev
-            $stmt->bind_param("ssssssssi",
+            $stmt->bind_param("sssssssssi",
                 $this->name,
                 $this->email,
+                $this->role,
                 $this->wfoAccessToken,
                 $this->orcidId,
                 $this->orcidAccessToken,
@@ -89,13 +95,14 @@ class User{
 
             // CREATING
             $stmt = $mysqli->prepare("INSERT 
-                INTO `users` (`name`, `email`, `wfo_access_token`, `orcid_id`,`orcid_access_token`,`orcid_refresh_token`, `orcid_expires_in`, `orcid_raw`) 
-                VALUES (?,?,?,?,?,?,?,?)");
+                INTO `users` (`name`, `email`, `role`, `wfo_access_token`, `orcid_id`,`orcid_access_token`,`orcid_refresh_token`, `orcid_expires_in`, `orcid_raw`) 
+                VALUES (?,?,?,?,?,?,?,?,?)");
             if($mysqli->error) error_log($mysqli->error); // should only have prepare errors during dev
     
-            $stmt->bind_param("ssssssss",
+            $stmt->bind_param("sssssssss",
                 $this->name,
                 $this->email,
+                $this->role,
                 $this->wfoAccessToken,
                 $this->orcidId,
                 $this->orcidAccessToken,
@@ -114,6 +121,23 @@ class User{
 
         }
         
+    }
+
+    public static function loadUserForDbId($db_id){
+
+        global $mysqli;
+
+        // malformed access token - prevent injection
+        if(!preg_match('/^[0-9]+$/',$db_id)){
+            return null;
+        }
+
+        // pull that row from the db
+        $response = $mysqli->query("SELECT * FROM `users` WHERE id = '$db_id'");
+        if($response->num_rows != 1) return null;
+
+        return new User($response->fetch_assoc());
+
     }
 
     public static function loadUserForWfoToken($wfo_access_token){
@@ -149,6 +173,19 @@ class User{
         if($response->num_rows != 1) return null;
 
         return new User($response->fetch_assoc());
+
+    }
+
+    public static function getPossibleEditors(){
+
+        global $mysqli;
+
+        $out = array();
+        $response = $mysqli->query("SELECT * FROM `users` WHERE `role` != 'anonymous' order by `name`");
+        while ($row = $response->fetch_assoc()) {
+            $out[] = new User($row);
+        }
+        return $out;
 
     }
 
@@ -320,4 +357,39 @@ class User{
 
         return $this;
     }
+
+    /**
+     * Get the value of role
+     */ 
+    public function getRole()
+    {
+        return $this->role;
+    }
+
+    /**
+     * Set the value of role
+     *
+     * @return  self
+     */ 
+    public function setRole($role)
+    {
+        // must be a recognized role
+        if( !in_array($role, $this->roles) ){
+            throw new ErrorException("Attempt to set nonexistent role: $role");
+            return false;
+        }
+        $this->role = $role;
+        return $this;
+    }
+
+    public function isEditor(){
+        if($this->role == 'editor' || $this->role == 'god') return true;
+        else return false;
+    }
+
+    public function isGod(){
+        if($this->role == 'god') return true;
+        else return false;
+    }
+
 }// class
