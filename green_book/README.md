@@ -155,3 +155,24 @@ carried out during import.
 
 ## Overloading Basionym
 
+
+## Authentication
+
+There are two ways to interact with the Rhakhis system, either through the web based user interface or via the API. Both methods require the user to be authenticated. Authentication is not required to download data snapshots.
+
+When accessing the data through the web UI users must log in with a valid ORCID ID. Authentication is handled in partnership with with ORCID.org so only a user name and ORCID ID are stored locally in Rhakhis. Anyone with a valid ORCID ID can log into Rhakhis and browse the data but they will not have authorization to change anything until it is granted by another user. 
+
+The Rhakhis user account is created the first time user logs in with their ORCID ID. It is therefore not possible to grant a user editing rights until they have logged in at least once.
+
+When a Rhakhis user account is created an API access token is also minted for that user. This access token can be used by scripts that interact with the API on behalf of the user. Any changes to the data made using this access token will appear to have been made by the user just as if they were changing the data through the web UI. The access tokens should therefore be kept secret and never shared!
+
+
+## Authorization 
+
+A user can be assigned as the curator of a taxon and this gives them rights to edit that taxon, any descendant taxa and any synonyms of those taxa.
+
+If a user has the rights to edit a taxon they can also assign another user to be the curator of that taxon. If a user is made the curator of a family (so they can edit that family and everything it contains) they can assign a colleague to work on a genus within the family by making them the curator of that genus. Taxa have multiple editors so when a genus is assigned to a colleague the original user doesn't lose control of it. Both users can work on the genus together. Taxa can also have multiple curators so a team of user could work on a whole family if that were desired.
+
+Unplaced names are not controlled by this authorization mechanism. An unplaced name can be edited by any user who is an editor of a taxon (any taxon) but once that name is placed within the taxonomic hierarchy it is controlled by the editors of the associated taxa and becomes "locked" into the consensus taxonomy.
+
+

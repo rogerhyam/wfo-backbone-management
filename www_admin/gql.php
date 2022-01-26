@@ -179,6 +179,13 @@ $schema = new Schema([
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return new BasionymFinder($args['id'], $args['filter']);
                 }
+            ],
+            'getPossibleEditors' => [
+                'type' => Type::listOf(TypeRegister::userType()),
+                'description' => 'Return list of possible editors (excludes those with role anonymous).',
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return User::getPossibleEditors();
+                }
             ]
         ]// fields
     ]), // query object type

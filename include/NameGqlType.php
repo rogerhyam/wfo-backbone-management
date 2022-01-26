@@ -169,6 +169,7 @@ class NameGqlType extends ObjectType
                     // API interface is seems OK to join them up here - but never in the Name object!!
                     'taxonPlacement' => [
                         'type' => TypeRegister::taxonType(),
+                        'description' => "The taxon for which this is either the accepted name or a synonym. Null if the name hasn't been placed in the taxonomy.",
                         'resolve' => function($name) {
 
                             $taxon = Taxon::getTaxonForName($name);
@@ -182,8 +183,65 @@ class NameGqlType extends ObjectType
                             }
 
                         }
+                    ],
+
+                    'canEdit' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether the current user has authority to edit this name or not.",
+                        'resolve' => function($name) {
+
+                            $taxon = Taxon::getTaxonForName($name);
+                            $user = unserialize($_SESSION['user']);
+
+                            // if the name hasn't been joined to a taxon (as accepted or a synonym)
+                            // and the user is an editor of some kind then they can edit the name
+                            if(!$taxon && $user->isEditor()) return true;
+
+                            // if the taxon exists we ask it if this user can edit
+                            return $taxon->canEdit($user);
+
+                        }
+                    ],
+
+                    'isCurator' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether the current user is a curator of the taxon this name is associated with.",
+                        'resolve' => function($name) {
+                            $taxon = Taxon::getTaxonForName($name);
+                            $user = unserialize($_SESSION['user']);
+                            return $taxon->isCurator($user);
+                        }
+                    ],
+
+                    'editors' => [
+                        'type' => Type::listOf(TypeRegister::userType()),
+                        'description' => "The list of users who can edit this name because they are a curator of the taxon it belongs to or one of the taxons ancestors. An empty list is returned for unplaced names because any editor can edit these.",
+                        'resolve' => function($name) {
+
+                            $taxon = Taxon::getTaxonForName($name);
+                            
+                            // not placed so providing a list is not relevant
+                            if(!$taxon) return array();
+
+                            return $taxon->getEditors();
+
+                        }
+                    ],
+
+                    'curators' => [
+                        'type' => Type::listOf(TypeRegister::userType()),
+                        'description' => "The list of users who are a curators of the taxon. A subset of editors. An empty list is returned for unplaced names because any editor can edit these.",
+                        'resolve' => function($name) {
+
+                            $taxon = Taxon::getTaxonForName($name);
+                            
+                            // not placed so providing a list is not relevant
+                            if(!$taxon) return array();
+
+                            return $taxon->getCurators();
+
+                        }
                     ]
-                    
                 ];
             }
         ];

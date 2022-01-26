@@ -12,9 +12,14 @@ class Taxon extends WfoDbObject{
     private ?Array $children = null;
     private ?Array $synonyms = null;
 
+    private ?Array $curatorIds = null;
+    private ?Array $editors = null;
+    
     private bool $isHybrid = false;
 
     protected static $loaded = array();
+
+
 
     /**
      * Create an instance of a Taxon
@@ -1072,5 +1077,133 @@ class Taxon extends WfoDbObject{
 
     }
 
+    public function addCurator($user){
+
+        global $mysqli;
+        
+        $sql = "INSERT INTO `users_taxa` (`user_id`, `taxon_id`) VALUES ( {$user->getId()}, {$this->getId()} );";
+        $mysqli->query($sql);
+        if($mysqli->error){
+            error_log($mysqli->error);
+            error_log($sql);
+        } 
+
+        // force refresh of editors on next call
+        $this->editors = null;
+        $this->curatorIds = null;
+
+    }
+
+    public function removeCurator($user){
+
+        global $mysqli;
+        
+        $sql = "DELETE FROM `users_taxa` WHERE `user_id` = {$user->getId()} AND `taxon_id` =  {$this->getId()};";
+        $mysqli->query();
+        if($mysqli->error){
+            error_log($mysqli->error);
+            error_log($sql);
+        } 
+
+        // force refresh of editors on next call
+        $this->editors = null;
+        $this->curatorIds = null;
+
+
+    }
+
+    /**
+     * This returns the ids of the curators
+     *  these are specifically assigned to this taxon
+     */
+    public function getCuratorIds(){
+
+        global $mysqli;
+
+        if(!$this->curatorIds){
+            $this->curatorIds = array();
+            $sql = "SELECT `user_id` FROM `users_taxa` WHERE `taxon_id` = {$this->getId()}";
+            $result = $mysqli->query($sql);
+            while($row = $result->fetch_assoc()){
+                $this->curatorIds[] = $row['user_id'];
+            }
+        } 
+
+        return $this->curatorIds;
+    
+    }
+
+    public function getCurators(){
+
+        // this should used the cached lists if they are there
+        $all = $this->getEditors();
+        $curatorIds = $this->getCuratorIds();
+
+        $out = array();
+        foreach ($all as $e) {
+            if(in_array($e->getId(), $curatorIds)) $out[] = $e;
+        }
+        return $out;
+
+
+    }
+
+    /**
+     * This returns users who can edit this taxon
+     * including the curators (owners) of the taxon
+     */
+    public function getEditors(){
+
+        // editors are anyone who is a curator of this
+        // taxon or any of its parent taxa
+
+        if(!$this->editors){
+            $ancestors = $this->getAncestors();
+            array_unshift($ancestors, $this);  // we are not in our ancestors by default
+
+            $curatorIds = array();
+            foreach ($ancestors as $anc) {
+                $curatorIds = array_merge($curatorIds, $anc->getCuratorIds());
+            }
+            $curatorIds = array_unique($curatorIds);
+
+            $this->editors = array();
+            foreach ($curatorIds as $id) {
+                $this->editors[] = User::loadUserForDbId($id);
+            }
+
+            // be nice and sort alphabetically
+            usort($this->editors, function($a, $b){
+                $al = strtolower($a->getName());
+                $bl = strtolower($b->getName());
+                if ($al == $bl) return 0;
+                return ($al > $bl) ? +1 : -1;
+            });
+        } 
+        
+        return $this->editors;
+
+    }
+
+
+    /**
+     * Whether the user passed in is a curator of this
+     * taxon or not.
+     * 
+     */
+    public function isCurator($user){
+        return in_array($user->getId(), $this->getCuratorIds());
+    }
+
+    public function canEdit($user){
+        // we can't be sure the user is the same object 
+        // so we do it on ids
+        $editors = $this->getEditors();
+        foreach ($editors as $ed) {
+            if($ed->getId() == $user->getId()) return true;
+        }
+        return false;
+
+    }
 
 } // Taxon
