@@ -470,6 +470,52 @@ $schema = new Schema([
                 }
             ], // createName
 
+            'addCurator' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Add a curator to a taxon.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name of the taxon to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'userId' => [
+                        'type' => Type::int(),
+                        'description' => "The database ID of the user to be added to the taxon as a curator. You might have got this through a call to the 'curators' property of the taxon.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $name = Name::getName($args['wfo']);
+                    $taxon = Taxon::getTaxonForName($name);
+                    $curator = User::loadUserForDbId($args['userId']);
+                    return $taxon->addCurator($curator);
+                }
+            ], // addCurator
+
+            'removeCurator' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Remove a curator from a taxon.",
+                'args' => [
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name of the taxon to be changed. This could be the prescribed WFO ID or one from a deduplication exercise",
+                        'required' => true
+                    ],
+                    'userId' => [
+                        'type' => Type::int(),
+                        'description' => "The database ID of the user to be removed as a curator. You might have got this through a call to getPossibleEditors.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $name = Name::getName($args['wfo']);
+                    $taxon = Taxon::getTaxonForName($name);
+                    $curator = User::loadUserForDbId($args['userId']);
+                    return $taxon->removeCurator($curator);
+                }
+            ], // addCurator
+
         ]// fields
     ])// mutations
              

@@ -96,7 +96,7 @@ class Taxon extends WfoDbObject{
      * Returns the taxon associated with a name object
      * the name may be the accepted name or a synonym in this taxon
      *
-     * @return Taxon or null if one isn't associated with the name.
+     * @return Taxon or empty one if name isn't associated with the name.
      * 
      */
     public static function getTaxonForName($name){
@@ -1080,35 +1080,50 @@ class Taxon extends WfoDbObject{
     public function addCurator($user){
 
         global $mysqli;
-        
+
+        $response = new UpdateResponse('AddCurator', true, "Adding a curator id {$user->getId()} to taxon with id {$this->getId()}.");
+
         $sql = "INSERT INTO `users_taxa` (`user_id`, `taxon_id`) VALUES ( {$user->getId()}, {$this->getId()} );";
         $mysqli->query($sql);
         if($mysqli->error){
             error_log($mysqli->error);
             error_log($sql);
+            $response->children[] = new UpdateResponse('AddCurator', false, $mysqli->error);
+            $response->children[] = new UpdateResponse('AddCurator', false, $sql);
         } 
 
         // force refresh of editors on next call
         $this->editors = null;
         $this->curatorIds = null;
+
+        $response->consolidateSuccess();
+
+        return $response;
 
     }
 
     public function removeCurator($user){
 
         global $mysqli;
-        
+
+        $response = new UpdateResponse('RemoveCurator', true, "Removing a curator id {$user->getId()} to taxon with id {$this->getId()}.");
+
         $sql = "DELETE FROM `users_taxa` WHERE `user_id` = {$user->getId()} AND `taxon_id` =  {$this->getId()};";
-        $mysqli->query();
+        $mysqli->query($sql);
         if($mysqli->error){
             error_log($mysqli->error);
             error_log($sql);
+            $response->children[] = new UpdateResponse('RemoveCurator', false, $mysqli->error);
+            $response->children[] = new UpdateResponse('RemoveCurator', false, $sql);
         } 
+
 
         // force refresh of editors on next call
         $this->editors = null;
         $this->curatorIds = null;
 
+        $response->consolidateSuccess();
+        return $response;
 
     }
 
@@ -1135,6 +1150,9 @@ class Taxon extends WfoDbObject{
 
     public function getCurators(){
 
+        // if we haven't been saved then there are none
+        if(!$this->getId()) return array();
+
         // this should used the cached lists if they are there
         $all = $this->getEditors();
         $curatorIds = $this->getCuratorIds();
@@ -1153,6 +1171,9 @@ class Taxon extends WfoDbObject{
      * including the curators (owners) of the taxon
      */
     public function getEditors(){
+
+        // if we haven't been saved then there are none
+        if(!$this->getId()) return array();
 
         // editors are anyone who is a curator of this
         // taxon or any of its parent taxa
@@ -1192,10 +1213,18 @@ class Taxon extends WfoDbObject{
      * 
      */
     public function isCurator($user){
+
+        // if we haven't been saved to the db yet then answer is no
+        if(!$this->getId()) return false;
+
         return in_array($user->getId(), $this->getCuratorIds());
     }
 
     public function canEdit($user){
+
+        // if we haven't been saved to the db yet then answer is yese
+        if(!$this->getId()) return true;
+
         // we can't be sure the user is the same object 
         // so we do it on ids
         $editors = $this->getEditors();
@@ -1205,5 +1234,6 @@ class Taxon extends WfoDbObject{
         return false;
 
     }
+
 
 } // Taxon

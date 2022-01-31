@@ -195,9 +195,6 @@ class NameGqlType extends ObjectType
 
                             // if the name hasn't been joined to a taxon (as accepted or a synonym)
                             // and the user is an editor of some kind then they can edit the name
-                            if(!$taxon && $user->isEditor()) return true;
-
-                            // if the taxon exists we ask it if this user can edit
                             return $taxon->canEdit($user);
 
                         }
@@ -217,14 +214,8 @@ class NameGqlType extends ObjectType
                         'type' => Type::listOf(TypeRegister::userType()),
                         'description' => "The list of users who can edit this name because they are a curator of the taxon it belongs to or one of the taxons ancestors. An empty list is returned for unplaced names because any editor can edit these.",
                         'resolve' => function($name) {
-
                             $taxon = Taxon::getTaxonForName($name);
-                            
-                            // not placed so providing a list is not relevant
-                            if(!$taxon) return array();
-
                             return $taxon->getEditors();
-
                         }
                     ],
 
@@ -232,14 +223,8 @@ class NameGqlType extends ObjectType
                         'type' => Type::listOf(TypeRegister::userType()),
                         'description' => "The list of users who are a curators of the taxon. A subset of editors. An empty list is returned for unplaced names because any editor can edit these.",
                         'resolve' => function($name) {
-
                             $taxon = Taxon::getTaxonForName($name);
-                            
-                            // not placed so providing a list is not relevant
-                            if(!$taxon) return array();
-
                             return $taxon->getCurators();
-
                         }
                     ]
                 ];
