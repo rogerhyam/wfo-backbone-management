@@ -507,6 +507,11 @@ class Taxon extends WfoDbObject{
         global $mysqli;
         global $ranks_table;
 
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Taxon");
+            return;
+        }
+
         // check validity and refuse to proceed if we aren't valid
         $integrity = $this->checkIntegrity();
         if($integrity->status == WFO_INTEGRITY_FAIL){
@@ -849,6 +854,11 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Taxon");
+            return;
+        }
+
         $taxon_names_id = $this->assignName($name);
 
         if($taxon_names_id){
@@ -921,6 +931,11 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Taxon");
+            return;
+        }
+
         // we are extra cautious only remove a name if we own it and we do it by primary key
         $result = $mysqli->query("SELECT id FROM taxon_names WHERE name_id = {$name->id} AND taxon_id = {$this->id}");
         if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->id} and taxon_id {$this->id}.");
@@ -951,7 +966,14 @@ class Taxon extends WfoDbObject{
     private function assignName($name){
         
         global $mysqli;
-        
+
+        // we do nothing if the user doesn't have rights to change this taxon
+        // They should never get here because interface should stop them
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Taxon");
+            return;
+        }
+
         // is the name already in use in the taxon_names table?
         $result = $mysqli->query("SELECT * FROM taxon_names WHERE name_id = {$name->id}");
         if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->id}.");
@@ -1081,6 +1103,11 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Taxon");
+            return;
+        }
+
         $response = new UpdateResponse('AddCurator', true, "Adding a curator id {$user->getId()} to taxon with id {$this->getId()}.");
 
         $sql = "INSERT INTO `users_taxa` (`user_id`, `taxon_id`) VALUES ( {$user->getId()}, {$this->getId()} );";
@@ -1105,6 +1132,11 @@ class Taxon extends WfoDbObject{
     public function removeCurator($user){
 
         global $mysqli;
+
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Taxon");
+            return;
+        }
 
         $response = new UpdateResponse('RemoveCurator', true, "Removing a curator id {$user->getId()} to taxon with id {$this->getId()}.");
 
@@ -1220,9 +1252,11 @@ class Taxon extends WfoDbObject{
         return in_array($user->getId(), $this->getCuratorIds());
     }
 
-    public function canEdit($user){
+    public function canEdit(){
 
-        // if we haven't been saved to the db yet then answer is yese
+        $user = unserialize($_SESSION['user']);
+
+        // if we haven't been saved to the db yet then answer is yes
         if(!$this->getId()) return true;
 
         // we can't be sure the user is the same object 
