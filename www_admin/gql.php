@@ -568,7 +568,7 @@ Narrative
 // mainly 
 
 
-// no user in session and we need on
+// no user in session and we need one
 if(!isset($_SESSION['user'])){
 
     // pull out the access token.

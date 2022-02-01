@@ -388,6 +388,13 @@ class Name extends WfoDbObject{
 
         global $mysqli;
 
+        // we do nothing if the user doesn't have rights to change this name
+        // They should never get here because interface should stop them
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Name");
+            return;
+        }
+
         if(!$this->id) throw new ErrorException("Attempt to add hint to Name which doesn't have a db id.");
 
         // could maybe improve this next bit with an insert if does not exist - but indexes and keys might be tricky
@@ -471,6 +478,13 @@ class Name extends WfoDbObject{
     public function addIdentifier($identifier, $kind){
 
         global $mysqli;
+
+        // we do nothing if the user doesn't have rights to change this name
+        // They should never get here because interface should stop them
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Name");
+            return;
+        }
 
         if(!$this->id) throw new ErrorException("Attempt to add identifier to Name which doesn't have a db id.");
 
@@ -717,10 +731,15 @@ ao.
      * 
      */
     protected function saveDangerously(){
-
-        // FIXME: add in issue 
         
         global $mysqli;
+
+        // we do nothing if the user doesn't have rights to change this name
+        // They should never get here because interface should stop them
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to save changes to Name");
+            return;
+        }
 
         // check validity and refuse to proceed if we aren't valid
         $updateResponse = $this->checkIntegrity();
@@ -1066,6 +1085,16 @@ ao.
 
         return $updateResponse;
 
+    }
+
+    /**
+     * The only place where we break
+     * down the fact that names don't know about taxa.
+     */
+    public function canEdit(){
+        $taxon = Taxon::getTaxonForName($this);
+        $user = unserialize($_SESSION['user']);
+        return $taxon->canEdit($user);
     }
 
 } // name

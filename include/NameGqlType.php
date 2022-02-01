@@ -189,14 +189,7 @@ class NameGqlType extends ObjectType
                         'type' => Type::boolean(),
                         'description' => "Whether the current user has authority to edit this name or not.",
                         'resolve' => function($name) {
-
-                            $taxon = Taxon::getTaxonForName($name);
-                            $user = unserialize($_SESSION['user']);
-
-                            // if the name hasn't been joined to a taxon (as accepted or a synonym)
-                            // and the user is an editor of some kind then they can edit the name
-                            return $taxon->canEdit($user);
-
+                            return $name->canEdit();
                         }
                     ],
 
