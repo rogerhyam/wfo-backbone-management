@@ -4,6 +4,7 @@
 require_once('../vendor/autoload.php');
 include_once("../../backbone_secrets.php");
 
+session_name($session_name); // set in secrets to differentiate sandbox from live site.
 session_start();
 
 // create and initialise the database connection
