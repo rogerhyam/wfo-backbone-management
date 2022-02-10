@@ -1055,6 +1055,21 @@ class Taxon extends WfoDbObject{
 
     }
 
+    public function getDescendants(){
+
+        $descendants = array();
+
+        $kids = $this->getChildren();
+
+        foreach ($kids as $kid) {
+            $descendants[] = $kid;
+            $descendants = array_merge($descendants, $kid->getDescendants());
+        }
+
+        return $descendants;
+
+    }
+
     public function getAncestors(){
         $ancestors = array();
         $dad = $this;

@@ -11,6 +11,6 @@ fi
 databasename="promethius_$1";
 
 today=$(date +"%Y-%m-%d-%H-%M-%S")
-filename="../data/db_dumps/$databasename_${today}.sql.gz"
+filename="../data/db_dumps/${databasename}_${today}.sql.gz"
 mysqldump $databasename | gzip > $filename
 echo "Database dumped to: ${filename}"
