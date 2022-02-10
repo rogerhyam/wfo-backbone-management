@@ -16,7 +16,9 @@ class Identifier{
             'ten' => "TEN internal",
             'tropicos' => "Tropicos",
             'uri' => 'Web Link',
-            'uri_deprecated' => "Web Link (Deprecated)"
+            'uri_deprecated' => "Web Link (Deprecated)",
+            'rhakhis_name_id' => "Rhakhis Internal Name ID",
+            'rhakhis_taxon_id' => "Rhakhis Internal Taxon ID"
     );
 
     public function __construct($kind, $values){

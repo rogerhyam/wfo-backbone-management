@@ -558,6 +558,14 @@ class Name extends WfoDbObject{
            $out[] = new Identifier($kind, $values);
         }
 
+        // add in our internal identifiers - they are useful to see!
+        $out[] = new Identifier("rhakhis_name_id", array($this->id));
+
+        $taxon = Taxon::getTaxonForName($this   );
+        if($taxon->getId()){
+            $out[] = new Identifier("rhakhis_taxon_id", array($taxon->getId()));
+        }
+
         return $out;
 
     }
@@ -1092,7 +1100,12 @@ ao.
      * down the fact that names don't know about taxa.
      */
     public function canEdit(){
+        
+        if(!$this->getId()) return true; // if we haven't been saved yet you can edit us
+
+        // otherwise we get a taxon to judge
         $taxon = Taxon::getTaxonForName($this);
+        
         $user = unserialize($_SESSION['user']);
         return $taxon->canEdit($user);
     }

@@ -51,8 +51,13 @@ if(isset($orcid_response->access_token) ){
 
     // user does not exist so create one
     if(!$user){
+
         echo "<p>No loaded user for {$orcid_response->access_token}</p>";
         $user = new User();
+
+        // we are creating a new user for and orcid id so we assume they are a "nobody rather than annonymous 
+        $user->setRole('nobody');
+    
     } 
 
     $user->setOrcidId($orcid_response->orcid);

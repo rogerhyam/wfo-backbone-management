@@ -23,17 +23,9 @@ if (!$mysqli->set_charset("utf8")) {
 // client id and secret are loaded in the secret file
 define('ORCID_CLIENT_ID', $orcid_client_id);
 define('ORCID_CLIENT_SECRET', $orcid_client_secret);
+define('ORCID_REDIRECT_URI', $orcid_redirect_uri);
+define('ORCID_LOG_OUT_URI', $orcid_log_out_uri);
 define('ORCID_TOKEN_URI', 'https://orcid.org/oauth/token');
-
-// the redirect uri depends on live or not
-// FIXME for live more smoothly
-if(getenv('WFO_EDIT_DEV')){
-  define('ORCID_REDIRECT_URI', 'http://localhost:1756/orcid_redirect.html');
-  define('ORCID_LOG_OUT_URI', 'http://localhost:1756/orcid_log_out.php');
-}else{
-  define('ORCID_REDIRECT_URI', 'https://list.worldfloraonline.org/edit/orcid_redirect.html');
-  define('ORCID_LOG_OUT_URI', 'http://localhost:1756/orcid_log_out.php');
-}
 
 // the login uri is constructed from variables above
 define('ORCID_LOG_IN_URI', 'https://orcid.org/oauth/authorize?client_id='. ORCID_CLIENT_ID .'&response_type=code&scope=/authenticate&redirect_uri=' . ORCID_REDIRECT_URI);
@@ -55,6 +47,13 @@ define("WFO_RANK_REBALANCE", 8); // the ranks at this point are out of balance a
 // this should be kept in syn with the enumeration values in the db
 // and also the wfo_mint table to generate
 $ranks_table = array(
+
+  "code" => array(
+    "children" => array("kingdom", "phylum"), // permissible ranks for child taxa
+    "abbreviation" => "ICN", // official abbreviation
+    "plural" => "Code",
+    "aka" => array() // alternative representations for import
+  ),
 
   "kingdom" => array(
     "children" => array("phylum"), // permissible ranks for child taxa

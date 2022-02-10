@@ -1,6 +1,8 @@
 data/sources/.DS_Store
 data/sources/seed
-data/db_dumps
+data/db_dumps/*
+data/downloads/*
+data/examples
 vendor/
 composer.phar
 

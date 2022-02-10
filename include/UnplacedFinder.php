@@ -97,7 +97,7 @@ class UnplacedFinder{
         }
 
         // do the count
-        error_log($sql);
+        // error_log($sql);
         $response = $mysqli->query("SELECT count(*) as num " . $sql);
         $row = $response->fetch_assoc();
         $this->totalUnplacedNames = $row['num'];
