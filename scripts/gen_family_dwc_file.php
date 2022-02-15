@@ -52,7 +52,7 @@ while($row = $response->fetch_assoc()){
     if(
         file_exists($file_path . ".zip")
         &&
-        filemtime($file_path . ".zip") > time() - (24 * 60 * 60)
+        filemtime($file_path . ".zip") > time() - (3 * 24 * 60 * 60)
     ){
         continue;
     }
