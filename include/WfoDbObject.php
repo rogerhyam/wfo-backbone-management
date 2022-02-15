@@ -71,6 +71,14 @@ class WfoDbObject{
         return $this->user_id;
     }
 
+    public function getCreated(){
+        return $this->created;
+    }
+
+    public function getModified(){
+        return $this->modified;
+    }
+
     /**
      * Write this core values of this Object to database safely
     */

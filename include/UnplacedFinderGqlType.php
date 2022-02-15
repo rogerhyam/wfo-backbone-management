@@ -9,10 +9,10 @@ class UnplacedFinderGqlType extends ObjectType
     public function __construct()
     {
         $config = [
-
             'description' => "A response with a list of the unplaced names associated with a name",
             'fields' => function() {
                 return [
+
                     'name' => [
                         'type' => TypeRegister::nameType(),
                         'description' => "The name with the associated unplaced names."
@@ -37,6 +37,8 @@ class UnplacedFinderGqlType extends ObjectType
                         'type' => Type::boolean(),
                         'description' => "Whether it was requested to include deprecated names in this list."
                     ]
+
+
                 ];
             }
         ];

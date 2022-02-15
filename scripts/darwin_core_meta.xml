@@ -1,0 +1,39 @@
+<?xml version="1.0" standalone="yes"?>
+<archive xmlns="http://rs.tdwg.org/dwc/text/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd" metadata="prov.xml">
+    <core encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy='"' ignoreHeaderLines="0" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
+        <files>
+            <location>taxonomy.csv</location>
+        </files>
+
+        <!-- record id is guid -->
+        <id index="0" />
+
+        <!-- column mappings -->
+        <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
+        <field index="5" term="http://rs.tdwg.org/dwc/terms/scientificName" />
+        <field index="5" term="http://rs.tdwg.org/dwc/terms/taxonRank" />
+        <field index="5" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship" />
+        <field index="7" term="http://rs.tdwg.org/dwc/terms/genus" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/specificEpithet" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/infraspecificEpithet" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/originalNameUsageID" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/taxonRemarks" />
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/taxonRemarks" />
+        <field index="1" term="http://purl.org/dc/terms/created" />
+        <field index="1" term="http://purl.org/dc/terms/modified" />
+
+        <!-- static values -->
+        <field term="http://rs.tdwg.org/dwc/terms/nomenclaturalCode" default="ICBN" />
+        <field term="http://rs.tdwg.org/dwc/terms/basisOfRecord" default="Taxon" />
+        <field term="http://purl.org/dc/terms/type" default="Taxonomy" />
+        <field term="http://rs.tdwg.org/dwc/terms/datasetName" default="World Flora Online {{family}} as at {{date}}" />
+
+    </core>
+
+</archive>

@@ -21,6 +21,7 @@ require_once('../include/UnplacedFinder.php');
 require_once('../include/BasionymFinder.php');
 require_once('../include/Identifier.php');
 require_once('../include/User.php');
+require_once('../include/DownloadFile.php');
 
 $typeReg = new TypeRegister();
 
@@ -185,6 +186,36 @@ $schema = new Schema([
                 'description' => 'Return list of possible editors (excludes those with role anonymous).',
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return User::getPossibleEditors();
+                }
+            ],
+            'getDownloads' => [
+                'type' => Type::listOf(TypeRegister::downloadFileType()),
+                'description' => "Return a list of data files for download.",
+                'args' => [
+                    'directoryName' => [
+                        'type' => Type::string(),
+                        'description' => "The name of the download directory to provide a file list for. These are considered well known. 'dwc' for Darwin Core Archives by family. 'lookup' for general matching files.",
+                        'required' => true
+                    ],
+                    'fileEnding' => [
+                        'type' => Type::string(),
+                        'description' => "The the ending the files must have. These are considered well known. 'zip' for DwC archive files. 'gz' for other compressed files.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+
+                    $files = array();
+                    // just check they don't try and insert anything naughty into the path.
+                    //if(!preg_match('/^[A-Za-z0-9]$/', $args['directoryName'])) return $files;
+                    //if(!preg_match('/^[A-Za-z0-9]$/', $args['fileEnding'])) return $files;
+
+                    $paths = glob("downloads/{$args['directoryName']}/*.{$args['fileEnding']}");
+                    foreach ($paths as $path) {
+                        $files[] = new DownloadFile($path);
+                    }
+
+                    return $files;
                 }
             ]
         ]// fields

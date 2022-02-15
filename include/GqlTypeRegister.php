@@ -13,6 +13,7 @@ require_once('../include/UnplacedFinderGqlType.php');
 require_once('../include/BasionymFinderGqlType.php');
 require_once('../include/IdentifierGqlType.php');
 require_once('../include/UserGqlType.php');
+require_once('../include/DownloadFileGqlType.php');
 
 /*
 
@@ -34,6 +35,7 @@ class TypeRegister {
     private static $basionymFinderType;
     private static $identifierType;
     private static $userType;
+    private static $downloadFileType;
 
     public static function taxonType(){
         return self::$taxonType ?: (self::$taxonType = new TaxonGqlType());
@@ -73,6 +75,10 @@ class TypeRegister {
 
     public static function userType(){
         return self::$userType ?: (self::$userType = new UserGqlType());
+    }
+
+    public static function downloadFileType(){
+        return self::$downloadFileType ?: (self::$downloadFileType = new DownloadFileGqlType());
     }
 
     public static function getPlacementActionEnum(){
