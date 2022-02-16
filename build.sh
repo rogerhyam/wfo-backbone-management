@@ -12,7 +12,7 @@ cp -r include ${destination}/api
 echo "moving scripts"
 cp -r scripts ${destination}/api
 echo "moving www"
-cp -r www ${destination}/api
+rsync -av --progress --delete www ${destination}/api --exclude downloads
 echo "moving files"
 cp composer.json ${destination}/api/composer.json
 cp composer.lock ${destination}/api/composer.lock

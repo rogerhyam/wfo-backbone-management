@@ -1,0 +1,10 @@
+
+# m h  dom mon dow   command
+
+# FIXME - need these going to decent logs!
+
+12 02 * * * cd /var/wfo-list/rhakhis/api/scripts && php gen_identifier_match_file.php  > /dev/null 2>&1
+32 02 * * * cd /var/wfo-list/rhakhis/api/scripts && php gen_name_match_file.php  > /dev/null 2>&1
+56 * * * * cd /var/wfo-list/rhakhis/api/scripts && php -d memory_limit=1024M gen_family_dwc_file.php  > /dev/null 2>&1
+06 * * * * cd /var/wfo-list/rhakhis/api/scripts && php -d memory_limit=1024M gen_family_html_file.php  > /dev/null 2>&1
+
