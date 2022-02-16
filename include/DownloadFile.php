@@ -36,6 +36,8 @@ class DownloadFile{
         if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') $link = "https";
         else $link = "http";
         $link .= "://" . $_SERVER['HTTP_HOST'];
+        $request_path_parts = pathinfo($_SERVER['REQUEST_URI']);
+        $link .= $request_path_parts['dirname'];
         $this->uri = $link . '/' . $filePath;
 
         // if the file doesn't exist just null it all out

@@ -6,7 +6,7 @@ require_once("../include/Name.php");
 require_once("../include/Taxon.php");
 require_once("../include/UnplacedFinder.php");
 
-// php -d memory_limit=2048M gen_family_dwc_file.php
+// php -d memory_limit=1024M gen_family_dwc_file.php
 
 // is the memory thing because we are doing multiples. Should we call it in batches?
 
