@@ -39,6 +39,127 @@ class NameMatcher{
 
     }
 
+    function darwinCoreMatch($nameString, $authorsString, $rankString, $familyString){
+
+        global $mysqli;
+
+        // clean up the name first
+        $nameString = trim($nameString);
+
+        // the name may include a rank abbreviation
+        $nameParts = explode(' ', $nameString);
+        $newNameParts = array();
+        foreach($nameParts as $part){
+            if($this->isRankWord($part)){
+                // if we find a part that looks like a rank word
+                // we don't add it to the new version of the name
+                // but if we don't have a rank designation we use it for that.
+                if(!$rankString) $rankString = $part;
+            }else{
+                $newNameParts[] = $part;
+            }
+        }
+        $nameString = implode(' ', $newNameParts);
+
+        // clean the authors - not much to do here
+        $authorsString = trim($authorsString);
+
+        // normalize the rank if we can.
+        $rankString = $this->isRankWord($part);
+
+        // clean the family - not much to do here
+        $familyString = preg_replace('/[^A-Za-z]/', '', $familyString);
+
+        // ready to start matching
+        $matches = new NameMatches();
+        $matches->queryString = "$nameString $authorsString $rankString $familyString";
+        $matches->nameParts = $newNameParts;
+        $matches->rank = $rankString;
+        $matches->authors = $authorsString;
+        $matches->distances = array(); // to be filled in below
+        $matches->names = array(); // to be filled in below
+
+        // perfect scores are 100% match of name and authors with no homonyms.
+        $response = $mysqli->query("SELECT `id`, `authors`  FROM `names` WHERE `name_alpha` = '$nameString' AND `authors` = '$authorsString'");
+        
+        // if we only have a single match that is perfect - unless we have homonyms!
+        if($response->num_rows == 1){
+            $row = $response->fetch_assoc();
+            // bingo single match so return it with a perfect score
+            $matches->names[] = Name::getName($row['id']);
+
+            // do we have any that match the name but not the author string. That would be a downgrade.
+            $othersResponse = $mysqli->query("SELECT `id` FROM `names` WHERE `name_alpha` = '$nameString' AND (`authors` != '$authorsString' OR `authors` is null)");
+            if($othersResponse->num_rows > 0){
+                
+                // down a point as there are homonyms
+                $matches->distances[] = 1;
+
+                // add the other names in for reference
+                while($othersRow = $othersResponse->fetch_assoc()){
+                    $matches->names[] = Name::getName($othersRow['id']);
+                    $matches->distances[] = 2;
+                }
+
+                $othersResponse->close();
+
+            }else{
+                // perfect score as no homonyms
+                $matches->distances[] = 0;
+            }
+
+            $response->close();
+            return $matches;
+        }
+
+        // this really shouldn't happen as we control for homonyms with same author strings!
+        if($response->num_rows > 1){
+            while($row = $response->fetch_assoc()){
+                $matches->names[] = Name::getName($row['id']);
+                $matches->distances[] = 2;
+            }
+            $response->close();
+            return $matches;
+        }
+
+        // got to here so there is no name & authors matches
+        // try just name match - these get a score of 
+        $response = $mysqli->query("SELECT `id` FROM `names` WHERE `name_alpha` = '$nameString'");
+        if($response->num_rows > 0){
+            while($row = $response->fetch_assoc()){
+                $matches->names[] = Name::getName($row['id']);
+                $matches->distances[] = 2;
+            }
+            $response->close();
+            return $matches;
+        }
+
+        // no name matches at all so fuzz up the names and try that.
+        $fuzzed = '';
+        foreach ($newNameParts as $part) {
+            $fuzzed .= $this->fuzzWord($part);
+            $fuzzed .= ' ';
+        }
+        $fuzzed = trim($fuzzed);
+
+        $sql = "SELECT `id` FROM `names` WHERE `name_alpha` LIKE '$fuzzed' ORDER BY `name_alpha` LIMIT 100";
+        $response = $mysqli->query($sql);
+        error_log($sql);
+
+        if($response->num_rows > 0){
+            while($row = $response->fetch_assoc()){
+                $matches->names[] = Name::getName($row['id']);
+                $matches->distances[] = 3;
+            }
+            $response->close();
+            return $matches;
+        }
+
+        // well we didn't find anything!
+        return $matches;
+
+    }
+
     /**
      * Parse a string to find the best matches
      * 
