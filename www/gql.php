@@ -98,6 +98,41 @@ $schema = new Schema([
                     return $matcher->alphaMatch($args['queryString']);
                 }
             ],
+            'getNamesByDarwinCoreMatch' => [
+                'type' => TypeRegister::nameMatchesType(),
+                'description' => "Get a list of names that match fields found in the Darwin Core data standard. Distances are 0 = perfect match with no ambiguity. 1 = perfect match but homonyms with different author strings. 2 = imperfect match, usually differing author strings. 3 = approximate match.",
+                'args' => [
+                    'scientificName' => [
+                        'type' => Type::string(),
+                        'description' => "The name string omitting the authors as per Darwin Core definition.",
+                        'required' => true
+                    ],
+                    'scientificNameAuthorship' => [
+                        'type' => Type::string(),
+                        'description' => "The author string following standard abbreviations as per Darwin Core definition.",
+                        'required' => false,
+                        'defaultValue' => ''
+                    ],
+                    'taxonrank' => [
+                        'type' => Type::string(),
+                        'description' => "The rank of the name. Suggested to use values in the ranks table returned by getAllRanks where possible but attempts will be made to parse other values.",
+                        'required' => false,
+                        'defaultValue' => ''
+                    ],
+                    'family' => [
+                        'type' => Type::string(),
+                        'description' => "A family name that may be used as a hint when looking up a name.",
+                        'required' => false,
+                        'defaultValue' => ''
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info){
+                    $matcher = new NameMatcher();
+                    return $matcher->darwinCoreMatch($args['scientificName'], $args['scientificNameAuthorship'], $args['taxonrank'], $args['family']);
+                }
+            ],
+
+            
             'getAllRanks' => [
                 'type' => Type::listOf(TypeRegister::rankType()),
                 'description' => "A list of all recognized ranks from highest to lowest",

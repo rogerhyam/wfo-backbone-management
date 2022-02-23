@@ -90,7 +90,7 @@ function process_family($family_wfo, $downloads_dir){
         ob_flush();
 
         $files = glob($temp_dir . "*.html");
-        print_r($files);
+       // print_r($files);
 
         $zip = new ZipArchive();
         $zip_path = $downloads_dir . $family_name->getNameString() . "_" . $family_name->getPrescribedWfoId() . ".zip";
