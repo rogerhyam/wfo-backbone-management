@@ -5,6 +5,7 @@ require_once("../include/WfoDbObject.php");
 require_once("../include/Name.php");
 require_once("../include/Taxon.php");
 require_once("../include/UnplacedFinder.php");
+require_once("../include/Identifier.php");
 
 // php -d memory_limit=1024M gen_family_dwc_file.php
 
@@ -25,7 +26,6 @@ $downloads_dir = '../www/downloads/dwc/';
 if (!file_exists($downloads_dir)) {
     mkdir($downloads_dir, 0777, true);
 }
-
 
 // get a list of all the families in the taxonomy
 $response = $mysqli->query("SELECT i.`value` as wfo, n.`name` 
@@ -71,10 +71,13 @@ while($row = $response->fetch_assoc()){
 
 function process_family($family_wfo, $file_path){
 
+        global $ranks_table;
+
         $family_name = Name::getName($family_wfo);
         $family_taxon = Taxon::getTaxonForName($family_name);
 
-        $creation_date = date(DATE_ATOM);
+        $creation_datestamp = date('Y-m-d\Th:i:s');
+        $creation_date = date('Y-m-d');
 
         // all the descendants
         $descendants = $family_taxon->getDescendants();
@@ -131,11 +134,13 @@ function process_family($family_wfo, $file_path){
         echo "\nTotal links: " .count($link_index);
 
         // now work through all the names and check there are no pointers to things outside our ken
-        foreach($link_index as $item){
-            check_name_links($item);
+        $original_link_index = $link_index; // we work on a copy so we aren't changing the array we iterate over.
+        foreach($original_link_index as $item){
+            check_name_links($item, $link_index);
         }
-
         echo "\nTotal links: " .count($link_index);
+
+
 
         echo "\n";
 
@@ -157,9 +162,27 @@ function process_family($family_wfo, $file_path){
             "taxonomicStatus",
             "acceptedNameUsageID",
             "taxonRemarks",
+            "references",
+            "tplID",
+            "source",
             "created",
-            "modified"
+            "modified",
+            "majorGroup"
         );
+
+        // we need a list of higher ranks
+        // those above genus and below family
+        $extra_ranks = array();
+
+        $upper_level = array_search("order", array_keys($ranks_table));
+        $genus_level = array_search("species", array_keys($ranks_table));
+        for ($i=0; $i < count($ranks_table) ; $i++) { 
+            if($i < $upper_level) continue; // not got there yet
+            if($i >= $genus_level) continue; // gone past it
+            if(array_keys($ranks_table)[$i] == 'genus') continue; // the genus is part of the name so not added here
+            $header[] =  array_keys($ranks_table)[$i]; // add it to the header
+            $extra_ranks[] =  array_keys($ranks_table)[$i]; // add it to the header
+        }
 
         $out = fopen($file_path . ".csv", 'w');
 
@@ -225,7 +248,19 @@ function process_family($family_wfo, $file_path){
 
             // originalNameUsageID = basionym WFO ID
             if($name->getBasionym()){
-                $row[] = $name->getBasionym()->getPrescribedWfoId();
+
+                // double check the basionym is in the list.
+                $basionym_wfo = $name->getBasionym()->getPrescribedWfoId();
+                if( isset($link_index[$basionym_wfo]) ){
+                    $row[] = $basionym_wfo;
+                }else{
+                    echo "\n BROKEN BASIONYM LINK FOUND \n";
+                    print_r($name);
+                    echo "\n-- basionym --\n";
+                    print_r($name->getBasionym());
+                    exit;
+                }
+
             }else{
                 $row[] = null;
             }
@@ -263,12 +298,102 @@ function process_family($family_wfo, $file_path){
 
             // taxonRemarks	= comments from name field
             $row[] = str_replace("\n", " ", $name->getComment()); // a hack to assure compatibility
+
+            // now any identifiers we can think of
+            $identifiers = $name->getIdentifiers();
+
+            // references is a deep link into the TEN that supplied the data
+            $references = "";
+            foreach ($identifiers as $identifier) {
+                if($identifier->getKind() == 'uri'){
+                    $references = $identifier->getValues()[0]; // just take the first
+                }
+            }
+            $row[] = $references;
+
+            // the plant list ID if there is one
+            $tpl_id = "";
+            foreach ($identifiers as $identifier) {
+                if($identifier->getKind() == 'tpl'){
+                    $tpl_id = $identifier->getValues()[0]; // just take the first
+                }
+            }
+            $row[] = $tpl_id;
+
+            // source is a string giving the name of where it came from
+            $row[] = "FIXME"; // $name->getSource();
             
             // created = from name ? or earliest from name/taxon
             $row[] = $name->getCreated();
 
             // modified	= from name ? 
             $row[] = $name->getModified();
+
+            // now we have the extra rows columns
+            // if the name is a synonym we use the
+            $ancestors = null;
+            if($taxon){
+                $ancestors = $taxon->getAncestors();
+            }else{
+                $t = Taxon::getTaxonForName($name);
+                $ancestors = $t->getAncestors(); // maybe nothing if taxon is empty because this is unplaced name.
+            }
+
+            // add the major group first
+            // we can't just use the major group of the family because this may be
+            // a homonym or something from another major group
+            $major_group = "?";
+            if($ancestors){
+                // we look up the tree if we are attached to the tree
+                $major_group_ancestors = $ancestors;
+            }else{
+                // we look up the tree of the family that is being exported
+                // if we are unplaced.
+                $major_group_ancestors = $family_taxon->getAncestors();
+            }
+            foreach($major_group_ancestors as $an){
+                // FIXME: These names have to match names in data for this to work
+                if($an->getRank() == 'phylum'){
+                    switch ($an->getAcceptedName()->getNameString()) {
+                        case 'Angiosperms':
+                            $major_group = "A";
+                            break;
+                        case 'Bryophytes':
+                            $major_group = "B";
+                            break;
+                        case 'Gymnosperms':
+                            $major_group = "G";
+                            break;
+                        case 'Pteridophytes':
+                            $major_group = "P";
+                            break;
+                        default:
+                            $major_group = $an->getAcceptedName()->getNameString();
+                            break;
+                    }
+                    break;
+                }
+            }
+            $row[] = $major_group;
+
+            // then all the other ranks
+            foreach($extra_ranks as $er){
+                $an_name = "";
+
+                // special case. If there are no ancestors (the name is unplaced)
+                // we include the family we are processing because it is built by family
+                if(!$ancestors && $er == 'family' ) $an_name = $family_name->getNameString();
+
+                // if this is the family entry then it won't have a family in its ancestry so we force it
+                if($name->getRank() == 'family' && $er == 'family') $an_name = $name->getNameString();
+
+                foreach($ancestors as $an){
+                    if($an->getRank() == $er){
+                        $an_name = $an->getAcceptedName()->getNameString();
+                    }
+                }
+                $row[] = $an_name;
+            }
 
             // write it out to the file
             fputcsv($out, $row);
@@ -303,10 +428,17 @@ function process_family($family_wfo, $file_path){
         $meta = str_replace('{{date}}', $creation_date, $meta);
         file_put_contents($meta_path, $meta);
 
+        $eml_path = $file_path . ".eml.xml";
+        $eml = file_get_contents('darwin_core_eml.xml');
+        $eml = str_replace('{{family}}', $family_name->getNameString(), $eml);
+        $eml = str_replace('{{date}}', $creation_date, $eml);
+        $eml = str_replace('{{datestamp}}', $creation_datestamp, $eml);
+        file_put_contents($eml_path, $eml);
 
         $zip->addFile($file_path . ".csv", "taxonomy.csv");
         $zip->addFile($prov_path, "prov.xml");
-        $zip->addFile($meta_path, "eml.xml");
+        $zip->addFile($eml_path, "eml.xml");
+        $zip->addFile($meta_path, "meta.xml");
 
         if ($zip->close()!==TRUE) {
             exit("cannot close <$zip_path>\n". $zip->getStatusString());
@@ -316,14 +448,17 @@ function process_family($family_wfo, $file_path){
         unlink($file_path . ".csv");
         unlink($meta_path);
         unlink($prov_path);
+        unlink($eml_path);
 }
 
-function check_name_links($item){
-
-    global $link_index;
+function check_name_links($item, &$link_index){
 
     if(is_a($item, 'Taxon')) $name = $item->getAcceptedName();
     else $name = $item;
+
+    if($name->getPrescribedWfoId() == "wfo-0001044126"){
+        echo "\n checking name links \n";
+    }
 
     // basionyms first
     $basionym = $name->getBasionym();
@@ -331,8 +466,8 @@ function check_name_links($item){
         // if the basionym isn't in the list add it
         // and check it's links are in the db
         if(!isset($link_index[$basionym->getPrescribedWfoId()])){
-            // echo "\n\t" . $name->getFullNameString(false);
-            // echo "\n\t\t" . $basionym->getFullNameString(false);
+            //echo "\n\t" . $name->getFullNameString(false) . " " . $name->getPrescribedWfoId();
+            //echo "\n\t\t" . $basionym->getFullNameString(false);
             
             $link_index[$basionym->getPrescribedWfoId()] = $basionym;
 
@@ -343,15 +478,24 @@ function check_name_links($item){
                 // add the basionym taxon just incase the basionym is a synonym
                 $link_index[$basionym_taxon->getAcceptedName()->getPrescribedWfoId()] = $basionym_taxon;
 
+                // the accepted name might have a basionym
+                if($basionym_taxon->getAcceptedName()->getBasionym()){
+                    $link_index[$basionym_taxon->getAcceptedName()->getBasionym()->getPrescribedWfoId()] = $basionym_taxon->getAcceptedName()->getBasionym(); 
+                    //echo "\n\t\t\t" . $basionym_taxon->getAcceptedName()->getBasionym()->getFullNameString(false);
+                }
+
                 // add  all its parents up to family
                 $ancestors = $basionym_taxon->getAncestors();
                 foreach ($ancestors as $ans) {
-                    // echo "\n\t\t\t" . $ans->getAcceptedName()->getFullNameString(false);
+                    //echo "\n\t\t\t" . $ans->getAcceptedName()->getFullNameString(false);
                     $link_index[$ans->getAcceptedName()->getPrescribedWfoId()] = $ans;
+                    check_name_links($ans, $link_index);
                     if($ans->getAcceptedName()->getRank() == 'family') break;
                 }
 
             }
+
+            check_name_links($basionym, $link_index);
 
         }
     }
