@@ -375,7 +375,7 @@ There are three rules that govern where a name can be placed in the taxonomy
      * Actually move the name that the placer 
      * was initialized with according to the
      * action it was initialized with
-     * to the destitation passed in.
+     * to the destination passed in.
      * 
      * @param $destination_wfo The wfo of the taxon that is the going to be the parent or accepted name. Null if it is being removed.
      * 

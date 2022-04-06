@@ -49,6 +49,13 @@ class UserGqlType extends ObjectType
                             return $user->getName();
                         }
                     ],
+                    'uri' => [
+                        'type' => Type::string(),
+                        'description' => "The URI to the official web page of this user (typically a TEN).",
+                        'resolve' => function($user){
+                            return $user->getUri();
+                        }
+                    ],
                     'orcid' => [
                         'type' => Type::string(),
                         'description' => "The user's ORCID ID - useful for building links to their profile.",
@@ -69,7 +76,15 @@ class UserGqlType extends ObjectType
                         'resolve' => function($user){
                             return $user->getOrcidLogOutUri();
                         }
+                    ],
+                    'taxaCurated' => [
+                        'type' => Type::listOf(TypeRegister::taxonType()),
+                        'description' => "A list of taxa for which this this user is a curator - they can edit everything downstream of this.",
+                        'resolve' => function($user){
+                            return $user->getTaxaCurated();
+                        }
                     ]
+                    
                 ];
             }
         ];

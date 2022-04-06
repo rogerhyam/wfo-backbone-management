@@ -22,6 +22,7 @@ require_once('../include/BasionymFinder.php');
 require_once('../include/Identifier.php');
 require_once('../include/User.php');
 require_once('../include/DownloadFile.php');
+require_once('../include/StatsBasicSummary.php');
 
 $typeReg = new TypeRegister();
 
@@ -221,6 +222,13 @@ $schema = new Schema([
                 'description' => 'Return list of possible editors (excludes those with role anonymous).',
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return User::getPossibleEditors();
+                }
+            ],
+            'getStatsBasicSummary' => [
+                'type' => Type::listOf(TypeRegister::statsBasicSummaryType()),
+                'description' => 'Return a list of basic stats. There are around 1,500 rows.',
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return StatsBasicSummary::getStats();
                 }
             ],
             'getDownloads' => [
@@ -496,8 +504,7 @@ $schema = new Schema([
                         $response->message = "Couldn't find taxon for  ID '{$args['id']}'"; 
                     }else{
                         // we don't have much validity checking for taxa so can set directly.
-                        $taxon->setHybridStatus($args['isHybrid']);
-                        $taxon->save();
+                        $taxon->updateHybridStatus($args['isHybrid']);
                     }
                     return $response;
                 }

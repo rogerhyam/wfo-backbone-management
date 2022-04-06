@@ -151,6 +151,18 @@ class Taxon extends WfoDbObject{
 
     */
 
+    public function updateHybridStatus($is_hybrid){
+        $this->setHybridStatus($is_hybrid);
+        $this->save();
+
+        if($is_hybrid){
+            $this->getAcceptedName()->updateChangeLog("Set as hybrid");
+        }else{
+            $this->getAcceptedName()->updateChangeLog("Set as NOT hybrid");
+        }
+        
+    }
+
     /**
      * Set if this is a hybrid or not
      * 
@@ -241,6 +253,7 @@ class Taxon extends WfoDbObject{
     }
 
     public function setParent($parent){
+        $this->getAcceptedName()->updateChangeLog("Child of: " . $parent->getAcceptedName()->getPrescribedWfoId());
         $this->parent = $parent;
     }
     
@@ -874,6 +887,7 @@ class Taxon extends WfoDbObject{
 
     public function addSynonym($name){
         // we might do some checking in the future
+        $name->updateChangeLog("Synonym of: " . $this->getAcceptedName()->getPrescribedWfoId());
         return $this->assignName($name);
     }
 
@@ -884,6 +898,8 @@ class Taxon extends WfoDbObject{
             throw new ErrorException("Trying to remove accepted name as if it were a synonym. name_id {$name->id} and taxon_id {$this->id}.");
             return false;
         }
+
+        $name->updateChangeLog("Removed from taxonomy");
 
         // actually do it
         $this->unassignName($name);
@@ -907,7 +923,9 @@ class Taxon extends WfoDbObject{
         }
 
         // unplace my name
-        $this->unassignName($this->getAcceptedName());
+        $name = $this->getAcceptedName();
+        $name->updateChangeLog("Removed from taxonomy");
+        $this->unassignName($name);
 
         // delete my row
         $result = $mysqli->query("DELETE FROM taxa WHERE id = {$this->id}");
@@ -1134,9 +1152,16 @@ class Taxon extends WfoDbObject{
             $response->children[] = new UpdateResponse('AddCurator', false, $sql);
         } 
 
+        // All curators are editors
+        if(!$user->isEditor()){
+            $user->setRole('editor');
+            $user->save();
+        }
+
         // force refresh of editors on next call
         $this->editors = null;
         $this->curatorIds = null;
+
 
         $response->consolidateSuccess();
 
@@ -1162,8 +1187,13 @@ class Taxon extends WfoDbObject{
             error_log($sql);
             $response->children[] = new UpdateResponse('RemoveCurator', false, $mysqli->error);
             $response->children[] = new UpdateResponse('RemoveCurator', false, $sql);
-        } 
+        }
 
+        // if the user is no longer a curator of anything then they can't be an editor (unless they are a god)
+        if(count($user->getTaxaCurated()) < 1 && !$user->isGod()){
+                $user->setRole('nobody');
+                $user->save();
+        }
 
         // force refresh of editors on next call
         $this->editors = null;

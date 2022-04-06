@@ -18,7 +18,6 @@ class WfoDbObject{
     // for working the singletons
     protected static $loaded = array();
 
-
     /**
      * Get the database id (if there is one)
      */

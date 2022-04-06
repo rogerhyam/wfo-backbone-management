@@ -48,6 +48,7 @@ class Name extends WfoDbObject{
         }
     }
 
+
     /**
      * Will load all values from db
      * overwrite anything already in the object.
@@ -80,6 +81,7 @@ class Name extends WfoDbObject{
         $this->basionym_id = $row['basionym_id'];
         $this->comment = $row['comment'];
         $this->issue = $row['issue'];
+        $this->change_log = $row['change_log'];
         $this->user_id = $row['user_id'];
         $this->source = $row['source'];
         $this->modified = $row['modified'];
@@ -800,6 +802,7 @@ ao.
                 `citation_micro` = ?,
                 `citation_id` = ?,
                 `comment` = ?,
+                `change_log` = ?,
                 `basionym_id` = ?,
                 `year` = ?, 
                 `user_id` = ? 
@@ -807,7 +810,7 @@ ao.
             WHERE `id` = ?");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
 
-            $stmt->bind_param("issssssssssiiii", 
+            $stmt->bind_param("isssssssssssiiii", 
                 $wfo_id_db_id,
                 $this->rank,
                 $this->name,
@@ -819,6 +822,7 @@ ao.
                 $this->citation_micro,
                 $this->citation_id,
                 $this->comment,
+                $this->change_log,
                 $this->basionym_id,
                 $this->year,
                 $this->user_id,
@@ -836,10 +840,10 @@ ao.
             
             // we don't have a db id so we need to create a row
             $stmt = $mysqli->prepare("INSERT 
-                INTO `names`(`prescribed_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`citation_id`,`comment`, `basionym_id`, `year`, `user_id`) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                INTO `names`(`prescribed_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`citation_id`,`comment`, `change_log`, `basionym_id`, `year`, `user_id`) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
-            $stmt->bind_param("issssssssssiii", 
+            $stmt->bind_param("isssssssssssiii", 
                 $wfo_id_db_id,
                 $this->rank,
                 $this->name,
@@ -851,6 +855,7 @@ ao.
                 $this->citation_micro,
                 $this->citation_id,
                 $this->comment,
+                $this->change_log,
                 $this->basionym_id,
                 $this->year,
                 $this->user_id
@@ -993,6 +998,25 @@ ao.
 
 
     /**
+     * Change log is just a message about 
+     * placement changes or additions
+     * so they can be registered when things outside the name table change.
+     * 
+     */
+    public function updateChangeLog($change){
+        $this->setChangeLog($change);
+        return $this->save();
+    }
+
+    public function setChangeLog($change){
+        $this->change_log = $change;
+    }
+
+    public function getChangeLog(){
+        return $this->change_log;
+    }
+
+    /**
      * Static function to create a new name
      * Has controls on creating homonyms.
      * If the name is a homonym you just include a list of homonyms WFO IDs to show
@@ -1100,13 +1124,21 @@ ao.
      * down the fact that names don't know about taxa.
      */
     public function canEdit(){
+
+        $user = unserialize($_SESSION['user']);
         
         if(!$this->getId()) return true; // if we haven't been saved yet you can edit us
 
         // otherwise we get a taxon to judge
         $taxon = Taxon::getTaxonForName($this);
+
+        // if the taxon doesn't have an id then it doesn't exist yet - i.e. this name hasn't been placed
+        if(!$taxon->getId()){
+            // anyone with the role 'editor' or 'god' can edit unplaced names
+            // this is gained by being a curator somewhere in the tree.
+            if($user->isEditor()) return true;
+        }
         
-        $user = unserialize($_SESSION['user']);
         return $taxon->canEdit($user);
     }
 
