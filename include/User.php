@@ -5,6 +5,7 @@ class User{
     private ?int $id = null;
     private ?string $name = null;
     private ?string $email = null;
+    private ?string $uri = null;
     private ?string $wfoAccessToken = null;
     private ?string $orcidId = null;
     private ?string $orcidAccessToken = null;
@@ -27,6 +28,7 @@ class User{
             $this->id = $args['id'];
             $this->name = $args['name'];
             $this->email = $args['email'];
+            $this->uri = $args['uri'];
             $this->wfoAccessToken = $args['wfo_access_token'];
             $this->orcidId = $args['orcid_id'];
             $this->orcidAccessToken = $args['orcid_access_token'];
@@ -61,6 +63,7 @@ class User{
                 SET 
                 `name` = ?,
                 `email` = ?,
+                `uri` = ?,
                 `role` = ?,
                 `wfo_access_token` = ?,
                 `orcid_id` = ?,
@@ -72,9 +75,10 @@ class User{
                 `id` = ? "
             );
             if($mysqli->error) error_log($mysqli->error); // should only have prepare errors during dev
-            $stmt->bind_param("sssssssssi",
+            $stmt->bind_param("ssssssssssi",
                 $this->name,
                 $this->email,
+                $this->uri,
                 $this->role,
                 $this->wfoAccessToken,
                 $this->orcidId,
@@ -95,13 +99,14 @@ class User{
 
             // CREATING
             $stmt = $mysqli->prepare("INSERT 
-                INTO `users` (`name`, `email`, `role`, `wfo_access_token`, `orcid_id`,`orcid_access_token`,`orcid_refresh_token`, `orcid_expires_in`, `orcid_raw`) 
-                VALUES (?,?,?,?,?,?,?,?,?)");
+                INTO `users` (`name`, `email`, `uri`, `role`, `wfo_access_token`, `orcid_id`,`orcid_access_token`,`orcid_refresh_token`, `orcid_expires_in`, `orcid_raw`) 
+                VALUES (?,?,?,?,?,?,?,?,?,?)");
             if($mysqli->error) error_log($mysqli->error); // should only have prepare errors during dev
     
-            $stmt->bind_param("sssssssss",
+            $stmt->bind_param("ssssssssss",
                 $this->name,
                 $this->email,
+                $this->uri,
                 $this->role,
                 $this->wfoAccessToken,
                 $this->orcidId,
@@ -119,6 +124,12 @@ class User{
                 return true;
             }
 
+        }
+
+        // if we have just saved changes to the current user then we should update the object in the session with the latest version
+        $current_user = unserialize($_SESSION['user']);
+        if($this->getId() == $current_user->getId()){
+            $_SESSION['user'] =  serialize($this);
         }
         
     }
@@ -392,4 +403,46 @@ class User{
         else return false;
     }
 
+    public function getTaxaCurated(){
+
+        global $mysqli;
+
+        $out = array();
+
+        $result = $mysqli->query("SELECT ut.taxon_id, n.name_alpha
+                FROM `users_taxa` as ut
+                JOIN `taxa` as t on ut.taxon_id = t.id
+                JOIN `taxon_names` as tn on t.taxon_name_id = tn.id
+                JOIN `names` as n on tn.name_id = n.id
+                WHERE ut.`user_id` = {$this->getId()}
+                order by name_alpha;");
+
+        while($row = $result->fetch_assoc()){
+            $out[] = Taxon::getById($row['taxon_id']);
+        }
+
+        return $out;
+
+    }
+
+
+    /**
+     * Get the value of uri
+     */ 
+    public function getUri()
+    {
+        return $this->uri;
+    }
+
+    /**
+     * Set the value of uri
+     *
+     * @return  self
+     */ 
+    public function setUri($uri)
+    {
+        $this->uri = $uri;
+
+        return $this;
+    }
 }// class
