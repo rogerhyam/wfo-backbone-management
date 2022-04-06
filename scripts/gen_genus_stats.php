@@ -40,7 +40,7 @@ names as n
 left join stats_genera as sg on n.id = sg.name_id
 where n.rank = 'genus'
 and n.status != 'deprecated' 
-and (sg.modified is null OR sg.modified < now() - interval 1 DAY)
+and (sg.modified is null OR sg.modified < now() - interval 30 DAY)
 limit 1000";
 
 $response = $mysqli->query($sql);
