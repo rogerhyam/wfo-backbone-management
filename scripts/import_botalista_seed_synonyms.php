@@ -7,8 +7,14 @@ require_once('../config.php');
 require_once('../include/WfoDbObject.php');
 require_once('../include/Name.php');
 require_once('../include/Taxon.php');
+require_once('../include/UpdateResponse.php');
+require_once('../include/User.php');
 
-$result = $mysqli->query("SELECT taxonID, acceptedNameUsageID FROM promethius.botalista_dump_1 where length(acceptedNameUsageID) != 0 and taxonomicStatus != 'Accepted' order by taxonID");
+// we need to have a mock session  
+$_SESSION['user'] = serialize(User::loadUserForDbId(1));
+
+
+$result = $mysqli->query("SELECT taxonID, acceptedNameUsageID FROM promethius.botalista_dump_2 where length(acceptedNameUsageID) != 0 and taxonomicStatus != 'Accepted' order by taxonID");
 $counter = 0;
 while($row = $result->fetch_assoc()){
 

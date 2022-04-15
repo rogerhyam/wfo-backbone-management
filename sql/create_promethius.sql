@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `identifiers`;
 CREATE TABLE `identifiers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name_id` int DEFAULT NULL COMMENT 'The name this is associated with. This can be null but only because we get into a loop if we can’t create a the name before the id or id before the name.',
-  `value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `kind` enum('ipni','tpl','wfo','if','ten','tropicos','uri','uri_deprecated') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -34,7 +34,7 @@ CREATE TABLE `identifiers` (
   KEY `value` (`value`) USING BTREE,
   KEY `kind` (`kind`) USING BTREE,
   CONSTRAINT `name_id` FOREIGN KEY (`name_id`) REFERENCES `names` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7525432 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -54,7 +54,7 @@ CREATE TABLE `matching_hints` (
   KEY `name_id_idx` (`name_id`),
   KEY `hint` (`hint`) USING BTREE,
   CONSTRAINT `hints_name_id` FOREIGN KEY (`name_id`) REFERENCES `names` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2629741 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,11 +67,11 @@ DROP TABLE IF EXISTS `names`;
 CREATE TABLE `names` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT 'Primary key for internal use.',
   `prescribed_id` int NOT NULL COMMENT 'The preferred WFO ID for this name. The name may have other IDs (WFO and otherwise) but these are stored in the other_ids table. ',
-  `rank` enum('code','kingdom','phylum','class','order','family','genus','subgenus','section','series','species','subspecies','variety','subvariety','form','subform') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rank` enum('code','kingdom','phylum','class','subclass','superorder','order','suborder','family','subfamily','supertribe','tribe','subtribe','genus','subgenus','section','subsection','series','subseries','species','subspecies','prole','variety','subvariety','form','subform') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `genus` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `species` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name_alpha` varchar(100) COLLATE utf8mb4_general_ci GENERATED ALWAYS AS (trim(concat_ws(_utf8mb4' ',`genus`,`species`,`name`))) STORED,
+  `name_alpha` varchar(100) COLLATE utf8mb4_general_ci GENERATED ALWAYS AS (trim(concat_ws(_utf8mb4' ',if((length(`genus`) = 0),NULL,`genus`),if((length(`species`) = 0),NULL,`species`),if((length(`name`) = 0),NULL,`name`)))) STORED,
   `authors` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `year` int DEFAULT NULL COMMENT 'Year of publication\n',
   `status` enum('unknown','invalid','valid','illegitimate','superfluous','conserved','rejected','sanctioned','deprecated') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE `names` (
   `basionym_id` int DEFAULT NULL,
   `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `change_log` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `change_log` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `user_id` int NOT NULL,
   `source` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this record was created',
@@ -99,7 +99,7 @@ CREATE TABLE `names` (
   CONSTRAINT `basionym_link` FOREIGN KEY (`basionym_id`) REFERENCES `names` (`id`),
   CONSTRAINT `names_editor` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `prescribed_id` FOREIGN KEY (`prescribed_id`) REFERENCES `identifiers` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1351871 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -129,7 +129,7 @@ CREATE TABLE `names_log` (
   `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `change_log` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `user_id` int NOT NULL,
-  `source` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT NULL COMMENT 'When this record was created',
   `modified` timestamp NULL DEFAULT NULL COMMENT 'When this record was last modified',
   KEY `id` (`id`) USING BTREE
@@ -145,7 +145,7 @@ DROP TABLE IF EXISTS `stats_genera`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stats_genera` (
   `name_id` int NOT NULL,
-  `wfo` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `name` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `role` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `phylum` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -225,13 +225,13 @@ CREATE TABLE `taxa` (
   `user_id` int NOT NULL,
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'When this record was last modified\\n',
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this record was created',
-  `source` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_id_UNIQUE` (`taxon_name_id`),
   KEY `editor_idx` (`user_id`),
   KEY `parentage_idx` (`parent_id`),
   CONSTRAINT `editor` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=347913 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -252,7 +252,7 @@ CREATE TABLE `taxon_names` (
   KEY `taxon_id_idx` (`taxon_id`),
   CONSTRAINT `taxon_id` FOREIGN KEY (`taxon_id`) REFERENCES `taxa` (`id`),
   CONSTRAINT `taxon_name_id` FOREIGN KEY (`name_id`) REFERENCES `names` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=946593 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -278,7 +278,7 @@ CREATE TABLE `users` (
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_unique` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -323,4 +323,4 @@ CREATE TABLE `wfo_mint` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-06 11:00:36
+-- Dump completed on 2022-04-13 16:29:21

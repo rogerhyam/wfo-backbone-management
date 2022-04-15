@@ -1126,6 +1126,8 @@ ao.
     public function canEdit(){
 
         $user = unserialize($_SESSION['user']);
+
+        if($user->isGod()) return true; // gods can do anything.
         
         if(!$this->getId()) return true; // if we haven't been saved yet you can edit us
 
@@ -1137,6 +1139,7 @@ ao.
             // anyone with the role 'editor' or 'god' can edit unplaced names
             // this is gained by being a curator somewhere in the tree.
             if($user->isEditor()) return true;
+            else return false;
         }
         
         return $taxon->canEdit($user);

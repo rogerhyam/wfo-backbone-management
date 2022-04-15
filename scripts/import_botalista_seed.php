@@ -1,7 +1,7 @@
 <?php
 
 
-// php -d memory_limit=10G import_botalista_seed.php 2>&1
+// php -d memory_limit=15G import_botalista_seed.php 2>&1
 
 
 // this script will probably only be used at the initiation of the database
@@ -10,10 +10,15 @@
 require_once('../config.php');
 require_once('../include/WfoDbObject.php');
 require_once('../include/Name.php');
+require_once('../include/UpdateResponse.php');
+require_once('../include/Taxon.php');
+require_once('../include/User.php');
 
+// we need to have a mock session  
+$_SESSION['user'] = serialize(User::loadUserForDbId(1));
 
 // work through all the rows - may take a while
-$sql = "SELECT * FROM botalista_dump_1";
+$sql = "SELECT * FROM botalista_dump_2";
 
 $response = $mysqli->query($sql);
 
@@ -48,29 +53,46 @@ while($row = $response->fetch_assoc()){
 
     }
     
+    // if the name already exists we continue
+    if($name->getId() > 0){
+        echo "\tExists\n";
+        continue;
+    }
 
     echo "\n";
 
     $name->setUserId(1);
-    $name->setSource('Seed/botalista_1');
+    $name->setSource($row['source']);
 
     // start by normalising the rank as much as we can
     // rank map - make sure we only accept certain ranks
     $rank_map = array(
         "phylum" => "phylum",
         "class" => "class",
+        "subclass" => "subclass",
+        "superorder" => "superorder",
         "order" => "order",
         "family" => "family",
+        "subfamily" => "subfamily",
+        "supertribe" => "supertribe",
+        "tribe" => "tribe",
+        "subtribe" => "subtribe",
         "genus" => "genus",
         "section" => "section",
+        "subsection" => "subsection",
         "subgenus" => "subgenus",
         'series' => 'series',
+        'subseries' => 'subseries',
         "species" => "species",
         "nothospecies"=> "species",
         "nothosubsp."=> "subspecies",
         "nothovar."=> "variety",
         "subspecies" => "subspecies",
+        "proles" => "prole",
         "variety" => "variety",
+        "convar." => "variety",
+        "convariety" => "variety",
+        "provar." => "variety",
         "subvariety" => "subvariety",
         "form" => "form",
         "forma" => "form",
@@ -105,6 +127,11 @@ while($row = $response->fetch_assoc()){
 
         // binomials
         case 'species':
+        case "section":
+        case "subsection":
+        case "subgenus":
+        case 'series':
+        case 'subseries':
             $parts = explode(' ', $scientificName);
             $name->setGenusString($parts[0]);
             $name->setNameString($parts[1]);
@@ -117,6 +144,7 @@ while($row = $response->fetch_assoc()){
         case 'subvariety':
         case 'form':
         case 'subform':
+        case 'prole':
             $parts = explode(' ', $scientificName);
             $name->setGenusString($parts[0]);
             $name->setSpeciesString($parts[1]);
@@ -209,7 +237,7 @@ while($row = $response->fetch_assoc()){
     }
 
     // publication ID - FIXME: at the moment this is a local id but should be a DOI or Q number
-    $name->setCitationId(trim($row['namePublishedInID']));
+    //$name->setCitationId(trim($row['namePublishedInID']));
 
 
 //    [namePublishedIn] => Revis. Gen. Pl. 1: 328 1891

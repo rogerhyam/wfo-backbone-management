@@ -11,7 +11,7 @@ The import is done in phases (with appropriate tweaking):
 1. Create taxa and link them to names by crawling the parentNameUsageID tree down from Angiosperms (import_botalista_seed_taxa.php) - this will like the taxa to names for their accpeted names. Under an hour.
 1. Link the synonyms up. (import_botalista_seed_synonyms.php). This uses the acceptednameusageId values to join names to the taxa we created above.
 1. Not really an import but a merge of all the "deprecated" names that are definite duplicates.
-
+ 
 ## taxonID
 
 Copied in to the identifiers table with kind 'wfo' where the name_id is set to the relevant names.id. In the names table the prescribed_id is set to the id in the identifiers table.

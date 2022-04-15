@@ -83,6 +83,12 @@ $ranks_table = array(
     "aka" => array() // alternative representations for import
   ),
 
+  "superorder" => array(
+    "children" => array("order"), // permissible ranks for child taxa
+    "abbreviation" => "supO.", // official abbreviation
+    "plural" => "Superorders",
+    "aka" => array() // alternative representations for import
+  ),
 
   "order" => array(
     "children" => array("suborder", "family"), // permissible ranks for child taxa
@@ -99,16 +105,23 @@ $ranks_table = array(
   ),
 
   "family" => array(
-    "children" => array("subfamily", "tribe", "genus"), // permissible ranks for child taxa
+    "children" => array("supertribe", "subfamily", "tribe", "genus"), // permissible ranks for child taxa
     "abbreviation" => "Fam.", // official abbreviation
     "plural" => "Families",
     "aka" => array() // alternative representations for import
   ),
 
   "subfamily" => array(
-    "children" => array("tribe", "genus"), // permissible ranks for child taxa
+    "children" => array("supertribe", "tribe", "genus"), // permissible ranks for child taxa
     "abbreviation" => "subFam.", // official abbreviation
     "plural" => "Subfamilies",
+    "aka" => array() // alternative representations for import
+  ),
+
+  "supertribe" => array(
+    "children" => array("tribe"), // permissible ranks for child taxa
+    "abbreviation" => "supT.", // official abbreviation
+    "plural" => "Supertribes",
     "aka" => array() // alternative representations for import
   ),
 
@@ -169,21 +182,28 @@ $ranks_table = array(
   ),
 
   "species" => array(
-    "children" => array("subspecies", "variety", "form"), // permissible ranks for child taxa
+    "children" => array("subspecies", "variety", "form", "prole"), // permissible ranks for child taxa
     "abbreviation" => "sp.", // official abbreviation
     "plural" => "Species",
     "aka" => array("nothospecies") // alternative representations for import
   ),
 
   "subspecies" => array(
-    "children" => array("variety", "form"), // permissible ranks for child taxa
+    "children" => array("variety", "form", "prole"), // permissible ranks for child taxa
     "abbreviation" => "subsp.", // official abbreviation
     "plural" => "Subspecies",
     "aka" => array("nothosubspecies", "subsp.", "subsp") // alternative representations for import
   ),
 
+  "prole" => array(
+    "children" => array(), // permissible ranks for child taxa
+    "abbreviation" => "prole", // official abbreviation
+    "plural" => "Proles",
+    "aka" => array("race") // alternative representations for import
+  ),
+
   "variety" => array(
-    "children" => array("subvariety", "form"), // permissible ranks for child taxa
+    "children" => array("subvariety", "form", "prole"), // permissible ranks for child taxa
     "abbreviation" => "var.", // official abbreviation
     "plural" => "Varieties",
     "aka" => array("nothovar.", "var.", "var") // alternative representations for import

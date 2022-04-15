@@ -623,7 +623,9 @@ class Taxon extends WfoDbObject{
         } // end autonym
 
 
+
         // do we need to rebalance the tree at this point?
+/*
         $rank_integrity = null;
         foreach ($integrity->children as $check) {
             if($check->name = 'rank'){
@@ -654,8 +656,6 @@ class Taxon extends WfoDbObject{
                 $genus_level = array_search('genus', array_keys($ranks_table));
                 $my_level = array_search($this->getRank(), array_keys($ranks_table));
 
-                
-
                 if($my_level > $genus_level){
                     // below species level
                     $new_parent = $this->createAutonym($this->parent,  $potential_parents[0]->getRank());
@@ -673,6 +673,7 @@ class Taxon extends WfoDbObject{
             }
 
         }
+*/
 
         $integrity->success = true;
         return $integrity;
@@ -843,7 +844,13 @@ class Taxon extends WfoDbObject{
      * @return Taxon The new autonym taxon
      */
     private function createAutonymTaxon($name, $parent){
+
         $autonym = Taxon::getTaxonForName($name);
+
+        // we can get it a fangle and create an autonym that already exists if the ranks are wrong - then we loop.
+        // So don't save the taxon if it already exists. Only if it is new.
+        if($autonym->getId() > 0) return null;
+
         $autonym->setSource($this->getSource());
         $autonym->setUserId($this->getUserId());
         $autonym->setComment("Taxon automatically created as autonym.");
@@ -1300,6 +1307,8 @@ class Taxon extends WfoDbObject{
     public function canEdit(){
 
         $user = unserialize($_SESSION['user']);
+
+        if($user->isGod()) return true; // gods can do anything.
 
         // if we haven't been saved to the db yet then answer is yes
         if(!$this->getId()) return true;
