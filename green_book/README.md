@@ -1,10 +1,20 @@
-# Integrity Rules for the WFO Taxonomic Backbone
+# Rhakhis Manual
 
-(very much under construction)
+This is the top level documentation for the World Flora Online taxonomy management system. It is an overview of how the data is modelled rather than a step by step guide to using the graphical interface, API or data downloads.  
 
 ## Separation of Names and Taxa
 
+The core principle that informed the design of Rhakhis was the separation of nomenclature from taxonomy. This is a  consequence of applying the rules of the __International Code of Nomenclature for algae, fungi, and plants__. Names are created via nomenclatural events (being validly published either for the first time or in a new combination) and bound to a type specimen (possibly via lectotypification). Taxa are created by authors using combinations of descriptions (characters) and example specimens. Names are bound to taxa via the rule of priority, the first published name who's type specimen falls within the taxon is the accepted name of that taxon (barring special instances of conservation).
 
+**Analogy #1:** Each name is written on an index card. The card contains all the information of when and where that name was published and what the type specimen is. There are around 1.5 million of these index cards stored alphabetically. To build a taxonomy the name cards are taken and placed into a hierarchical set of folders, one folder for each taxon. Each folder has a key card which is the accepted name for that taxon. The other cards in the folder are the synonyms. Placing the cards in the folders does not affect what is written on them but what is written on them may govern which folders they can be placed in. e.g. If the genus part of the name does not match the genus folder in which it is placed as an accepted name.
+
+**Analogy #2:** Each name is a Christmas tree decoration in a big box waiting to be hung on the tree. The taxonomy is the Christmas tree. We are all collaborating in decorating the tree!
+
+
+
+
+### Side box: Taxon Concept Model
+If you are familiar with the Taxon Concept models that were proposed at the turn of the century and the subsequent Taxon Concept Schema TDWG standard this approach will be familiar to you. From one perspective Rhakhis is NOT a taxon concept based approach as only a single classification is currently modelled and no attempt is made to delimit the taxa, either by listing specimens or with descriptions. From another perspective it IS a taxon concept based approach because their is an implied delimitation of the taxa based on the types of the names placed in them as well as those descriptions indexed as WFO content and the periodic, versioned data dumps provide identifiers for taxa in those dumps and relate them to each other. The concept based approach can either be embraced or ignored and it makes no difference to building a shared taxonomic backbone. 
 
 ## WFO IDs and Names
 1. Each name has a single, __prescribed WFO ID__. This is the ID that is used to refer to that name whether it occurs as the accepted name of a taxon, a synonym or remains unplaced.
@@ -151,6 +161,13 @@ Above the level of genus the code has no notion of autonyms. The creation of a n
 
 Recognised ranks are listed in the table below in hierarchical order along with the ranks that are permitted to belong to taxa at that rank. The lowercase English version of the rank name is used internally. Mappings to other versions and abbreviations are
 carried out during import.
+
+### Unranked Names
+
+We force the adoption of a rank. You can't have unranked names beyond a comment.
+
+35.3. A new name or combination published before 1 January 1953 without a clear indication of its rank is validly published provided that all other requirements for valid publication are fulfilled; it is, however, inoperative in questions of priority except for homonymy (see Art. 53.4). If it is a new name, it may serve as a basionym for subsequent combinations or a replaced synonym for nomina nova in definite ranks.
+
 
 
 ## Overloading Basionym

@@ -35,12 +35,15 @@ and sg.created is null
 limit 1000";
 */
 
+$interval = '30 DAY';
+if(isset($argv[1])) $interval = $argv[1];
+
 $sql = "select n.id, name_alpha from
 names as n 
 left join stats_genera as sg on n.id = sg.name_id
 where n.rank = 'genus'
 and n.status != 'deprecated' 
-and (sg.modified is null OR sg.modified < now() - interval 30 DAY)
+and (sg.modified is null OR sg.modified < now() - interval $interval)
 limit 1000";
 
 $response = $mysqli->query($sql);
@@ -114,10 +117,7 @@ while($row = $response->fetch_assoc()){
 
                 // how many have editors?
                 $editors = $kid->getEditors();
-                foreach($editors as $ed){
-                    // we don't count gods (alan and me)
-                    if($ed->isEditor() && !$ed->isGod()) $stats["taxa_with_editors"]++;
-                }
+                if(count($editors) > 0) $stats["taxa_with_editors"]++;
 
             }
 
@@ -242,11 +242,8 @@ while($row = $response->fetch_assoc()){
 
     $sql .= ") \nON DUPLICATE KEY UPDATE ";
 
-    $i = 0;
-    $n = count($stats);
     foreach ($stats as $key => $value) {
         if($key == 'name_id'){
-            $i++;
             continue;
         }
         if(is_string($value)){
@@ -254,11 +251,10 @@ while($row = $response->fetch_assoc()){
         }else{
             $sql .= "\n`$key` = $value";
         }
-        
-        if(++$i !== $n) $sql .= ", ";
+        $sql .= ", ";
     }
 
-    $sql .= ";";
+    $sql .= "\n`modified` = CURRENT_TIMESTAMP;"; // we force the modified date even if they data hasn't changed.
 
    $mysqli->query($sql);
 

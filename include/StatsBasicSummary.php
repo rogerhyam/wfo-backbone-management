@@ -72,8 +72,7 @@ class StatsBasicSummary{
             sum(subspecies) as 'subspecies',
             sum(variety) as 'varieties'
             FROM stats_genera
-            group by `phylum`, `order`, `family` WITH ROLLUP 
-            order by  `phylum`, `order`, `family`; ";
+            group by `phylum`, `order`, `family` WITH ROLLUP;";
 
         $response = $mysqli->query($sql);
 
