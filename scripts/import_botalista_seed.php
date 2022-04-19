@@ -18,7 +18,7 @@ require_once('../include/User.php');
 $_SESSION['user'] = serialize(User::loadUserForDbId(1));
 
 // work through all the rows - may take a while
-$sql = "SELECT * FROM botalista_dump_2";
+$sql = "SELECT * FROM botalista_dump_2" ;
 
 $response = $mysqli->query($sql);
 
@@ -134,7 +134,8 @@ while($row = $response->fetch_assoc()){
         case 'subseries':
             $parts = explode(' ', $scientificName);
             $name->setGenusString($parts[0]);
-            $name->setNameString($parts[1]);
+            // subgenera and sections may include the rank or may not - so take the last word
+            $name->setNameString(array_pop($parts));
             $name->setSpeciesString(null);
             break;
         

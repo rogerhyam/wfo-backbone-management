@@ -10,7 +10,7 @@ require_once('../include/User.php');
 // we need to have a mock session  
 $_SESSION['user'] = serialize(User::loadUserForDbId(1));
 
-// php -d memory_limit=10G import_botalista_seed_basionyms.php 2>&1
+// php -d memory_limit=15G import_botalista_seed_basionyms.php 2>&1
 
 // work through all the rows - may take a while
 $sql = "SELECT * FROM botalista_dump_2 where length(originalNameUsageID) >0";
