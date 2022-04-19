@@ -1,6 +1,6 @@
 <?php
 
-// php -d memory_limit=10G import_botalista_seed_taxa.php 2>&1
+// php -d memory_limit=15G import_botalista_seed_taxa.php 2>&1
 
 
 // this script will probably only be used at the initiation of the database
@@ -55,6 +55,9 @@ function create_taxon($wfo_id, $parent_taxon){
         foreach($response->children as $kid){
             echo "\n\t\t" . $kid->message;
         }
+        // failed to save the taxon - what now?
+        // don't do any children or anything
+        return;
     }
     $taxon->load(); // make sure we are up to date with our parentage.
 

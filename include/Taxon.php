@@ -608,6 +608,9 @@ class Taxon extends WfoDbObject{
         $this->assignAcceptedName($this->name);
 
         // do we need to create an associated autonym?
+
+        /* fixme - removed for import */
+        /*
         $autonym_integrity = null;
         foreach ($integrity->children as $check) {
             if($check->name = 'autonym') $autonym_integrity = $check;
@@ -621,7 +624,7 @@ class Taxon extends WfoDbObject{
             );
         
         } // end autonym
-
+        */
 
 
         // do we need to rebalance the tree at this point?
@@ -738,6 +741,40 @@ class Taxon extends WfoDbObject{
     }
 
     /**
+     * 
+     * Will look up the taxonomy and return the 
+     * genus for this taxon if there is one
+     * 
+     */
+    public function getGenus(){
+        $ancestor = $this;
+        while($ancestor->getRank() != 'genus'){
+            // if we have reached the top of the tree stop
+            if($ancestor->getParent() == $ancestor) return null;
+            // step up a layer
+            $ancestor = $ancestor->getParent();
+        }
+        return $ancestor;
+    }
+
+    /**
+     * 
+     * Will look up the taxonomy and return the 
+     * species for this taxon if there is one
+     * 
+     */
+    public function getSpecies(){
+        $ancestor = $this;
+        while($ancestor->getRank() != 'species'){
+            // if we have reached the top of the tree stop
+            if($ancestor->getParent() == $ancestor) return null;
+            // step up a layer
+            $ancestor = $ancestor->getParent();
+        }
+        return $ancestor;
+    }
+
+    /**
      * Creates a new autonym (Taxon) and possibly associated Name 
      * 
      * @param Taxon $parent The taxon that will be the parent of this autonym
@@ -746,12 +783,37 @@ class Taxon extends WfoDbObject{
      */
     private function createAutonym($parent, $rank){
 
-        // see if we have a name
-        $names = $this->findAutonymNames($rank, $parent->getAcceptedName()->getGenusString(), $parent->getAcceptedName()->getNameString());
+
+        /*
+            If we are below species level then the name of the autonym will be the species
+            If we are above species level then the name of the autonym will be the genus.
+        */
+
+        $genus = $this->getGenus();
+        if($genus){
+            // the genus part is the name of the genus we are in
+            $auto_genus = $genus->getAcceptedName()->getNameString();
+        }else{
+            // if we don't have a genus we can't create an autonym. They always have a genus part!
+            return null;
+        }
+
+        $species = $this->getSpecies();
+        if($species){
+            // the name of the autonym will be the name of the species
+            $auto_name = $species->getAcceptedName()->getNameString();
+        }else{
+            // there is no species. We are between species and genus
+            // so the name of the autonym will be the name of the genus
+            // 22.1. The name of ANY subdivision of a genus that includes the type of the adopted, legitimate name of the genus to which it is assigned is to repeat that generic name unaltered as its epithet, not followed by an author citation (see Art. 46). Such names are autonyms (Art. 6.8; see also Art. 7.7).
+            $auto_name = $genus->getAcceptedName()->getNameString();
+        }
+
+        $names = $this->findAutonymNames($rank, $auto_genus, $auto_name);
 
         if(count($names) == 0){
             // We didn't find a name so create on
-            $name = $this->createAutonymName($rank, $parent->getAcceptedName()->getGenusString(), $parent->getAcceptedName()->getNameString());
+            $name = $this->createAutonymName($rank, $auto_genus, $auto_name);
         }elseif(count($names) == 1){
             // we found a single name so can use that
             $name = $names[0];
@@ -776,7 +838,9 @@ class Taxon extends WfoDbObject{
 
         // we have got to here so we must have a name and we know the parent
         // so we can return the autonym
-        return $this->createAutonymTaxon($name, $parent);  
+        if($name){
+            return $this->createAutonymTaxon($name, $parent);  
+        }
 
     }
 
@@ -792,11 +856,32 @@ class Taxon extends WfoDbObject{
     private function createAutonymName($rank, $genus, $name){
 
             global $ranks_table;
+            global $mysqli;
+
+            // if there is no rank then something bad is happening. Refuse to create
+            if(!$rank){
+                error_log("Trying to create an autonym for '$name' in genus '$genus' but no rank given.");
+                return null;
+            }
+
+            // refuse if there is no genus
+            if(!$genus){
+                error_log("Trying to create an autonym for '$name' at rank '$rank' but no genus name given.");
+                return null;
+            }
+
+            // double check we are not creating a homonym - we made 6,000 Aizoon subgenera once!
+            $result = $mysqli->query("SELECT id FROM `names` WHERE `rank` = '$rank' and `genus` = '$genus' and `name` = '$name';");
+            if($result->num_rows > 0){
+                $row = $result->fetch_assoc();
+                error_log("Trying to create autonym `rank` = '$rank' and `genus` = '$genus' and `name` = '$name' when there is a homonym with id {$row['id']} ");
+                return Name::getName($row['id']);
+            }
 
             $autonym_name = Name::getName(-1);
 
             // meta fields are quite simply copies or ours
-            $autonym_name->setSource($this->getSource());
+            $autonym_name->setSource('Auto generated'); 
             $autonym_name->setUserId($this->getUserId());
             $autonym_name->setComment("Name automatically created to support autonym taxon.");
 
