@@ -241,7 +241,31 @@ function process_family($family_wfo, $file_path){
             }
             
             // nomenclaturalStatus = name status field
-            $row[] = $name->getStatus();
+            switch ($name->getStatus()) {
+                case 'invalid':
+                    $nomStatus = 'Invalid';
+                    break;
+                case 'valid':
+                    $nomStatus = 'Valid';
+                    break;
+                case 'illegitimate':
+                    $nomStatus = 'Illegitimate';
+                    break;
+                case 'superfluous':
+                    $nomStatus = 'Superfluous';
+                    break;
+                case 'conserved':
+                    $nomStatus = 'Conserved';
+                    break;
+                case 'rejected': 
+                    $nomStatus = 'Rejected';
+                    break;
+                default:
+                    $nomStatus = '';
+                    break;
+            }
+
+            $row[] = $nomStatus;
 
             // namePublishedIn = citation
             $row[] = $name->getCitationMicro();
@@ -272,7 +296,7 @@ function process_family($family_wfo, $file_path){
                 $row[] = $taxon->getParent()->getAcceptedName()->getPrescribedWfoId();
 
                 // taxonomicStatus
-                $row[] = 'accepted';
+                $row[] = 'Accepted';
 
                 // acceptedNameUsageID = synonyms only is accepted taxon WFO ID
                 $row[] = null;
@@ -287,17 +311,17 @@ function process_family($family_wfo, $file_path){
 
                 if(!$placement->getId()){
                     // no taxon in database for the name so unplaced
-                    $row[] = 'unplaced'; // taxonomicStatus
+                    $row[] = 'Unchecked'; // taxonomicStatus
                     $row[] = null; // acceptedNameUsageID 
                 }else{
-                    $row[] = 'synonym'; // taxonomicStatus
+                    $row[] = 'Synonym'; // taxonomicStatus
                     $row[] = $placement->getAcceptedName()->getPrescribedWfoId(); // acceptedNameUsageID 
                 }
 
             }
 
             // taxonRemarks	= comments from name field
-            $row[] = str_replace("\n", " ", $name->getComment()); // a hack to assure compatibility
+            $row[] = str_replace("\n", " ", substr($name->getComment(), 0, 254)); // a hack to assure compatibility
 
             // now any identifiers we can think of
             $identifiers = $name->getIdentifiers();
@@ -321,13 +345,14 @@ function process_family($family_wfo, $file_path){
             $row[] = $tpl_id;
 
             // source is a string giving the name of where it came from
-            $row[] = "FIXME"; // $name->getSource();
+            // fixme - this is returning the source as it was passed in the botalista dump
+            // in the future we need to work it out from the contributors
+            $row[] = $name->getSource();
             
             // created = from name ? or earliest from name/taxon
-            $row[] = $name->getCreated();
-
+            $row[] =  date("Y-m-d", strtotime($name->getCreated()));
             // modified	= from name ? 
-            $row[] = $name->getModified();
+            $row[] = date("Y-m-d", strtotime($name->getModified()));
 
             // now we have the extra rows columns
             // if the name is a synonym we use the
