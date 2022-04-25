@@ -341,7 +341,7 @@ class Name extends WfoDbObject{
                 }else{
                     $rank = ucfirst($this->rank);
                 }
-                $out .= " $rank";
+                $out .= " <span class=\"wfo-name-rank\">$rank</span>";
             }
 
             // now the actual name

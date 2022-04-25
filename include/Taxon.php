@@ -184,6 +184,8 @@ class Taxon extends WfoDbObject{
      */
     public function getFullNameString($italics = true, $authors = true, $abbreviate_rank = true, $abbreviate_genus = false){
 
+        global $ranks_table;
+
         // no name if we have no name
         if(!$this->getAcceptedName()) return "no name";
 
@@ -226,6 +228,11 @@ class Taxon extends WfoDbObject{
         if($species_is_hybrid){
             $n = $this->name->getSpeciesString();
             $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+
+            // we are a subspecific taxon so our rank has notho put in front of it
+            $fns = str_replace($this->name->getRank(), "notho" . $this->name->getRank(), $fns);
+            $fns = str_replace($ranks_table[$this->name->getRank()]["abbreviation"], "notho" . $ranks_table[$this->name->getRank()]["abbreviation"], $fns);
+
         }    
 
         return $fns;
@@ -1107,11 +1114,12 @@ class Taxon extends WfoDbObject{
             if($row['taxon_id'] == $this->id) return $row['id'];
 
             // it is not so we need to highjack it - but first we double check it isn't in use as an accepted name of another taxon
-            $result = $mysqli->query("SELECT * FROM taxa WHERE taxon_name_id = {$row['id']} AND id != {$this->id}");
-            if($result->num_rows > 0){
-                // FIXME - during import of seed data we are just ignoring these
+            $sql = "SELECT * FROM taxa WHERE taxon_name_id = {$row['id']} AND id != {$this->id}";
+            error_log($sql);
+            $result2 = $mysqli->query($sql);
+            if($result2->num_rows > 0){
                 error_log("Trying to assign taxon_name {$row['id']} to {$this->id} when it is already in use as an accepted taxon.");
-                // throw new ErrorException("Trying to assign taxon_name {$row['id']} to {$this->id} when it is already in use as an accepted taxon.");
+                throw new ErrorException("Trying to assign taxon_name {$row['id']} to {$this->id} when it is already in use as an accepted taxon.");
             }else{
 
                 // now the highjack
