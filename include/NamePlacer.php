@@ -497,8 +497,10 @@ There are three rules that govern where a name can be placed in the taxonomy
                         $r->taxonIds[] = $this->taxon->getParent()->getId();
                         $this->taxon->setParent($destination_taxon);
                         $this->taxon->save();
+
                         // our work here is done
                         return $r;
+                    
                     }else{
                         
                         // we are a synonym so flag the fact that this taxon will changed ( loss of synonym)
@@ -514,7 +516,8 @@ There are three rules that govern where a name can be placed in the taxonomy
                 // name is now floating free and needs a taxon
                 $this->taxon = Taxon::getTaxonForName($this->name);
                 $this->taxon->setParent($destination_taxon);
-                $this->taxon->setUserId(1); // FIXME - this should come from the session, probably within the taxon object.
+                $user = unserialize($_SESSION['user']);
+                $this->taxon->setUserId($user->getId()); // FIXME - this should come from the session, probably within the taxon object.
                 $this->taxon->save();
 
                 // the destination taxon has always changed.

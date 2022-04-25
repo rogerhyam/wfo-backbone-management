@@ -63,21 +63,21 @@ $ranks_table = array(
   ),
 
   "phylum" => array(
-    "children" => array("class", "order", "family"), // permissible ranks for child taxa
+    "children" => array("class", "order", "family", "superorder"), // permissible ranks for child taxa
     "abbreviation" => "P.", // official abbreviation
     "plural" => "Phyla",
     "aka" => array() // alternative representations for import
   ),
 
   "class" => array(
-    "children" => array("subclass", "order", "family"), // permissible ranks for child taxa
+    "children" => array("subclass", "order", "family","superorder"), // permissible ranks for child taxa
     "abbreviation" => "C.", // official abbreviation
     "plural" => "Classes",
     "aka" => array() // alternative representations for import
   ),
 
   "subclass" => array(
-    "children" => array("order", "family"), // permissible ranks for child taxa
+    "children" => array("order", "family", "superorder"), // permissible ranks for child taxa
     "abbreviation" => "subc.", // official abbreviation
     "plural" => "Subclasses",
     "aka" => array() // alternative representations for import
@@ -162,7 +162,7 @@ $ranks_table = array(
   
   "subsection" => array(
     "children" => array("series", "species"), // permissible ranks for child taxa
-    "abbreviation" => "subSect.", // official abbreviation
+    "abbreviation" => "subsect.", // official abbreviation
     "plural" => "Subsections",
     "aka" => array() // alternative representations for import
   ),
@@ -197,7 +197,7 @@ $ranks_table = array(
 
   "prole" => array(
     "children" => array(), // permissible ranks for child taxa
-    "abbreviation" => "prole", // official abbreviation
+    "abbreviation" => "prol.", // official abbreviation
     "plural" => "Proles",
     "aka" => array("race") // alternative representations for import
   ),

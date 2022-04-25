@@ -26,7 +26,7 @@
     <pubDate>{{date}}</pubDate>
     <language>en</language>
     <abstract>
-      <para>Export from the Rhakhis system for managing the taxonomic backbone of the World Flora Online.</para>
+      <para>{{attribution}} Pending the formation of a TEN, nomenclatural and classification data are managed by the WFO Taxonomic Working Group using information derived from various sources.  The initial data ingestion into the World Flora Online taxonomic backbone was from The Plant List Version 1.1 (TPL, http://theplantlist.org, September 2013), with the full list of contributing datasets given here: http://theplantlist.org/1.1/about/#collaborators. New taxonomic names have been incorporated into WFO from nomenclators: International Plant Name Index (IPNI, https://www.ipni.org) for vascular plants, and Tropicos (https://www.tropicos.org) for bryophytes. Taxonomic and nomenclatural updates have been incorporated from the World Checklist of Vascular Plants version 2.0 (WCVP, http://wcvp.science.kew.org), facilitated by the Royal Botanic Gardens, Kew. If you and your colleagues would be interested in forming a TEN to curate the WFO Taxonomic Backbone for this family, and thereby contribute to developing the global consensus classification used by this portal, and WFO Plant List, please contact the Taxonomic Working Group.</para>
     </abstract>
     <intellectualRights>
       <para>This work is licensed under a <ulink url="https://creativecommons.org/publicdomain/zero/1.0">
@@ -54,7 +54,7 @@
       <dateStamp>{{datestamp}}</dateStamp>
       <hierarchyLevel>dataset</hierarchyLevel>
       <citation identifier="World Flora">World Flora Online Data. 2022.</citation>
-      <resourceLogoUrl>http://about.worldfloraonline.org/images/wfo_logo.png</resourceLogoUrl>
+      <resourceLogoUrl>https://about.worldfloraonline.org/images/interface/svgs/wfo_roundel.svg</resourceLogoUrl>
     </gbif>
   </metadata>
 </additionalMetadata>

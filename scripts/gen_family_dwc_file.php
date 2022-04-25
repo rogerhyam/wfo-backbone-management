@@ -6,6 +6,7 @@ require_once("../include/Name.php");
 require_once("../include/Taxon.php");
 require_once("../include/UnplacedFinder.php");
 require_once("../include/Identifier.php");
+require_once("../include/User.php");
 
 // php -d memory_limit=1024M gen_family_dwc_file.php
 
@@ -427,6 +428,22 @@ function process_family($family_wfo, $file_path){
 
         fclose($out);
 
+        // we need to make a personalized attribution string for the eml file.
+        // there is default string (applies in most cases)
+        // But if there is a curator for the family we use the URI in their profile.
+        // In future we could navigate up to find the heirarchy of curators and editors.
+        $attribution_text = "This taxonomic group is not currently curated by a WFO TEN (Taxonomic Expert Network).";
+
+        $curators = $family_taxon->getCurators();
+        if(count($curators) >0){
+            $attribution_text = "This taxonomic group is assigned to the WFO TEN (Taxonomic Expert Network): " . $family_name->getNameString();
+            if($curators[0]->getUri()){
+                $attribution_text .= " ({$curators[0]->getUri()}).";
+            }else{
+                ".";
+            }
+        }
+ 
         // let's create the zip file with metadata in it
 
         echo "\nCreating zip\n";
@@ -439,13 +456,13 @@ function process_family($family_wfo, $file_path){
 
         // create personalize versions of the provenance and meta files for inclusion.
 
-        $meta_path = $file_path . ".meta.xml";
-
+        /*
         $prov_path = $file_path . ".prov.xml";
         $prov = file_get_contents('darwin_core_prov.xml');
         $prov = str_replace('{{family}}', $family_name->getNameString(), $prov);
         $prov = str_replace('{{date}}', $creation_date, $prov);
         file_put_contents($prov_path, $prov);
+        */
 
         $meta_path = $file_path . ".meta.xml";
         $meta = file_get_contents('darwin_core_meta.xml');
@@ -458,10 +475,12 @@ function process_family($family_wfo, $file_path){
         $eml = str_replace('{{family}}', $family_name->getNameString(), $eml);
         $eml = str_replace('{{date}}', $creation_date, $eml);
         $eml = str_replace('{{datestamp}}', $creation_datestamp, $eml);
+        $eml = str_replace('{{attribution}}', $attribution_text, $eml);
+
         file_put_contents($eml_path, $eml);
 
         $zip->addFile($file_path . ".csv", "taxonomy.csv");
-        $zip->addFile($prov_path, "prov.xml");
+        //$zip->addFile($prov_path, "prov.xml");
         $zip->addFile($eml_path, "eml.xml");
         $zip->addFile($meta_path, "meta.xml");
 
@@ -472,7 +491,7 @@ function process_family($family_wfo, $file_path){
         echo "Removing temp files\n";
         unlink($file_path . ".csv");
         unlink($meta_path);
-        unlink($prov_path);
+        //unlink($prov_path);
         unlink($eml_path);
 }
 
