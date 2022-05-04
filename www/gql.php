@@ -23,6 +23,8 @@ require_once('../include/Identifier.php');
 require_once('../include/User.php');
 require_once('../include/DownloadFile.php');
 require_once('../include/StatsBasicSummary.php');
+require_once('../include/Reference.php');
+require_once('../include/ReferenceUsage.php');
 
 $typeReg = new TypeRegister();
 
@@ -587,8 +589,52 @@ $schema = new Schema([
                     $curator = User::loadUserForDbId($args['userId']);
                     return $taxon->removeCurator($curator);
                 }
-            ], // addCurator
+            ], // removeCurator
 
+            'updateReference' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Update a reference. Includes creating one by passing null id or removing one from a name/taxon by passing a null usageId.",
+                'args' => [
+                    'kind' => [
+                        'type' => Type::string(),
+                        'description' => "The kind of reference this is: person, literature, database or specimen",
+                        'required' => true
+                    ],
+                    'linkUri' => [
+                        'type' => Type::string(),
+                        'description' => "The well formed http(s) URI of the resource that is referenced",
+                        'required' => true
+                    ],
+                    'displayText' => [
+                        'type' => Type::string(),
+                        'description' => "The text to display as the linking text. For literature this could be full citation.",
+                        'required' => true
+                    ],
+                    'comment' => [
+                        'type' => Type::string(),
+                        'description' => "A comment about how this reference applies to this subject. Is it the type specimen? Is it the protologue?",
+                        'required' => true
+                    ],
+                    'subjectType' => [
+                        'type' => Type::string(),
+                        'description' => "Whether this applies to a taxon or name. Should be just 'taxon' or 'name'",
+                        'required' => true
+                    ],
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the taxon or name that the reference applies to.",
+                        'required' => true
+                    ],
+                    'referenceId' => [
+                        'type' => Type::int(),
+                        'description' => "The database ID of the reference if this is an update or linking of an existing reference. Null to create a new reference.",
+                        'required' => false
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                   return ReferenceUsage::updateUsage($args['kind'], $args['linkUri'], $args['displayText'], $args['comment'], $args['subjectType'], $args['wfo'], $args['referenceId']);
+                }
+            ] // updateReference
         ]// fields
     ])// mutations
              

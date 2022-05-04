@@ -39,6 +39,10 @@ class RankGqlType extends ObjectType
                     'children' => [
                         'type' => Type::listOf(TypeRegister::rankType()),
                         'description' => "The ranks that child taxa for this taxon can be."
+                    ],
+                    'isBelowGenus' => [
+                        'type' => Type::boolean(),
+                        'description' => "Is this rank below the level of genus? e.g. subspecies or subgenus."
                     ]
                 ];
             }

@@ -219,6 +219,21 @@ class NameGqlType extends ObjectType
                             $taxon = Taxon::getTaxonForName($name);
                             return $taxon->getCurators();
                         }
+                    ],
+                    'references' => [
+                        'type' => Type::listOf(TypeRegister::referenceUsageType()),
+                        'description' => "The references associated with this name.",
+                        'args' => [
+                            'kind' => [
+                                'type' => Type::string(),
+                                'description' => "Restrict to one kind of reference (person, literature, specimen) or leave null for all of them.",
+                                'required' => false,
+                                'defaultValue' => null
+                            ]
+                        ],
+                        'resolve' => function($name, $args){
+                            return $name->getReferences($args['kind']);
+                        }
                     ]
                 ];
             }

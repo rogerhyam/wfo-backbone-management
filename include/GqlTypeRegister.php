@@ -15,6 +15,8 @@ require_once('../include/IdentifierGqlType.php');
 require_once('../include/UserGqlType.php');
 require_once('../include/DownloadFileGqlType.php');
 require_once('../include/StatsBasicSummaryGqlType.php');
+require_once('../include/ReferenceGqlType.php');
+require_once('../include/ReferenceUsageGqlType.php');
 
 /*
 
@@ -38,6 +40,8 @@ class TypeRegister {
     private static $userType;
     private static $downloadFileType;
     private static $statsBasicSummaryType;
+    private static $referenceType;
+    private static $referenceUsageType;
 
     public static function taxonType(){
         return self::$taxonType ?: (self::$taxonType = new TaxonGqlType());
@@ -85,6 +89,14 @@ class TypeRegister {
 
     public static function statsBasicSummaryType(){
         return self::$statsBasicSummaryType ?: (self::$statsBasicSummaryType = new StatsBasicSummaryGqlType());
+    }
+
+    public static function referenceType(){
+        return self::$referenceType ?: (self::$referenceType = new ReferenceGqlType());
+    }
+
+    public static function referenceUsageType(){
+        return self::$referenceUsageType ?: (self::$referenceUsageType = new ReferenceUsageGqlType());
     }
 
     public static function getPlacementActionEnum(){

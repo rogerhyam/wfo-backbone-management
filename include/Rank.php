@@ -8,6 +8,7 @@ class Rank{
     public String $plural;
     public Array $aka;
     public Array $children;
+    public bool $isBelowGenus;
 
     // we are singletons so equality comparisons will work and save a bit of memory.
     protected static $loaded = array();
@@ -27,14 +28,25 @@ class Rank{
 
         $this->children = array();
         foreach($ranks_table[$name]['children'] as $kidName){
-            $this->children[] = Rank::getRank($kidName);
+            // recursion risk
+            $kid = Rank::getRank($kidName);
+            if(!in_array($kid,$this->children))$this->children[] = $kid;
         }
+
+        // really useful to know if we are below genus level - for autonyms etc
+        $my_level = array_search($name, array_keys($ranks_table));
+        $genus_level = array_search('genus', array_keys($ranks_table));
+        $this->isBelowGenus = $my_level > $genus_level; // higher index is lower rank
+
+        // we now become a singleton so we don't have to be loaded again
+        self::$loaded[$name] = $this;
+
 
     }
 
     public static function getRank($name){
         if(!$name) return null;
-        if(isset(self::$loaded[$name])) return self::loaded[$name];
+        if(isset(self::$loaded[$name])) return self::$loaded[$name];
         return new Rank($name);
     }
 }
