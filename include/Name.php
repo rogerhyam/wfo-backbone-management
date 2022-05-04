@@ -19,8 +19,6 @@ class Name extends WfoDbObject{
     private ?int $year = null;
     private ?string $status = null; // enumeration
     private ?string $citation_micro = null; // 800 char
-    private ?string $citation_full = null; // 1000 char
-    private ?string $citation_id = null; // 45
     private ?string $publication_id = null; // 45
     private ?int $basionym_id = null;
 
@@ -62,7 +60,7 @@ class Name extends WfoDbObject{
         if(!$this->id) throw new ErrorException("You can't call load on a Name that doesn't have an db id yet");
 
         $result = $mysqli->query("SELECT n.*, i.value as 'prescribed_wfo_id' FROM `names` as n JOIN `identifiers` as i on i.`name_id` = n.`id` WHERE n.`id` = {$this->id} ");
-        echo $mysqli->error;
+        if($mysqli->error) echo $mysqli->error;
         $row = $result->fetch_assoc();
 
         // set all the fields individually - more data knitting
@@ -75,8 +73,6 @@ class Name extends WfoDbObject{
         $this->year = $row['year'];
         $this->status = $row['status'];
         $this->citation_micro = $row['citation_micro'];
-        $this->citation_full = $row['citation_full'];
-        $this->citation_id = $row['citation_id'];
         $this->publication_id = $row['publication_id'];
         $this->basionym_id = $row['basionym_id'];
         $this->comment = $row['comment'];
@@ -279,14 +275,6 @@ class Name extends WfoDbObject{
 
     public function getCitationMicro(){
         return $this->citation_micro;
-    }
-
-    public function setCitationId($id){
-        $this->citation_id = $id;
-    }
-
-    public function getCitationId(){
-        return $this->citation_id;
     }
 
     public function setYear($year){
@@ -800,7 +788,6 @@ ao.
                 `status` = ? ,
                 `source` = ? ,
                 `citation_micro` = ?,
-                `citation_id` = ?,
                 `comment` = ?,
                 `change_log` = ?,
                 `basionym_id` = ?,
@@ -810,7 +797,7 @@ ao.
             WHERE `id` = ?");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
 
-            $stmt->bind_param("isssssssssssiiii", 
+            $stmt->bind_param("issssssssssiiii", 
                 $wfo_id_db_id,
                 $this->rank,
                 $this->name,
@@ -820,7 +807,6 @@ ao.
                 $this->status,
                 $this->source,
                 $this->citation_micro,
-                $this->citation_id,
                 $this->comment,
                 $this->change_log,
                 $this->basionym_id,
@@ -840,10 +826,10 @@ ao.
             
             // we don't have a db id so we need to create a row
             $stmt = $mysqli->prepare("INSERT 
-                INTO `names`(`prescribed_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`citation_id`,`comment`, `change_log`, `basionym_id`, `year`, `user_id`) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                INTO `names`(`prescribed_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`comment`, `change_log`, `basionym_id`, `year`, `user_id`) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
-            $stmt->bind_param("isssssssssssiii", 
+            $stmt->bind_param("issssssssssiii", 
                 $wfo_id_db_id,
                 $this->rank,
                 $this->name,
@@ -853,7 +839,6 @@ ao.
                 $this->status,
                 $this->source,
                 $this->citation_micro,
-                $this->citation_id,
                 $this->comment,
                 $this->change_log,
                 $this->basionym_id,
@@ -1037,6 +1022,9 @@ ao.
         $name->setStatus('unknown');
         $name->setUserId(1); // FIXME: should be pulled from session.
 
+        // there may be double spaces in name
+        $proposed_name = preg_replace('/\s+/', ' ', $proposed_name);
+
         // let's start by parsing out the name into parts.
         $parts = explode(' ', trim($proposed_name));
         switch (count($parts)) {
@@ -1143,6 +1131,117 @@ ao.
         }
         
         return $taxon->canEdit($user);
+    }
+
+      /**
+     * Add a reference to a taxon or name object. 
+     * No attempt is made to prevent duplicates.
+     * But adding ones with identical URI will fail
+     */
+    public function addReference(Reference $ref, $comment, $placement_related = false){
+
+        global $mysqli;
+
+        $placement = $placement_related ? 1:0;
+
+        // we do things as the current user no the user of this object
+        $user = unserialize($_SESSION['user']);
+
+        if(!$this->canEdit()){
+            throw new ErrorException("User: {$user->getName()} ({$user->getId()}) does not have permission to edit this item ({$this->getId()})");
+        }
+
+        $stmt = $mysqli->prepare("INSERT INTO `name_references`(`name_id`, `reference_id`, `comment`, `placement_related`, `user_id`) VALUES (?,?,?,?,?)");
+        
+        if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
+
+        $user_id = $user->getId();
+        $ref_id = $ref->getId();
+
+        $stmt->bind_param("iisii", 
+            $this->id,
+            $ref_id,
+            $comment,
+            $placement,
+            $user_id
+        );
+        if(!$stmt->execute()){
+            throw new ErrorException("Failed to add reference ({$ref->getId()}) to name - {$mysqli->error}");
+            return false;
+        }
+        if($mysqli->error) echo $mysqli->error;
+
+    }
+
+    public function updateReference(Reference $ref, $comment, $placement_related = false){
+       
+        global $mysqli;
+
+        $placement = $placement_related ? 1:0;
+
+        // we do things as the current user no the user of this object
+        $user = unserialize($_SESSION['user']);
+
+        if(!$this->canEdit()){
+            throw new ErrorException("User: {$user->getName()} ({$user->getId()}) does not have permission to edit this item ({$this->getId()})");
+        }
+
+        // simple query to update the comment.
+        $c = $mysqli->real_escape_string($comment);
+        $sql = "UPDATE `name_references` SET `comment` = '$c' WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND placement_related = $placement";
+
+        error_log($sql);
+        $result = $mysqli->query($sql);
+        if($mysqli->error) error_log($mysqli->error);
+
+    }
+
+    public function removeReference(Reference $ref){
+
+        global $mysqli;
+
+        if(!$this->canEdit()){
+            throw new ErrorException("User: {$user->getName()} ({$user->getId()}) does not have permission to edit this item ({$this->getId()})");
+        }
+
+        // simple query. Including taxon/name id should help secure 
+        $result = $mysqli->query("DELETE FROM `name_references` WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()}");
+        if($mysqli->error) echo $mysqli->error;
+        
+    }
+
+    /**
+     * Get a list of the references associated with this item
+     * 
+     */
+
+    public function getReferences($kind = false){
+
+        global $mysqli;
+
+        // no attempt made to cache list but references are singletons so should only be created once
+        // even if we call this several times.
+
+        $sql = "SELECT `reference_id`, `comment`, `placement_related` 
+                FROM `name_references` as tr
+                JOIN `references` as r on tr.reference_id = r.id
+                WHERE  `name_id` = {$this->getId()}";
+
+        if($kind) $sql .= " AND `kind` = '$kind'";
+
+        $result = $mysqli->query($sql);
+
+        $out = array();
+        while($row = $result->fetch_assoc()){
+
+            $placement = $row['placement_related'] == 0 ? 'name':'taxon';
+
+            $ref = Reference::getReference($row['reference_id']);
+            $id = $ref->getId() . '-' . $this->getId();
+            $out[] = new ReferenceUsage($id,$ref,$row['comment'], $placement);
+        }
+        return $out;
+
     }
 
 } // name

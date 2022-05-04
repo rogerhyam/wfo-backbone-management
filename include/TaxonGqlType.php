@@ -114,6 +114,13 @@ class TaxonGqlType extends ObjectType
                         'resolve' => function($taxon){
                             return Rank::getRank($taxon->getRank());
                         }
+                    ],
+                    'references' => [
+                        'type' => Type::listOf(TypeRegister::referenceUsageType()),
+                        'description' => "The references associated with this taxon - literature only.",
+                        'resolve' => function($taxon){
+                            return $taxon->getReferences('literature');
+                        }
                     ]
                 ];
             }

@@ -271,6 +271,7 @@ There are three rules that govern where a name can be placed in the taxonomy
     private function setPossibleAcceptedLocations(){
 
         global $mysqli;
+        global $ranks_table;
 
         // for starters options are restricted to taxa that
         // are of the correct rank
@@ -283,11 +284,22 @@ There are three rules that govern where a name can be placed in the taxonomy
         if( $this->name->getGenusString() ){
             
             if( $this->name->getSpeciesString() ){
-                // add the genus and species filters
+                // we are below species level so the genus and species need to match
                 $sql .= " AND `genus` = '{$this->name->getGenusString()}' AND `name` = '{$this->name->getSpeciesString()}' ";
             }else{
-                // just add the genus filter
-                $sql .= " AND `name` = '{$this->name->getGenusString()}' ";
+
+                // we have a genus string (are below genus) but no species string (so a species or above species level)
+
+                if(in_array($this->name->getRank(), $ranks_table['genus']['children'])){
+                    // If we can be a child of a genus we can be a child of things that
+                    // have their name as the genusString OR have the same genus string.
+                    $sql .= " AND (`name` = '{$this->name->getGenusString()}' OR `genus` = '{$this->name->getGenusString()}')";
+                }else{
+                    // if we are not of a rank that can be a direct child of a genus (but we have a genus string)
+                    // we can only be a child of names that have the same genus string (and are of course of the correct rank)
+                    $sql .= " AND `genus` = '{$this->name->getGenusString()}'";
+                }
+                
             }
 
         }
@@ -299,8 +311,6 @@ There are three rules that govern where a name can be placed in the taxonomy
 
         // order and limit
         $sql .= " ORDER BY n.name_alpha LIMIT 30";
-
-        //error_log($sql);
 
         // run the query
         $response = $mysqli->query($sql);
@@ -436,6 +446,10 @@ There are three rules that govern where a name can be placed in the taxonomy
 
             // check we have a good place to go
             $destination_name = Name::getName($destination_wfo);
+            if(!$destination_name){
+                return new UpdateResponse('UpdatePlacement', false, "Couldn't get name for destination wfo: $destination_wfo");
+            }
+
             $destination_taxon = Taxon::getTaxonForName($destination_name);
             if($destination_taxon->getId()){
 
@@ -483,6 +497,10 @@ There are three rules that govern where a name can be placed in the taxonomy
 
             // check we have a good place to go
             $destination_name = Name::getName($destination_wfo);
+            if(!$destination_name){
+                return new UpdateResponse('UpdatePlacement', false, "Couldn't get name for destination wfo: $destination_wfo");
+            }
+
             $destination_taxon = Taxon::getTaxonForName($destination_name);
             if($destination_taxon->getId()){
 
@@ -517,7 +535,7 @@ There are three rules that govern where a name can be placed in the taxonomy
                 $this->taxon = Taxon::getTaxonForName($this->name);
                 $this->taxon->setParent($destination_taxon);
                 $user = unserialize($_SESSION['user']);
-                $this->taxon->setUserId($user->getId()); // FIXME - this should come from the session, probably within the taxon object.
+                $this->taxon->setUserId($user->getId());
                 $this->taxon->save();
 
                 // the destination taxon has always changed.
