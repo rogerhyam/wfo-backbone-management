@@ -77,13 +77,24 @@ class Reference{
 
         $updateResponse = new UpdateResponse('ReferenceSave', true, "Saving reference");
 
+        // we absolutely must not create duplicate link_uri - in fact there is a unique index on that col to stop it
+        // so we will overwrite an existing record if it exists.
+        //  - we don't want the uri as the primary key because we make joins to this table and they become really inefficient.
+        $dupe = Reference::getReferenceByUri($this->linkUri);
+        if($dupe){
+            // we will now be saved over the top of the existing record even if we are a new record
+            // of course this could be ourselves in which case no harm as the id will be the same!
+            $this->id = $dupe->getId();
+        }
+        
+        
         if($this->id){
 
             error_log("\t updating");
             error_log($this->userId);
 
             // we have an id so exist in the db and are being updated
-               // we have a real db id so we can do an update
+            // we have a real db id so we can do an update
             $stmt = $mysqli->prepare("UPDATE `references`
             SET 
                 `link_uri` = ? ,
@@ -203,6 +214,8 @@ class Reference{
      */ 
     public function setLinkUri($linkUri)
     {
+        $linkUri = trim($linkUri);
+
         if (filter_var($linkUri, FILTER_VALIDATE_URL)) {
             $this->linkUri = $linkUri;
             return true;
@@ -281,5 +294,19 @@ class Reference{
     public function getId()
     {
         return $this->id;
+    }
+
+    public static function getReferenceByUri($uri){
+
+        global $mysqli;
+
+        $result = $mysqli->query("SELECT id FROM `references` WHERE link_uri = '$uri'");
+        if($result->num_rows > 0){
+            $row = $result->fetch_assoc();
+            return Reference::getReference($row['id']);
+        }else{
+            return null;
+        }
+
     }
 }

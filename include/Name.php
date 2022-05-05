@@ -1196,16 +1196,18 @@ ao.
 
     }
 
-    public function removeReference(Reference $ref){
+    public function removeReference(Reference $ref, $placement_related = false){
 
         global $mysqli;
+
+        $placement = $placement_related ? 1:0;
 
         if(!$this->canEdit()){
             throw new ErrorException("User: {$user->getName()} ({$user->getId()}) does not have permission to edit this item ({$this->getId()})");
         }
 
         // simple query. Including taxon/name id should help secure 
-        $result = $mysqli->query("DELETE FROM `name_references` WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()}");
+        $result = $mysqli->query("DELETE FROM `name_references` WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND placement_related = $placement");
         if($mysqli->error) echo $mysqli->error;
         
     }
@@ -1237,7 +1239,7 @@ ao.
             $placement = $row['placement_related'] == 0 ? 'name':'taxon';
 
             $ref = Reference::getReference($row['reference_id']);
-            $id = $ref->getId() . '-' . $this->getId();
+            $id = $ref->getId() . '-' . $this->getId() . '-' . $placement;
             $out[] = new ReferenceUsage($id,$ref,$row['comment'], $placement);
         }
         return $out;
