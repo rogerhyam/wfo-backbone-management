@@ -32,12 +32,13 @@ class ReferenceUsage{
         // we overload the ref_kind to handle deletion
         if($ref_kind == 'DELETE' && $reference_id){
             $ref = Reference::getReference($reference_id);
-            $name->removeReference($ref);
+            $name->removeReference($ref, $placement);
             return;
         }
 
         // how do we tell if they are updating or not?
         if($reference_id){
+
 
             // OK -we have a reference 
             // update the reference fields
@@ -53,11 +54,11 @@ class ReferenceUsage{
             // is it in the subject?
             $subject_refs = $name->getReferences();
             foreach($subject_refs as $usage){
-                if($usage->reference->getId() == $reference_id){
+                if($usage->reference->getId() == $reference_id && $usage->subjectType == $subject_type){
                     // found existing usage so just update it
                     $name->updateReference($ref, $comment, $placement);
                     $response->children[] = new UpdateResponse("usage updated", true, "Existing usage was updated");
-                    return; // our work here is done
+                    return $response; // our work here is done
                 }
             }
             
@@ -65,7 +66,7 @@ class ReferenceUsage{
             $name->addReference($ref, $comment, $placement);
             $response->children[] = new UpdateResponse("usage new", true, "A new usage was created");
 
-            return;
+            return $response;
 
         }else{
             // we have no reference so we need to create one

@@ -262,7 +262,22 @@ $schema = new Schema([
 
                     return $files;
                 }
+            ],
+            'getReferenceByUri' => [
+                'type' => TypeRegister::referenceType(),
+                'description' => "Return a reference for its URI or null if it doesn't exist. There is only one reference per URI.",
+                'args' => [
+                    'uri' => [
+                        'type' => Type::string(),
+                        'description' => "The well formed http(s) URI of the reference.",
+                        'required' => true
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return Reference::getReferenceByUri($args['uri']);
+                }
             ]
+
         ]// fields
     ]), // query object type
 
