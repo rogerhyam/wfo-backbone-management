@@ -19,7 +19,6 @@ class Name extends WfoDbObject{
     private ?int $year = null;
     private ?string $status = null; // enumeration
     private ?string $citation_micro = null; // 800 char
-    private ?string $publication_id = null; // 45
     private ?int $basionym_id = null;
 
     private Array $all_ids = array();
@@ -59,9 +58,16 @@ class Name extends WfoDbObject{
 
         if(!$this->id) throw new ErrorException("You can't call load on a Name that doesn't have an db id yet");
 
-        $result = $mysqli->query("SELECT n.*, i.value as 'prescribed_wfo_id' FROM `names` as n JOIN `identifiers` as i on i.`name_id` = n.`id` WHERE n.`id` = {$this->id} ");
+        $sql = "SELECT n.*, i.value as 'prescribed_wfo_id' FROM `names` as n JOIN `identifiers` as i on i.`name_id` = n.`id` AND n.prescribed_id = i.id WHERE n.`id` = {$this->id} ";
+        $result = $mysqli->query($sql);
         if($mysqli->error) echo $mysqli->error;
         $row = $result->fetch_assoc();
+
+        if(!$row){
+                    error_log($sql);
+        }
+
+        //error_log(print_r($row, true));
 
         // set all the fields individually - more data knitting
         $this->prescribed_wfo_id = $row['prescribed_wfo_id'];
@@ -73,7 +79,6 @@ class Name extends WfoDbObject{
         $this->year = $row['year'];
         $this->status = $row['status'];
         $this->citation_micro = $row['citation_micro'];
-        $this->publication_id = $row['publication_id'];
         $this->basionym_id = $row['basionym_id'];
         $this->comment = $row['comment'];
         $this->issue = $row['issue'];
@@ -109,7 +114,7 @@ class Name extends WfoDbObject{
                 return new Name($init_value);
             }
 
-        }elseif(is_string($init_value) && preg_match('/wfo-[0-9]{10}/', $init_value)){
+        }elseif(is_string($init_value) && preg_match('/^wfo-[0-9]{10}$/', $init_value)){
 
                 // we've been passed a wfo id - we don't care if this is the prescribed wfo-id or one of the duplicates at this stage
                 $sql = "SELECT  * FROM `identifiers` as i WHERE i.`kind` = 'wfo' and i.`value` = '$init_value'";
@@ -778,7 +783,6 @@ ao.
             // we have a real db id so we can do an update
             $stmt = $mysqli->prepare("UPDATE `names`
             SET 
-                
                 `prescribed_id` = ? ,
                 `rank` = ? ,
                 `name` = ? ,
@@ -795,7 +799,10 @@ ao.
                 `user_id` = ? 
 
             WHERE `id` = ?");
-            if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
+            if($mysqli->error) {
+                error_log('Updating name - prepare');
+                error_log($mysqli->error);
+            }; // should only have prepare errors during dev
 
             $stmt->bind_param("issssssssssiiii", 
                 $wfo_id_db_id,
@@ -818,6 +825,8 @@ ao.
                 echo $mysqli->error;
                 $updateResponse->message = $mysqli->error;
                 $updateResponse->success = false;
+                error_log('Updating name - execute');
+                error_log($mysqli->error);
                 return $updateResponse; // let them know we failed
             }
             $stmt->close();
@@ -828,7 +837,10 @@ ao.
             $stmt = $mysqli->prepare("INSERT 
                 INTO `names`(`prescribed_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`comment`, `change_log`, `basionym_id`, `year`, `user_id`) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-            if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
+            if($mysqli->error) {
+                error_log('Inserting name - prepare');
+                error_log($mysqli->error);
+            };  // should only have prepare errors during dev
             $stmt->bind_param("issssssssssiii", 
                 $wfo_id_db_id,
                 $this->rank,
@@ -846,7 +858,10 @@ ao.
                 $this->user_id
             );
             if(!$stmt->execute()){
-                echo $mysqli->error;
+               if($mysqli->error) {
+                    error_log('Inserting name - execute');
+                    error_log($mysqli->error);
+                }; 
 
                 // if we failed but have created an orphaned row in the identifiers table 
                 // we must delete it.

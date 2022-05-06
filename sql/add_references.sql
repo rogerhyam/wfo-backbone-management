@@ -29,3 +29,5 @@ DROP COLUMN `citation_full`;
 ALTER TABLE `names_log` 
 DROP COLUMN `citation_id`,
 DROP COLUMN `citation_full`;
+
+Alter table `names` drop column `publication_id`;
