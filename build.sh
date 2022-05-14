@@ -5,7 +5,6 @@ destination="/Users/rogerhyam/rhakhis-deploy/rhakhis";
 rm -r ${destination}/ui/*
 cp -r ../wfo-backbone-ui/wfo/build/* ${destination}/ui
 
-
 # move the needed directories from the api
 echo "include scripts"
 cp -r include ${destination}/api

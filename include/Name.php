@@ -64,29 +64,31 @@ class Name extends WfoDbObject{
         $row = $result->fetch_assoc();
 
         if(!$row){
-                    error_log($sql);
+            error_log($sql);
+        }else{
+
+            // set all the fields individually - more data knitting
+            $this->prescribed_wfo_id = $row['prescribed_wfo_id'];
+            $this->rank = $row['rank'];
+            $this->name = $row['name'];
+            $this->genus = $row['genus'];
+            $this->species = $row['species'];
+            $this->authors = $row['authors'];
+            $this->year = $row['year'];
+            $this->status = $row['status'];
+            $this->citation_micro = $row['citation_micro'];
+            $this->basionym_id = $row['basionym_id'];
+            $this->comment = $row['comment'];
+            $this->issue = $row['issue'];
+            $this->change_log = $row['change_log'];
+            $this->user_id = $row['user_id'];
+            $this->source = $row['source'];
+            $this->modified = $row['modified'];
+            $this->created = $row['created'];
+
         }
 
-        //error_log(print_r($row, true));
 
-        // set all the fields individually - more data knitting
-        $this->prescribed_wfo_id = $row['prescribed_wfo_id'];
-        $this->rank = $row['rank'];
-        $this->name = $row['name'];
-        $this->genus = $row['genus'];
-        $this->species = $row['species'];
-        $this->authors = $row['authors'];
-        $this->year = $row['year'];
-        $this->status = $row['status'];
-        $this->citation_micro = $row['citation_micro'];
-        $this->basionym_id = $row['basionym_id'];
-        $this->comment = $row['comment'];
-        $this->issue = $row['issue'];
-        $this->change_log = $row['change_log'];
-        $this->user_id = $row['user_id'];
-        $this->source = $row['source'];
-        $this->modified = $row['modified'];
-        $this->created = $row['created'];
 
         $result->close();
 
