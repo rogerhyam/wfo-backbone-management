@@ -8,7 +8,7 @@ require_once("../include/UnplacedFinder.php");
 require_once("../include/Identifier.php");
 require_once("../include/User.php");
 
-// php -d memory_limit=1024M gen_family_dwc_file.php
+// php -d memory_limit=10G gen_family_dwc_file.php
 
 // is the memory thing because we are doing multiples. Should we call it in batches?
 
@@ -141,10 +141,7 @@ function process_family($family_wfo, $file_path){
         }
         echo "\nTotal links: " .count($link_index);
 
-
-
         echo "\n";
-
 
         // now we can write it out to file :)
 
@@ -186,6 +183,15 @@ function process_family($family_wfo, $file_path){
         }
 
         $out = fopen($file_path . ".csv", 'w');
+
+        // add in the extra fields william asked for
+        $header[] = "verbatimTaxonRank";
+        $header[] = "scientificNameId";
+        $header[] = "localId";
+        $header[] = "doNotProcess";
+        $header[] = "doNotProcess_reason";
+        $header[] = "deprecated";
+        $header[] = "nameAccordingToID";
 
         fputcsv($out, $header);
 
@@ -421,6 +427,57 @@ function process_family($family_wfo, $file_path){
                 $row[] = $an_name;
             }
 
+            // now add some stuff from botalista dump.
+            /*
+
+                from william 12/05/2022
+
+                1. ScientificNameId/IpniId - It contains the IPNI/Tropicos ID
+                2. localId: - contains the Providers database taxon ID.
+                3. DoNotProcess - indicates if the taxon is excluded.
+                4. DoNotProcessReason - text with reason for exclusion.
+                5. VerbatimTaxonRank/InfraspecificRank - Contains the infraspecific rank.
+                6. deprecated - gives the information about the taxon excluded/deleted. It is similar to donotProcess but deprecated field indicates that taxon is deleted and that the WFO ID is not useful (dummy).
+                7. NameAccordingToId: Contains taxon citation, a reference ID.
+
+            */
+
+            // verbatimTaxonRank
+            $above_species = true;
+            $rank_abbreviation = "";
+            foreach($ranks_table as $rank_name => $rank){
+
+                // we aren't interested in things above species
+                if($above_species){
+                    if($rank_name == 'species') $above_species = false;
+                    continue;
+                }
+
+                // we are below species
+                if($rank_name == $name->getRank()){
+                    $rank_abbreviation = $rank['abbreviation'];
+                }
+            
+            }
+            $row[] = $rank_abbreviation;
+
+            $botalista_data = getBotalistaRow($name->getPrescribedWfoId());
+            if($botalista_data){
+                $row[] = $botalista_data["scientificNameID"];
+                $row[] = $botalista_data["localID"];
+                $row[] = $botalista_data["doNotProcess"];
+                $row[] = $botalista_data["doNotProcess_reason"];
+                $row[] = $botalista_data["deprecated"];
+                $row[] = $botalista_data["nameAccordingToID"];
+            }else{
+                $row[] = "";
+                $row[] = "";
+                $row[] = "";
+                $row[] = "";
+                $row[] = "";
+                $row[] = "";
+            }
+
             // write it out to the file
             fputcsv($out, $row);
 
@@ -493,6 +550,16 @@ function process_family($family_wfo, $file_path){
         unlink($meta_path);
         //unlink($prov_path);
         unlink($eml_path);
+}
+
+function getBotalistaRow($taxon_id){
+
+    global $mysqli;
+
+    $result = $mysqli->query("SELECT * from botalista_dump_2 where taxonID = '$taxon_id'");
+    if($result->num_rows) return $result->fetch_assoc();
+    else return array();
+
 }
 
 function check_name_links($item, &$link_index){

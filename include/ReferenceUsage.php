@@ -14,7 +14,7 @@ class ReferenceUsage{
     public function __construct($id, $ref, $comment, $subjectType){
         $this->id = $id;
         $this->reference = $ref;
-        $this->comment = $comment;
+        $this->comment = $comment ? $comment: "";
         $this->subjectType = $subjectType;
     }
 

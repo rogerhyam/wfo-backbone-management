@@ -242,7 +242,7 @@ class NameMatcher{
         foreach($ranks_table as $rank => $rankInfo){
 
             // does it match the rank name
-            if($word == $rank) return $rank;
+            if(strtolower($word) == $rank) return $rank;
 
             // does it match the official abbreviation
             if($word == strtolower($rankInfo['abbreviation'])) return $rank;

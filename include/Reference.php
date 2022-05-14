@@ -70,7 +70,7 @@ class Reference{
 
         global $mysqli;
 
-        error_log("we are saving a reference");
+        //error_log("we are saving a reference");
 
         if(!$this->linkUri) throw new ErrorException("You can't save a reference with no link uri.");
         if(strlen($this->linkUri) < 1) throw new ErrorException("You must set a display string for a reference.");
@@ -90,8 +90,8 @@ class Reference{
         
         if($this->id){
 
-            error_log("\t updating");
-            error_log($this->userId);
+            //error_log("\t updating");
+            //error_log($this->userId);
 
             // we have an id so exist in the db and are being updated
             // we have a real db id so we can do an update
@@ -121,8 +121,8 @@ class Reference{
 
         }else{
 
-            error_log("\t creating");
-            error_log($this->userId);
+            //error_log("\t creating");
+            //error_log($this->userId);
             
             // we have no id so this is an insert call
             $stmt = $mysqli->prepare("INSERT 

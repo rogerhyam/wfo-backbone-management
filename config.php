@@ -4,6 +4,8 @@
 require_once('../vendor/autoload.php');
 include_once("../../backbone_secrets.php");
 
+// backbone_secrets contains $db_hidden_dir as well.
+
 session_name($session_name); // set in secrets to differentiate sandbox from live site.
 session_start();
 

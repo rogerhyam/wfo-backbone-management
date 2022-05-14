@@ -42,6 +42,13 @@
         <field index="28" term="http://rs.emonocots.org/terms/subsection"/>
         <field index="29" term="http://rs.emonocots.org/terms/series"/>
         <field index="30" term="http://rs.emonocots.org/terms/subseries"/>
+        <field index="31" term="http://rs.tdwg.org/dwc/terms/verbatimTaxonRank"/>
+        <field index="32" term="http://rs.tdwg.org/dwc/terms/scientificNameId"/>
+        <field index="33" term="http://rs.tdwg.org/dwc/terms/localId"/>
+        <field index="34" term="http://rs.emonocots.org/terms/doNotProcess"/>
+        <field index="35" term="http://rs.emonocots.org/terms/doNotProcess_reason"/>
+        <field index="36" term="http://rs.emonocots.org/terms/deprecated"/>
+        <field index="37" term="http://rs.tdwg.org/dwc/terms/nameAccordingToID"/>
 
         <!-- static values -->
         <field term="http://rs.tdwg.org/dwc/terms/nomenclaturalCode" default="ICNAFP" />
