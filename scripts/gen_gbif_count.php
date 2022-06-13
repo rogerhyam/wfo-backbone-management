@@ -18,7 +18,7 @@ $base_uri = "https://api.gbif.org/v1/occurrence/search?limit=0&kingdomKey=6&scie
 $opts = [
     "https" => [
         "method" => "GET",
-        "header" => "User-Agent: WFO-Rhakhis/0.9 (GBIF Gap analysis script) \r\n"
+        "header" => "User-Agent: WFO-Rhakhis/0.9 (GBIF Gap analysis script rhyam@rbge.org.uk) \r\n"
     ]
 ];
 $context = stream_context_create($opts);
