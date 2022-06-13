@@ -234,6 +234,13 @@ class NameGqlType extends ObjectType
                         'resolve' => function($name, $args){
                             return $name->getReferences($args['kind']);
                         }
+                    ],
+                    'gbifOccurrenceCount' => [
+                        'type' => Type::int(),
+                        'description' => "The number of occurrences in GBIF for this name. Initially this is only available for unplaced species and will return null for other names.",
+                        'resolve' => function($name){
+                            return $name->getGbifOccurrenceCount();
+                        }
                     ]
                 ];
             }

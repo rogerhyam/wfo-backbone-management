@@ -1263,4 +1263,19 @@ ao.
 
     }
 
+    public function getGbifOccurrenceCount(){
+
+
+        global $mysqli;
+
+        $response = $mysqli->query("SELECT * FROM gbif_occurrence_count WHERE `name_id` = {$this->getId()}");
+        if($response->num_rows > 0){
+            $row = $response->fetch_assoc();
+            return $row['count'];
+        }else{
+            return null;
+        }
+        
+    }
+
 } // name
