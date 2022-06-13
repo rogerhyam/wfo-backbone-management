@@ -71,6 +71,14 @@ class StatsBasicSummaryGqlType extends ObjectType
                     'varieties' => [
                         'type' => Type::int(),
                         'description' => "The number of accepted varieties."
+                    ],
+                    'gbifGapSpecies' => [
+                        'type' => Type::int(),
+                        'description' => "Unplaced species names with occurrences in GBIF."
+                    ],
+                    'gbifGapOccurrences' => [
+                        'type' => Type::int(),
+                        'description' => "Total occurrence records in GBIF tagged with unplaced species names."
                     ]
                 ];
             }

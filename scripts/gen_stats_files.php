@@ -102,7 +102,9 @@ $sql = "SELECT
     count(*) as 'genera',
     sum(species) as 'species',
     sum(subspecies) as 'subspecies',
-    sum(variety) as 'varieties'
+    sum(variety) as 'varieties',
+    sum(gbif_gap_species) as 'gbif_gap_species',
+    sum(gbif_gap_total_occurrences) as 'gbif_gap_total_occurrences'
     FROM stats_genera
     group by `phylum`, `order`, `family` WITH ROLLUP; ";
 

@@ -25,8 +25,7 @@ class StatsBasicSummary{
     public ?int $varieties;
     
 
-    private function __construct($row){
-        
+    private function __construct($row){   
         $this->id = $row['id'];
         $this->phylum = $row['phylum'];
         if($this->phylum) $this->phylumWfo = $row['phylum_wfo'];
@@ -42,7 +41,8 @@ class StatsBasicSummary{
         $this->species = $row['species'];
         $this->subspecies = $row['subspecies'];
         $this->varieties = $row['varieties'];
-
+        $this->gbifGapSpecies = $row['gbif_gap_species'] == null ? 0 :  $row['gbif_gap_species'];
+        $this->gbifGapOccurrences = $row['gbif_gap_total_occurrences'] == null ? 0 :  $row['gbif_gap_total_occurrences'];
     }
 
     /**
@@ -70,7 +70,9 @@ class StatsBasicSummary{
             count(*) as 'genera',
             sum(species) as 'species',
             sum(subspecies) as 'subspecies',
-            sum(variety) as 'varieties'
+            sum(variety) as 'varieties',
+            sum(gbif_gap_species) as 'gbif_gap_species',
+            sum(gbif_gap_total_occurrences) as 'gbif_gap_total_occurrences'
             FROM stats_genera
             group by `phylum`, `order`, `family` WITH ROLLUP;";
 

@@ -75,6 +75,10 @@ while($row = $response->fetch_assoc()){
     $stats["unplaced_species"] = 0;
     $stats["unplaced_subspecies"] = 0;
     $stats["unplaced_variety"] = 0;
+    $stats["gbif_gap_species"] = 0;
+    $stats["gbif_gap_total_occurrences"] = 0;
+    $stats["gbif_gap_mean"] = 0;
+    $stats["gbif_gap_stddev"] = 0;
 
 
     $name = Name::getName($row['id']);
@@ -87,7 +91,7 @@ while($row = $response->fetch_assoc()){
     $synonyms = array();
     $descendants = array();
 
-    if($taxon->getId()){
+    if($taxon->getId() > 0){
         // we are placed in the taxonomy
 
         if($taxon->getAcceptedName() == $name){
@@ -203,8 +207,6 @@ while($row = $response->fetch_assoc()){
                 break;
             }
         }
-
-
     }
 
     // break down the unplaced names by rank
@@ -221,6 +223,24 @@ while($row = $response->fetch_assoc()){
         if($kid->getRank() == 'variety') $stats["syn_variety"]++;
     }
 
+    // finally look at the GBIF gap analysis.
+    // we just use the fa
+    $gap_response = $mysqli->query("SELECT
+        count(*) as species, 
+        sum(g.count) as total_occurrences,
+        avg(g.count) as mean,
+        stddev(g.count) as stddev 
+        FROM `gbif_occurrence_count` as g
+        JOIN `names` as n ON n.id= g.name_id
+        where n.genus = '{$name->getNameString()}'
+        AND g.count > 0;");
+    if($gap_response->num_rows > 0){
+        $gap_row = $gap_response->fetch_assoc();
+        $stats["gbif_gap_species"] = $gap_row['species'];
+        $stats["gbif_gap_total_occurrences"] = $gap_row['total_occurrences'];
+        $stats["gbif_gap_mean"] = $gap_row['mean'];
+        $stats["gbif_gap_stddev"] = $gap_row['stddev'];
+    }
 
     // OK we have the stats what do we do with them!?
     // print_r($stats);
