@@ -39,6 +39,7 @@ class NameMatcher{
 
     }
 
+    // n.b. this method is duplicated in the cli tool
     function darwinCoreMatch($nameString, $authorsString, $rankString, $familyString){
 
         global $mysqli;
@@ -234,6 +235,7 @@ class NameMatcher{
 
     }
 
+    // function duplicated in cli matching_by_name
     function isRankWord($word){
 
         global $ranks_table;

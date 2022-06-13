@@ -5,8 +5,6 @@
 
 */
 
-
-
 // get a list of all the files in the 
 $downloads_dir = '../www/downloads/dwc/';
 $file_list = glob($downloads_dir . "*.zip");

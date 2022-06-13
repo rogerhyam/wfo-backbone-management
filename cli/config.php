@@ -1,54 +1,26 @@
 <?php
 
-// configuration variables used across the scripts and applications
-require_once('../vendor/autoload.php');
-include_once("../../backbone_secrets.php");
+// you must set an API key for the application to talk to the 
+// Rhakhis API - you will be ignored if not
+$wfo_api_key = "";
 
-// backbone_secrets contains $db_hidden_dir as well.
-
-session_name($session_name); // set in secrets to differentiate sandbox from live site.
-session_start();
-
-// create and initialise the database connection
-$mysqli = new mysqli($db_host, $db_user, $db_password, $db_database);  
-
-// connect to the database
-if ($mysqli->connect_error) {
-  echo $mysqli->connect_error;
-}
-
-if (!$mysqli->set_charset("utf8")) {
-  echo printf("Error loading character set utf8: %s\n", $mysqli->error);
-}
-
-// ORCID Connection details
-// client id and secret are loaded in the secret file
-define('ORCID_CLIENT_ID', $orcid_client_id);
-define('ORCID_CLIENT_SECRET', $orcid_client_secret);
-define('ORCID_REDIRECT_URI', $orcid_redirect_uri);
-define('ORCID_LOG_OUT_URI', $orcid_log_out_uri);
-define('ORCID_TOKEN_URI', 'https://orcid.org/oauth/token');
-
-// the login uri is constructed from variables above
-define('ORCID_LOG_IN_URI', 'https://orcid.org/oauth/authorize?client_id='. ORCID_CLIENT_ID .'&response_type=code&scope=/authenticate&redirect_uri=' . ORCID_REDIRECT_URI);
-
-// status flags
-define("WFO_INTEGRITY_OK", 1); // when the integrity of a name or taxon checks out
-define("WFO_INTEGRITY_FAIL", 2); // when the integrity of a name or taxon does not check out
-define("WFO_INTEGRITY_WARN", 3); // when the integrity is OK but there are information messages
-define("WFO_AUTONYM", 4); // returned when this is the autonym
-define("WFO_AUTONYM_EXISTS", 5); // returned when this isn't the autonym - but one exists
-define("WFO_AUTONYM_REQUIRED", 6); // returned when this isn't the autonym and no autonym exists at this rank
-define("WFO_AUTONYM_NA", 7); // returned when this isn't the autonym and no autonym exists at this rank
-define("WFO_RANK_REBALANCE", 8); // the ranks at this point are out of balance and need fixing.
+// --- you probably don't want to changes these ---
 
 
-// the rank table - having this in code saves a lot of sql queries and joins because
-// it is used everywhere.
-// -- READ -- THIS --
-// this should be kept in syn with the enumeration values in the db
-// and also the wfo_mint table to generate
-// CLI HAS ITS OWN COPY TO KEEP IN SYNC!!!
+// where the sqlite database lives
+$db_path = 'data/sqlite.db';
+
+// where csv files to be processed live
+$csv_dir = 'data/'; // end in slash
+
+// --- nothing to edit below here ---
+
+$pdo = new \PDO("sqlite:" . $db_path);
+
+$page_size = 1000; // rows to process per http call
+
+// A COPY OF THE RANKS TABLE WHICH NEEDS TO BE KEPT IN SYNC !!!
+// NEED TO WORK OUT A WAY OF SHARING THESE
 $ranks_table = array(
 
   "code" => array(
@@ -234,5 +206,3 @@ $ranks_table = array(
   )
 
 );
-
-
