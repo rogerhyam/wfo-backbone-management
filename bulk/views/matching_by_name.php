@@ -162,10 +162,10 @@
                                         $bins[3][] = $dupe;
                                         break;
                                     case 'unknown':
-                                        $bins[3][] = $dupe;
+                                        $bins[2][] = $dupe;
                                         break;
                                     case 'valid':
-                                        $bins[3][] = $dupe;
+                                        $bins[0][] = $dupe;
                                         break;
                                     default:
                                         $bins[1][] = $dupe;
