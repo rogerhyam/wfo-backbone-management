@@ -4,8 +4,7 @@ data/db_dumps/*
 data/examples
 www/downloads/*
 vendor/
-cli/data/*
-cli/sources/*
+bulk/csv/*
 composer.phar
 
 
