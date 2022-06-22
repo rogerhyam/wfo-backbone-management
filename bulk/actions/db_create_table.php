@@ -1,5 +1,7 @@
 <?php
 
+set_time_limit(0);
+
 // safety check the table name
 $table_name = trim($_GET['table_name']);
 $table_name = preg_replace('/[^a-zA-Z0-9_]/', '_', $table_name);

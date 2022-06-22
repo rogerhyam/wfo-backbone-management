@@ -26,4 +26,4 @@ fclose($out);
 
 exec("gzip $csv_file");
 
- echo "all done";
+header("Location: index.php?action=view&phase=csv");
