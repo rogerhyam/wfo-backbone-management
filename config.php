@@ -160,7 +160,7 @@ $ranks_table = array(
     "children" => array("subsection", "series", "species"), // permissible ranks for child taxa
     "abbreviation" => "sect.", // official abbreviation
     "plural" => "Sections",
-    "aka" => array() // alternative representations for import
+    "aka" => array("sect") // alternative representations for import
   ),
   
   "subsection" => array(
@@ -195,7 +195,7 @@ $ranks_table = array(
     "children" => array("variety", "form", "prole"), // permissible ranks for child taxa
     "abbreviation" => "subsp.", // official abbreviation
     "plural" => "Subspecies",
-    "aka" => array("nothosubspecies", "subsp.", "subsp") // alternative representations for import
+    "aka" => array("nothosubspecies", "subsp.", "subsp", "ssp", "ssp.") // alternative representations for import
   ),
 
   "prole" => array(

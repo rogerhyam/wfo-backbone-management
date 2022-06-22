@@ -3,6 +3,7 @@
 $name = Name::getName(-1);
 
 $name->setRank($_GET['rank_string']);
+$name->setStatus('unknown');
 
 $name->setNameString($_GET['name_string']);
 $name->setAuthorsString($_GET['authors_string']);

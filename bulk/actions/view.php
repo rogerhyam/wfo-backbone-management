@@ -52,9 +52,11 @@
             |
             <a href="index.php?action=view&phase=matching">Matching<a>
             |
-            <a href="index.php?action=view&phase=matching">Nomenclature<a>
+            <a href="index.php?action=view&phase=linking">Linking<a>
             |
-            <a href="index.php?action=view&phase=matching">Taxonomy<a>
+            <a href="index.php?action=view&phase=nomenclature">Nomenclature<a>
+            |
+            <a href="index.php?action=view&phase=taxonomy">Taxonomy<a>
             
             <span style="border: solid 1px black; padding: 0.2em">
             <?php

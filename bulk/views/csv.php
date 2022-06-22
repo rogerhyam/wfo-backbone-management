@@ -16,7 +16,7 @@
         $parts = pathinfo($file);
 
         echo "<tr>";
-        echo "<td>" . $parts['basename'] . "</td>";
+        echo "<td><a href=\"index.php?action=download_file&file_name={$parts['basename']}\">{$parts['basename']}</a></td>";
         echo "<td>" . human_filesize(filesize($file)) . '</td>';
 
 
@@ -58,13 +58,33 @@
         </td>
     </tr>
 </table>
-<p><strong>Table names</strong> should be just lowercase letters and underscores.</p>
-<p><strong>Files</strong> will be overwritten if there is an existing file with the same name.</p>
-<p><strong>Patience is a virtue</strong> with larger files.</p>
-<p><strong>Extraction</strong> of zip files depends on their contents. If they contain a meta.xml file they are considered DwCA files and extracted to csv including adding headers if needed. If there is no meta.xml file but a single .csv file then that is extracted as-is. 
+
+<div style="max-width: 800px">
+<h3>Darwin Core Archive Files</h3>
+<p>If you upload a DwCA file you will be given the option to extract it. The extractor will read the meta.xml file in the archive, find the taxonomy table and write it out as a CSV file, using commas in the standard way, and insert a header row based on the contents of the meta.xml file.</p>
+<p>DwCA files can be hairy! The extractor will do its best but can't convert encodings or handle errors in things like string escaping.</p>
+
+<h3>CSV Files</h3>
+<p>You can upload a CSV file provided it uses the standard comma separated convention with string escaping using " and UTF-8 encoded. 
+    This is the normal way Excel (and many other applications) save-as option produces CSV. 
+    Be cautious that Excel will export in this format but if you double click on a CSV file it may open it in the WRONG encoding and if you then export it as UTF-8 it will mess up accented characters.
+    How many Microsoft engineers does it take to change a lightbulb? None. They simply redefine darkness as an industry standard!
+</p>
+<p>The CSV file <strong>MUST</strong> have a header row with simple column names similar to those used in DwC A.</p>
+
+<h3>Zipped CSV Files</h3>
+<p>You should zip up larger CSV files. They can then be unzipped on the server. The extractor can tell they are not DwCA files because they don't contain meta.xml files but only a single CSV file.</p>
+
+
+<h3>Other Points</h3>
+
+<p>Table names should be just lowercase letters and underscores.</p>
+<p>Files and tables will be overwritten without warning by a new file or table with the same name.</p>
+<p>Patience is a virtue with larger files. Just let the page keep loading timeouts are longer than with regular web pages.</p>
 <p><strong>post_max_size: </strong><?php echo ini_get('post_max_size') ?></p>
 <p><strong>upload_max_filesize: </strong><?php echo ini_get('upload_max_filesize') ?></p>
 
+</div>
 
 <?php
 

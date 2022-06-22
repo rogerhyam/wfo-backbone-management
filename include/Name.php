@@ -867,7 +867,7 @@ ao.
 
                 // if we failed but have created an orphaned row in the identifiers table 
                 // we must delete it.
-                $mysqli->query("DELETE identifiers WHERE `id` = $wfo_id_db_id AND `name_id` is NULL");
+                $mysqli->query("DELETE FROM identifiers WHERE `id` = $wfo_id_db_id AND `name_id` is NULL");
 
                 $updateResponse->message = $mysqli->error;
                 $updateResponse->success = false;

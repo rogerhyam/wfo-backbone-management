@@ -28,8 +28,65 @@
 
 // --------------------------------- //
     function run_id_matching(){
-        echo "<p>ID matching hasn't been implemented yet!</p>";
-        exit;
+        
+        global $mysqli;
+
+        $table = @$_SESSION['selected_table'];
+
+        $page = (int)$_GET['page'];
+        $page_size = (int)$_GET['page_size'];
+        $offset = $page_size * $page;
+
+        echo "<p><strong>Offset: </strong>$offset | <strong>Page Size: </strong>$page_size</p>";
+
+        $name_id_col = $_GET['name_id_col'];
+        $name_id_type = $_GET['name_id_type'];
+        $name_id_prefix = $_GET['name_id_prefix'];
+
+        $sql = "SELECT * FROM `rhakhis_bulk`.`$table`
+            LIMIT $page_size
+            OFFSET $offset";
+
+        $response = $mysqli->query($sql);
+        $rows = $response->fetch_all(MYSQLI_ASSOC);
+        
+        // if we have more than 0 rows we may need to render the next page
+        if(count($rows) > 0){
+            $params = $_GET;
+            $params['page'] = ($page + 1);
+            $uri = "index.php?" . http_build_query($params);
+            $auto_render_next_page = "<script>window.location = \"$uri\"</script>";
+        }else{
+            $auto_render_next_page = "<p>Reached end of table</p>";
+        }
+
+        foreach($rows as $row){
+
+            $name_id_value = $mysqli->real_escape_string($name_id_prefix . $row[$name_id_col]);
+            $sql = "SELECT * FROM `identifiers` WHERE `kind` = '$name_id_type' AND `value` = '$name_id_value'";
+            $response = $mysqli->query($sql);
+            $rows = $response->fetch_all(MYSQLI_ASSOC);
+            $response->close();
+            if(count($rows) > 0){
+                // found it so bind it
+                $name = Name::getName($rows[0]['name_id']);
+                $wfo = $name->getPrescribedWfoId();
+                $sql = "UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_wfo` = '$wfo' WHERE `rhakhis_pk` = {$row['rhakhis_pk']};";
+                $mysqli->query($sql);
+                echo "<p><strong>$name_id_value</strong> Found! $wfo for " . $name->getFullNameString() . " added to table.</p>"; 
+            }else{
+                echo "<p><strong>$name_id_value</strong> Not found!</p>"; 
+            }
+
+            flush();
+        
+        }
+
+        // we automatically 
+        echo $auto_render_next_page;
+
+
+
     }
 
     function run_name_matching(){
@@ -49,19 +106,15 @@
         $authors_col = $_GET['authors_col'];
 
         $sql = "SELECT * FROM `rhakhis_bulk`.`$table`
-            WHERE `rhakhis_wfo` is null
-            AND   (`rhakhis_skip` != 1 OR `rhakhis_skip` is null) 
             LIMIT $page_size
             OFFSET $offset";
 
-        //echo $sql; exit;
-
         $response = $mysqli->query($sql);
         $rows = $response->fetch_all(MYSQLI_ASSOC);
+        $response->close();
 
         // if we have more than 0 rows we may need to render the next page
         if(count($rows) > 0){
-            
             $params = $_GET;
             $params['page'] = ($page + 1);
             $uri = "index.php?" . http_build_query($params);
@@ -72,6 +125,9 @@
 
         // work through the rows and render appropriately
         foreach($rows as $row){
+
+            if($row['rhakhis_skip']) continue;
+            if($row['rhakhis_wfo']) continue;
 
             $name_string = $row[$name_col];
             $authors_string = null;
@@ -374,6 +430,14 @@
                 <td>This must be set if the Local ID Column is set.</td>
             </tr>
             <tr>
+            <tr>
+            <th>Local ID Prefix</th>
+                <td>
+                <input name="name_id_prefix" value="" />
+                </td>
+                <td>This is added to the front of the value in the local ID column to get the id that is stored in Rhakhis (see linking for explanation).</td>
+            </tr>
+            <tr>
             <th>Homonyms OK</th>
                 <td style="text-align: center;">
                 <input type="checkbox" name="homonyms_ok" value="true" />
@@ -413,8 +477,7 @@ function render_algorithm_description(){
                     <li>If there are multiple duplicates then:
                         <ol>
                             <li>Any homonyms are ignored.</li>
-                            <li>If the local identifier variables are set and only one of the names matches these variables then that is the unambiguous name and the WFO ID is written to the table.</li>
-                            <li>If local identifiers are not set then one of the duplicates is selected based on ranking the names by nomenclatural status. valid > other > unknown > deprecated. If this still doesn't find an unambiguous match (e.g. there are two valid names) then no match is found. Otherwise WFO ID of pick is written to the table.</li>
+                            <li>One of the duplicates is selected based on ranking the names by nomenclatural status. valid > other > unknown > deprecated. If this still doesn't find an unambiguous match (e.g. there are two valid names) then no match is found. Otherwise WFO ID of pick is written to the table.</li>
                         </ol>
                 </ol>
             </li>
@@ -423,29 +486,15 @@ function render_algorithm_description(){
     </li>
     <li>In <strong>Unattended Mode</strong> any unresolved ambiguity is ignored and the next name processed.</li>
     <li>In <strong>Interactive Mode:</strong> any unresolved ambiguity leads to the presentation of a choice screen.</li>
+    <li>In interactive mode a list of suggestions may be supplied if no matches are found. This is based on a simple word stemming approach.</li>
     <li>If the scientific name column is set to "~ Local ID Only ~" then only the local ID fields are used to match and only match if they are unambiguous. All other fields are ignored.</li>
     
 </ol>
-<p>Currently there is no fussy matching of name strings.</p>
 <hr/>
 
 <?php
 
 } // end render_algorithm_description
-
-function render_column_options($table, $selected_col){
-
-    global $mysqli; 
-
-    $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
-    $cols = $response->fetch_all(MYSQLI_ASSOC);
-
-    print_r($cols);
-    foreach($cols as $col){
-        echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
-    }
-
-}
 
 function render_id_type_options($selected_type){
 
@@ -479,24 +528,11 @@ function getMatches($nameString, $authorsString){
         'name_parts' => array() // parsed name
     );
 
-    // clean up the name first
-    $nameString = trim($nameString);
+    $name_parts = get_name_parts($nameString);
 
-    // FIXME - remove hybrid symbol
-    $nameString = str_replace('×', '', $nameString);
+    $nameString = implode(' ', $name_parts);
 
-    // the name may include a rank abbreviation
-    $nameParts = explode(' ', $nameString);
-    $newNameParts = array();
-    foreach($nameParts as $part){
-        // strip out the rank parts.
-        if(!isRankWord($part)){
-            $newNameParts[] = $part;
-        }
-    }
-    $nameString = implode(' ', $newNameParts);
-
-    $matches['name_parts'] = $newNameParts;
+    $matches['name_parts'] = $name_parts;
 
     // clean the authors - not much to do here
     $authorsString = trim($authorsString);
@@ -538,20 +574,28 @@ function getMatches($nameString, $authorsString){
 
 
     $fuzzParts = array();
-    foreach($newNameParts as $p){
+    foreach($name_parts as $p){
         $fuzzParts[] = substr($p, 0, -2) . '%';
     }
 
     if(count($fuzzParts) == 3){
-        $sql = "SELECT * FROM `names` AS n WHERE n.`name` like '$fuzzParts[2]' AND n.`species` like  '$fuzzParts[1]' AND n.`genus` like = '$fuzzParts[0]'";
-    }elseif(count($newNameParts) == 2){
-        $sql = "SELECT * FROM `names` AS n WHERE n.`name` like '$fuzzParts[1]' AND n.`genus` like = '$fuzzParts[0]'";
+        $sql = "SELECT * FROM `names` AS n WHERE n.`name` like '$fuzzParts[2]' AND n.`species` like  '$fuzzParts[1]' AND n.`genus` like '$fuzzParts[0]'";
+    }elseif(count($name_parts) == 2){
+        $sql = "SELECT * FROM `names` AS n WHERE n.`name` like '$fuzzParts[1]' AND n.`genus` like '$fuzzParts[0]'";
     }else{
         $sql = "SELECT * FROM `names` AS n WHERE n.`name` like '$fuzzParts[0]'";
     }
 
+    $sql .= " LIMIT 100";
+
     // lets do a fussy look see.
     $response = $mysqli->query($sql);
+    if($mysqli->error){
+        echo $sql;
+        echo $mysqli->error;
+        exit;
+    }
+    
     $matches['fuzzy'] = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
 
@@ -559,6 +603,27 @@ function getMatches($nameString, $authorsString){
     // well we didn't find anything!
     return $matches;
 
+}
+
+function get_name_parts($nameString){
+    
+    // clean up the name first
+    $nameString = trim($nameString);
+
+    // hybrid symbol gone
+    $nameString = str_replace('×', '', $nameString);
+
+    // the name may include a rank abbreviation
+    $nameParts = explode(' ', $nameString);
+    $newNameParts = array();
+    foreach($nameParts as $part){
+        // strip out the rank parts.
+        if(!isRankWord($part)){
+            $newNameParts[] = $part;
+        }
+    }
+
+    return $newNameParts;
 }
 
 // duplicate function again - same as in NameMatcher

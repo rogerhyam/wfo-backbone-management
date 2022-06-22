@@ -56,3 +56,17 @@ function render_name_set_link($name_id, $rhakhis_pk, $column){
     echo " | <a target=\"wfo_main\" href=\"$uri\">Main Site</a>";
 
 }
+
+function render_column_options($table, $selected_col){
+
+    global $mysqli; 
+
+    $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
+    $cols = $response->fetch_all(MYSQLI_ASSOC);
+
+    print_r($cols);
+    foreach($cols as $col){
+        echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
+    }
+
+}
