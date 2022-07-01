@@ -40,10 +40,10 @@ mysqladmin drop $databasename
 echo "\nCreating new $databasename"
 mysqladmin create $databasename
 
-echo "\nImporting $filename"
+echo "Importing $filename"
 start=$(date +"%H:%M:%S")
-echo "\nThis may take a while. Starting at $start"
+echo "This may take a while. Starting at $start"
 gunzip < $filename | mysql $databasename
 end=$(date +"%H:%M:%S")
-echo "\nFinished at $start"
-echo "\nAll done!\n"
+echo "Finished at $start"
+echo "All done!"

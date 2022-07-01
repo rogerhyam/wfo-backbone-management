@@ -12,6 +12,8 @@ echo "moving scripts"
 cp -r scripts ${destination}/api
 echo "moving www"
 rsync -av --progress --delete www ${destination}/api --exclude downloads
+echo "moving bulk"
+rsync -av --progress --delete bulk ${destination}/api --exclude csv
 echo "moving files"
 cp composer.json ${destination}/api/composer.json
 cp composer.lock ${destination}/api/composer.lock

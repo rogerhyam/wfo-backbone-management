@@ -260,7 +260,7 @@
 
                     echo '<hr/>';
 
-                    echo "<p>Select/create name or <a href=\"/index.php?$query_string\">skip</a>.</p>";
+                    echo "<p>Select/create name or <a href=\"index.php?$query_string\">skip</a>.</p>";
 
                      echo '<hr/>';
                     
