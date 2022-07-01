@@ -38,6 +38,16 @@
 </head>
 <body>
 
+<?php
+    // display sandbox warning text
+    if( @$_SERVER['SERVER_NAME'] == 'rhakhis.rbge.info'){
+?>
+<p style="background-color: yellow; padding: 0.3em; border: solid 1px orange; margin: 0px;">🏖️ <strong style="color: red;">This is the sandbox server.</strong> Data will be overwritten nightly.</p>
+<hr/>
+<?php
+    } // end sandbox test
+?>
+
 <form style="display: 'inline'">
     <div>
 

@@ -14,7 +14,7 @@ require_once("../bulk/include/functions.php");
 // only gods are allowed to see anything in the bulk loading place.
 // even that it exists!
 
-$user = unserialize( $_SESSION['user']);
+$user = unserialize( @$_SESSION['user']);
 
 if(!$user || $user->getRole() != 'god'){
     header('HTTP/1.0 403 Forbidden');
@@ -24,10 +24,6 @@ if(!$user || $user->getRole() != 'god'){
 }
 
 $action = @$_REQUEST['action']; // use request because we may get posts as well for file uploads
-
-if(!$action){
-    echo "No action defined";
-    exit;
-}
+if(!$action) $action = 'view';
 
 require_once('../bulk/actions/' . $action . '.php');
