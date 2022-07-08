@@ -27,3 +27,30 @@ $action = @$_REQUEST['action']; // use request because we may get posts as well 
 if(!$action) $action = 'view';
 
 require_once('../bulk/actions/' . $action . '.php');
+
+// duplicate function again - same as in NameMatcher
+function isRankWord($word){
+
+    global $ranks_table;
+
+    $word = strtolower($word);
+    foreach($ranks_table as $rank => $rankInfo){
+
+        // does it match the rank name
+        if(strtolower($word) == $rank) return $rank;
+
+        // does it match the official abbreviation
+        if($word == strtolower($rankInfo['abbreviation'])) return $rank;
+
+        // does it match one of the known alternatives
+        foreach($rankInfo['aka'] as $aka){
+            if($word == strtolower($aka)) return $rank;
+        }
+
+    }
+
+    // no luck so it isn't a rank word we know of
+    return false;
+
+}
+

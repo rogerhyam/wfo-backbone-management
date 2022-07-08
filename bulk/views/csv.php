@@ -16,7 +16,7 @@
         $parts = pathinfo($file);
 
         echo "<tr>";
-        echo "<td><a href=\"index.php?action=download_file&file_name={$parts['basename']}\">{$parts['basename']}</a></td>";
+        echo "<td><a href=\"bulk_download.php?file_name={$parts['basename']}\">{$parts['basename']}</a></td>";
         echo "<td>" . human_filesize(filesize($file)) . '</td>';
 
 

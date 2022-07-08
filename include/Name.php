@@ -1025,7 +1025,7 @@ ao.
      * that you know they exist and are doing it anyway.
      * 
      */
-    public static function createName($proposed_name, $create, $force_homonym, $known_homonyms){
+    public static function createName($proposed_name, $create, $force_homonym, $known_homonyms = array()){
 
         global $mysqli;
 
@@ -1037,10 +1037,15 @@ ao.
         // at the same time we create an empty name object - we can throw it away later if needed.
         $name = Name::getName(-1);
         $name->setStatus('unknown');
-        $name->setUserId(1); // FIXME: should be pulled from session.
+
+        $user = unserialize( @$_SESSION['user']);
+        $name->setUserId($user->getId()); 
 
         // there may be double spaces in name
         $proposed_name = preg_replace('/\s+/', ' ', $proposed_name);
+
+        // no silly characters - letters alone
+        $proposed_name = preg_replace('/[^\sa-zA-Z]/', '', $proposed_name);
 
         // let's start by parsing out the name into parts.
         $parts = explode(' ', trim($proposed_name));

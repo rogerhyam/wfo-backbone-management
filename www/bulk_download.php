@@ -9,12 +9,21 @@ if(!file_exists($filename)){
 }
 
 header('Content-Disposition: attachment; filename="'. $_GET['file_name'] .'"');
+header('Content-type: application/x-gzip');
 
+readfile($filename);
+
+
+/*
 $file=fopen($filename,'r');
+$chunk_size = 8 * (1024 * 1024);
 while(!feof($file)){
-    $line=fread($file,1024);
+    $line=fread($file, $chunk_size);
     echo $line;
+    ob_flush(); 
+    flush(); 
 }
 fclose($file);
-exit();
+exit;
+*/
 
