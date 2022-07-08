@@ -121,6 +121,16 @@
             $auto_render_next_page = "<script>window.location = \"$uri\"</script>";
         }else{
             $auto_render_next_page = "<p>Reached end of table</p>";
+            
+            if(isset($_SESSION['created_names'])){
+                $auto_render_next_page .= "<h3>Recently Created Names</h3>";
+                $auto_render_next_page .= "<p>(Not just in this run.)</p>";
+                $created_names = unserialize($_SESSION['created_names']);
+                $created_names = array_reverse($created_names);
+                foreach ($created_names as $wfo => $name_string) {
+                   $auto_render_next_page .= "<p><strong>$wfo</strong> $name_string</p>";
+                }
+            } 
         }
 
         // work through the rows and render appropriately
@@ -169,7 +179,6 @@
                             render_name_set_link($matches['candidates'][0]['id'], $row['rhakhis_pk'], 'rhakhis_wfo');
 
                             echo "</p>";
-
 
                             if(count($matches['homonyms']) > 0){
                                 echo "<p>Homonyms exist:</p>";
@@ -355,14 +364,84 @@
                             $n = count($matches['candidates']);
                             echo "<p>$n candidates but no way to get an unambiguous match without human intervention.</p>";
                         }else{
-                            echo "<p>No duplicates or candidates found. Nothing we can do without human intervention.</p>";
+                           echo "<p>No possible matches found</p>";
                         }
 
                     }else{
-                        echo "<p>Some doubt ...</p>";
-                    }
 
-                }
+                        // homonyms not OK
+
+                        // report on what we have
+
+                        $duplicates_count = count($matches['duplicates']);
+                        echo "<p>Duplicates count: $duplicates_count</p>";
+
+                        $homonyms_count = count($matches['homonyms']);
+                        echo "<p>Homonym count: $homonyms_count</p>";
+
+                        $candidates_count = count($matches['candidates']);
+                        echo "<p>Candidate count: $candidates_count</p>";
+
+                        if(@$_GET['auto_create'] && $duplicates_count == 0 && $homonyms_count == 0 && $candidates_count == 0){
+
+                            echo "<p>No duplicates or homonyms and auto create is on so will try and auto create name.</p>";
+                                
+                            // we need to have a good rank to create the name at
+                            $proposed_rank = $row[$_GET['rank_col']];
+                            $good_rank = isRankWord($proposed_rank);
+
+                            if($good_rank){
+
+                                    // we can't find anything and we have auto_create on so we should just create a new name and be done with it.
+                                    $update = Name::createName($name_string, true, true);
+
+                                    // if the  update has failed stop and display error results
+                                    if(!$update->success || !isset($update->names[0])){
+                                        
+                                        echo "<pre>";
+                                        print_r($update);
+                                        echo "</pre>";
+
+                                    }else{
+
+                                        // ok the creation went OK. Let's get the name
+                                        $name = $update->names[0];
+
+                                        // and set some values
+                                        $name->setAuthorsString($authors_string);
+                                        $name->setRank($good_rank);
+                                        $name->save();
+
+                                        // other values will be set during the update phase.
+
+                                        // now write the new WFO to the table.
+                                        $wfo = $name->getPrescribedWfoId();
+                                        $sql = "UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_wfo` = '$wfo' WHERE `rhakhis_pk` = {$row['rhakhis_pk']};";
+                                        $mysqli->query($sql);
+
+                                        // keep track of recently created names in session
+                                        if(!isset($_SESSION['created_names'])) $_SESSION['created_names'] = serialize(array());
+                                        $created_names = unserialize($_SESSION['created_names']);
+                                        $created_names[$wfo] = $name->getFullNameString();
+                                        $_SESSION['created_names'] = serialize($created_names);
+
+                                        echo "<p><strong>Created Name: $wfo </strong> {$name->getFullNameString()}</p>";
+
+                                    } // end name created OK
+
+                            }else{
+                                    echo "<p>Can't create name because of unrecognized rank value: \"$proposed_rank\"</p>";
+                            }
+
+                        }else{
+
+                            echo "<p>Unattended mode with create names off so nothing to do.</p>";
+
+                        }
+                        
+                    } // end homonyms not OK
+
+                } // end unattended mode
 
             }
             echo "</div>";
@@ -380,6 +459,7 @@
 
 
     function render_options_form($table) {
+        global $mysqli;
 ?>
     <h3>Options</h3>
     <form action="index.php" method="GET">
@@ -390,7 +470,7 @@
         <input type="hidden" name="page_size" value="1000" />
     <table>
         <tr>
-            <th>Scientific Name Column</th>
+            <th style="text-align: right;">Scientific Name Column:</th>
                 <td>
                 <select name="name_col">
                     <option value="~">~ Local ID Only ~</option>
@@ -400,7 +480,7 @@
                 <td>This must be set.</td>
             </tr>
             <tr>
-            <th>Authors Column</th>
+            <th style="text-align: right;">Authors Column:</th>
                 <td>
                 <select name="authors_col">
                     <option value="">~ Pick One ~</option>
@@ -410,7 +490,7 @@
                 <td>This is optional but highly desireable.</td>
             </tr>
             <tr>
-            <th>Local ID Column</th>
+            <th style="text-align: right;">Local ID Column:</th>
                 <td>
                 <select name="name_id_col">
                     <option value="">~ Pick One ~</option>
@@ -420,7 +500,7 @@
                 <td>This is only used if we know the dataset has been previously matched and the TEN IDs added.</td>
             </tr>
             <tr>
-            <th>Local ID Kind</th>
+            <th style="text-align: right;">Local ID Kind:</th>
                 <td>
                 <select name="name_id_type">
                     <option value="">~ Pick One ~</option>
@@ -431,24 +511,50 @@
             </tr>
             <tr>
             <tr>
-            <th>Local ID Prefix</th>
+            <th style="text-align: right;">Local ID Prefix:</th>
                 <td>
                 <input name="name_id_prefix" value="" />
                 </td>
                 <td>This is added to the front of the value in the local ID column to get the id that is stored in Rhakhis (see linking for explanation).</td>
             </tr>
             <tr>
-            <th>Homonyms OK</th>
+            <th style="text-align: right;">Homonyms OK:</th>
                 <td style="text-align: center;">
                 <input type="checkbox" name="homonyms_ok" value="true" />
                 </td>
                 <td>Check to signify a lax approach to life.</td>
             </tr>
-            <th>Interactive Mode</th>
+            <th style="text-align: right;" >Interactive Mode:</th>
                 <td style="text-align: center;">
                 <input type="checkbox" name="interactive_mode" value="true" />
                 </td>
                 <td>Check to get asked your opinion on all the ambiguous/unresolved names.</td>
+            </tr>
+            <th style="text-align: right;" >Auto Create Names:</th>
+                <td style="text-align: center;">
+                <input type="checkbox" name="auto_create" value="true" />
+                <select name="rank_col">
+                    <option value ="">~ Rank Column ~</option>
+<?php
+                    $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
+                    $cols = $response->fetch_all(MYSQLI_ASSOC);
+                    foreach($cols as $col){
+                        echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
+                    }
+?>
+                </select>
+                </td>
+                <td>
+                    This will create new names for names that don't have duplicates or homonyms.
+                    <br/>
+                    It only works if you are not in interactive mode and homonyms OK is off - they are not OK when creating new names.
+                    <br/>
+                    You need to specify which column contains the rank for name creation. The name that is created will be minimal with name parts, authors and rank.
+                    <br/>
+                    If the column contains a value that isn't a recognized rank the name will not be created.
+                    <br/>
+                    You could check the rank values are OK before running this using the facility under the Nomenclature tab then use the rhakhis_rank column as the source for the rank name here.
+                </td>
             </tr>
             <tr>
                 <td colspan="2" style="text-align: right;"><input type="submit" value="Start Matching Run"/></td>
@@ -485,6 +591,8 @@ function render_algorithm_description(){
         </ol>
     </li>
     <li>In <strong>Unattended Mode</strong> any unresolved ambiguity is ignored and the next name processed.</li>
+    <li>If no ambiguity is discovered in Unattended Mode and <strong>Auto Create Mode</strong> is selected then new names will be created - provided there are no duplicates or homonyms.</li>
+    <li>If there are duplicates or homonyms then new names must be created through the Rhakhis UI not the bulk loader.</li>
     <li>In <strong>Interactive Mode:</strong> any unresolved ambiguity leads to the presentation of a choice screen.</li>
     <li>In interactive mode a list of suggestions may be supplied if no matches are found. This is based on a simple word stemming approach.</li>
     <li>If the scientific name column is set to "~ Local ID Only ~" then only the local ID fields are used to match and only match if they are unambiguous. All other fields are ignored.</li>
@@ -548,7 +656,8 @@ function getMatches($nameString, $authorsString){
     $response->close();
 
     // do we have any that match the name but not the author string. That would be a downgrade.
-    $response = $mysqli->query("SELECT * FROM `names` WHERE `name_alpha` = '$nameString_sql' AND (`authors` != '$authorsString_sql' OR `authors` is null)");
+    $sql = "SELECT * FROM `names` WHERE `name_alpha` = '$nameString_sql' AND (`authors` != '$authorsString_sql' OR `authors` is null)";
+    $response = $mysqli->query($sql);
     $matches['homonyms'] = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
 
@@ -626,31 +735,6 @@ function get_name_parts($nameString){
     return $newNameParts;
 }
 
-// duplicate function again - same as in NameMatcher
-function isRankWord($word){
-
-    global $ranks_table;
-
-    $word = strtolower($word);
-    foreach($ranks_table as $rank => $rankInfo){
-
-        // does it match the rank name
-        if(strtolower($word) == $rank) return $rank;
-
-        // does it match the official abbreviation
-        if($word == strtolower($rankInfo['abbreviation'])) return $rank;
-
-        // does it match one of the known alternatives
-        foreach($rankInfo['aka'] as $aka){
-            if($word == strtolower($aka)) return $rank;
-        }
-
-    }
-
-    // no luck so it isn't a rank word we know of
-    return false;
-
-}
 
 ?>
 

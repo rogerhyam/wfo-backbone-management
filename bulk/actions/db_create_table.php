@@ -32,6 +32,8 @@ foreach($header_row as $header){
 // add the rhakhis_* fields if they don't already exist
 if(!in_array('rhakhis_skip', $header_row)) $sql .= ",\n\t`rhakhis_skip` TINYINT NULL";
 if(!in_array('rhakhis_wfo', $header_row)) $sql .= ",\n\t`rhakhis_wfo` VARCHAR(15) NULL";
+if(!in_array('rhakhis_rank', $header_row)) $sql .= ",\n\t`rhakhis_rank` VARCHAR(15) NULL";
+if(!in_array('rhakhis_status', $header_row)) $sql .= ",\n\t`rhakhis_status` VARCHAR(15) NULL";
 if(!in_array('rhakhis_parent', $header_row)) $sql .= ",\n\t`rhakhis_parent` VARCHAR(15) NULL";
 if(!in_array('rhakhis_accepted', $header_row)) $sql .= ",\n\t`rhakhis_accepted` VARCHAR(15) NULL";
 if(!in_array('rhakhis_basionym', $header_row)) $sql .= ",\n\t`rhakhis_basionym` VARCHAR(15) NULL";
