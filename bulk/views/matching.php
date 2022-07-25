@@ -252,7 +252,7 @@
                     
                     echo ' Authors: <input type="text" size="36" name="authors_string" value="'.  $authors_string .'" />';
 
-                    echo ' Rank: <select name="rank_string">';
+                    echo ' <span style="color: red">Rank</span>: <select name="rank_string">';
 
                     foreach($ranks_table as $rank_name => $rank){
                         $selected = "";
@@ -395,7 +395,8 @@
                             if($good_rank){
 
                                     // we can't find anything and we have auto_create on so we should just create a new name and be done with it.
-                                    $update = Name::createName($name_string, true, true);
+                                    $canonical_name = implode(' ', $matches['name_parts']);
+                                    $update = Name::createName($canonical_name, true, true);
 
                                     // if the  update has failed stop and display error results
                                     if(!$update->success || !isset($update->names[0])){
