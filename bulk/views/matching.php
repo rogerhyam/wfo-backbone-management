@@ -121,16 +121,6 @@
             $auto_render_next_page = "<script>window.location = \"$uri\"</script>";
         }else{
             $auto_render_next_page = "<p>Reached end of table</p>";
-            
-            if(isset($_SESSION['created_names'])){
-                $auto_render_next_page .= "<h3>Recently Created Names</h3>";
-                $auto_render_next_page .= "<p>(Not just in this run.)</p>";
-                $created_names = unserialize($_SESSION['created_names']);
-                $created_names = array_reverse($created_names);
-                foreach ($created_names as $wfo => $name_string) {
-                   $auto_render_next_page .= "<p><strong>$wfo</strong> $name_string</p>";
-                }
-            } 
         }
 
         // work through the rows and render appropriately
@@ -245,9 +235,21 @@
 
                     echo '<input type="hidden" name="rhakhis_pk" value="'. $row['rhakhis_pk'] .'" />';
 
-                    if(count($matches['name_parts']) > 1) echo 'Genus: <input type="text" name="genus_string" value='.  $matches['name_parts'][1] .'" />';
-                    if(count($matches['name_parts']) > 2) echo 'Species: <input type="text" name="species_string" value="'.  $matches['name_parts'][2] .'" />';
-                    echo ' Name: <input type="text" name="name_string" value="'.  $matches['name_parts'][0] .'" />';
+                    switch (count($matches['name_parts'])) {
+                        case 2:
+                            echo 'Genus: <input type="text" name="genus_string" value="'.  $matches['name_parts'][0] .'" />';
+                            echo ' Species: <input type="text" name="name_string" value="'.  $matches['name_parts'][1] .'" />';
+                            break;
+                        case 3:
+                            echo 'Genus: <input type="text" name="genus_string" value="'.  $matches['name_parts'][0] .'" />';
+                            echo ' Species: <input type="text" name="species_string" value="'.  $matches['name_parts'][1] .'" />';
+                            echo ' Subspecific epithet: <input type="text" name="name_string" value="'.  $matches['name_parts'][2] .'" />';
+                            break;
+                        default:
+                            echo 'Name: <input type="text" name="name_string" value="'.  $matches['name_parts'][0] .'" />';;
+                            break;
+                    }
+                    
                     echo ' Authors: <input type="text" size="36" name="authors_string" value="'.  $authors_string .'" />';
 
                     echo ' Rank: <select name="rank_string">';
@@ -435,7 +437,7 @@
 
                         }else{
 
-                            echo "<p>Unattended mode with create names off so nothing to do.</p>";
+                            echo "<p>Unattended mode so nothing to do.</p>";
 
                         }
                         
@@ -684,7 +686,7 @@ function getMatches($nameString, $authorsString){
 
     $fuzzParts = array();
     foreach($name_parts as $p){
-        $fuzzParts[] = substr($p, 0, -2) . '%';
+        $fuzzParts[] = $mysqli->real_escape_string(substr($p, 0, -2)) . '%';
     }
 
     if(count($fuzzParts) == 3){
@@ -734,7 +736,6 @@ function get_name_parts($nameString){
 
     return $newNameParts;
 }
-
 
 ?>
 

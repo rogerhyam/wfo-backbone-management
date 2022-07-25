@@ -19,7 +19,7 @@ $response->close();
 foreach($tables as $t){
     $table = $t[0];
 
-    $bg_color = $table == $_SESSION['selected_table'] ? 'pink' : 'white';
+    $bg_color = $table == @$_SESSION['selected_table'] ? 'pink' : 'white';
 
     echo "<tr style=\"background-color: $bg_color\">";
     echo "<td>{$table}</td>";

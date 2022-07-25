@@ -42,13 +42,17 @@ if(!in_array('rhakhis_basionym', $header_row)) $sql .= ",\n\t`rhakhis_basionym` 
 $sql .= ",\n\t`rhakhis_pk` int NOT NULL AUTO_INCREMENT";
 $sql .= ",\n\tPRIMARY KEY (`rhakhis_pk`)";
 
-$sql .= "\n);";
+$sql .= "\n)";
 
-echo $sql;
+$sql .= "\n DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+
+// echo $sql;
 
 $mysqli->query($sql);
 if($mysqli->error){
     echo $mysqli->error;
+    echo '<hr/>';
+    echo $sql;
     exit;
 }
 

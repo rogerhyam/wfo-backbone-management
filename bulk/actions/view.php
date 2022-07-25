@@ -62,6 +62,8 @@
             |
             <a href="index.php?action=view&phase=matching">Matching<a>
             |
+            <a href="index.php?action=view&phase=created">Created<a>
+            |
             <a href="index.php?action=view&phase=linking">Linking<a>
             |
             <a href="index.php?action=view&phase=nomenclature">Nomenclature<a>
