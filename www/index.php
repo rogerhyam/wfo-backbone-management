@@ -54,3 +54,34 @@ function isRankWord($word){
 
 }
 
+
+function get_rhakhis_uri($wfo){
+
+    // the name created an link to view it in new tab.
+    // this is a bit hacky on which server we are on
+    switch ($_SERVER['SERVER_NAME']) {
+
+        // in dev
+        case 'localhost':
+            $uri = 'http://localhost:3000/#' . $wfo;
+            break;
+
+        // on the sandbox
+        case 'rhakhis.rbge.info':
+            $uri = 'https://rhakhis.rbge.info/#' . $wfo;
+            break;
+    
+        // live
+        case 'list.worldfloraonline.org':
+            $uri = 'https://list.worldfloraonline.org/rhakhis/ui/#' . $wfo;
+            break;
+        
+        // unknown
+        default:
+            $uri = null;
+            break;
+    }
+
+    return $uri;
+
+}

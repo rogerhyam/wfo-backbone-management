@@ -43,31 +43,7 @@ if($mysqli->error){
     $created_names[$wfo] = $name->getFullNameString();
     $_SESSION['created_names'] = serialize($created_names);
 
-    // the name created an link to view it in new tab.
-    // this is a bit hacky on which server we are on
-    switch ($_SERVER['SERVER_NAME']) {
-
-        // in dev
-        case 'localhost':
-            $uri = 'http://localhost:3000/#' . $name->getPrescribedWfoId();
-            break;
-
-        // on the sandbox
-        case 'rhakhis.rbge.info':
-            $uri = 'https://rhakhis.rbge.info/#' . $name->getPrescribedWfoId();
-            break;
-    
-        // live
-        case 'list.worldfloraonline.org':
-            $uri = 'https://list.worldfloraonline.org/rhakhis/ui/#' . $name->getPrescribedWfoId();
-            break;
-        
-        // unknown
-        default:
-            $uri = null;
-            break;
-    }
-
+    $uri =  get_rhakhis_uri($name->getPrescribedWfoId());
 
     echo "<p>";
     echo "<strong>{$name->getPrescribedWfoId()}</strong> ";
