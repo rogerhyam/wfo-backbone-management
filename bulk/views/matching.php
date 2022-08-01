@@ -158,15 +158,17 @@
                 if(@$_GET['interactive_mode']){
 
                     // render a picker.
-                    if(count($matches['candidates']) == 1){
+
+                    $possibles = array_merge($matches['candidates'], $matches['duplicates']);
+
+                    if(count($possibles) == 1){
 
                             // we have a good match but there are homonyms that may cause confusion
 
                             echo "<p>Good single candidate:</p>";
                             echo '<p style="padding-left: 2em">';
-                           // render_name($matches['candidates'][0]);
 
-                            render_name_set_link($matches['candidates'][0]['id'], $row['rhakhis_pk'], 'rhakhis_wfo');
+                            render_name_set_link($possibles[0]['id'], $row['rhakhis_pk'], 'rhakhis_wfo');
 
                             echo "</p>";
 
@@ -180,9 +182,9 @@
                             }
                             
 
-                    }elseif(count($matches['candidates']) == 0){
+                    }elseif(count($possibles) == 0){
 
-                        if(count($matches['candidates'])){
+                        if(count($possibles)){
                             echo "<p>Fuzzy Matches</p>";
                             foreach ($matches['fuzzy'] as $can) {
                                 echo '<p style="padding-left: 2em">';
@@ -196,7 +198,7 @@
                     }else{
                             // we have multiple candidates to choose between. 
                             echo "<p>Multiples candidates</p>";
-                            foreach ($matches['candidates'] as $can) {
+                            foreach ($possibles as $can) {
                                 echo '<p style="padding-left: 2em">';
                                 render_name_set_link($can['id'], $row['rhakhis_pk'], 'rhakhis_wfo');
                                 echo "</p>";
@@ -263,6 +265,20 @@
                     }
 
                     echo '</select>';
+
+                    if(count($possibles) > 0){
+
+                        // pass the wfo's of the known homonyms
+                        $pos_wfos = array();
+                        foreach ($possibles as $pos) {
+                            $name = Name::getName($pos["id"]);
+                            $pos_wfos[] = $name->getPrescribedWfoId();
+                        }
+                        $pos_wfos = implode(',', $pos_wfos);
+
+                        echo ' Tick to force homonym creation: <input type="checkbox" name="force_homonym" value="' . $pos_wfos . '" /> ';
+
+                    }
 
                     echo ' <input type="submit" value="Create name"/>';
 

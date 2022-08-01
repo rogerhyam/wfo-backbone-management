@@ -2,6 +2,8 @@
 
 <?php
 
+// This is for updating the rhakhis_rank column of the current table
+
 // set up our variables
 $table = $_GET['table'];
 $column = $_GET['rank_column'];
@@ -46,10 +48,14 @@ if(count($rows) > 0){
 foreach($rows as $row){
 
     $good_rank = isRankWord($row['rank']);
+
+    // not got a good rank do we have a map for it.
+    if(!$good_rank && isset($unknown_ranks_mapped[$row['rank']])){
+        $good_rank = $unknown_ranks_mapped[$row['rank']];
+    }
+
     if($good_rank){
         $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_rank` = '$good_rank' WHERE `rhakhis_pk` = {$row['rhakhis_pk']}");
-    }else{
-        echo "<p>Failed to find good rank for {$row['rank']}</p>";
     }
     
 }

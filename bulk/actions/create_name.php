@@ -9,11 +9,18 @@ $name_parts[] = @$_GET['name_string'];
 $name_string = implode(' ', $name_parts);
 $name_string = trim($name_string);
 
-$update = Name::createName($name_string, true, true);
+// do we want to force the creation of a homonym?
+if(@$_GET['force_homonym']){
+    $homonym_wfos = explode(',', $_GET['force_homonym']);
+    $update = Name::createName($name_string, true, true, $homonym_wfos);
+}else{
+    $update = Name::createName($name_string, true, false);
+}
 
 // if the  update has failed stop and display results
 if(!$update->success || !isset($update->names[0])){
     echo "<pre>";
+    print_r($_GET);
     print_r($update);
     echo "</pre>";
     exit;

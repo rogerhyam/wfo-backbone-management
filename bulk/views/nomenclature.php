@@ -7,6 +7,8 @@
 <a href="index.php?action=view&phase=nomenclature&task=nomenclature_ranks">Ranks</a>
 |
 <a href="index.php?action=view&phase=nomenclature&task=nomenclature_statuses">Statuses</a>
+|
+<a href="index.php?action=view&phase=nomenclature&task=nomenclature_published_in">Published In</a>
 </div>
 <hr/>
 <?php

@@ -1,6 +1,7 @@
 
 <div style="width: 800px">
 <h2>Ranks</h2>
+<p style="color: green;">Only updates rhakhis_* fields in data table.</p>
 <p>
     The first stage of reconciling the nomenclature is making sure that the values in the rank column of the data table map onto values that Rhakhis understands.
     The correct values are then stored in the <strong>rhakhis_rank</strong> column of the data table.
@@ -118,7 +119,7 @@ foreach($rows as $row){
 echo "<tr>";
 echo '<td style="text-align: right" colspan="5" >';
 
-echo 'Update rhakhis_rank column with mapped values: <input type="submit" S"/>';
+echo 'Update rhakhis_rank column with mapped values: <input type="submit" />';
 
 echo "</td>";
 echo "</tr>";

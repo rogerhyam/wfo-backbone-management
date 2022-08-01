@@ -1,4 +1,5 @@
 <h3>Linking</h3>
+<p style="color: red;">Changes data in Rhakhis.</p>
 <?php
     $table = $_SESSION['selected_table'];
 
@@ -81,7 +82,6 @@ function run_linking($table){
 function render_form($table){
     global $mysqli;
 ?>
-
 
 <p>This utility will run through the table and, for those rows that have been matched to a WFO ID, will add a local ID to Rhakhis thus making matching easier to do next time.</p>
 <p>It will force uniqueness of the identifier:kind combination. We can't have the same identifier associated with multiple names.</p>

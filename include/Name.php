@@ -98,7 +98,7 @@ class Name extends WfoDbObject{
 
 
     /**
-     * Always use this function to get an instance of a taxon
+     * Always use this function to get an instance of a name
      * 
      * @param mixed An int if it is the DB id of the name or a string if it is the WFO ID
      */

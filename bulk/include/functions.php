@@ -49,8 +49,12 @@ function render_name_set_link($name_id, $rhakhis_pk, $column){
     echo $name->getFullNameString();
     echo "</a>";
 
+    if($name->getCitationMicro()){
+        echo " <strong>Published in:</strong> " . $name->getCitationMicro();
+    }
+
     $uri = "https://list.worldfloraonline.org/rhakhis/ui/index.html#" . $name->getPrescribedWfoId();
-    echo " Research: <a target=\"rhakhis\" href=\"$uri\">Rhakhis</a>";
+    echo " <strong>Research:</strong> <a target=\"rhakhis\" href=\"$uri\">Rhakhis</a>";
 
     $uri = "http://www.worldfloraonline.org/taxon/" . $name->getPrescribedWfoId();
     echo " | <a target=\"wfo_main\" href=\"$uri\">Main Site</a>";
