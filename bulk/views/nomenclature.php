@@ -1,5 +1,6 @@
 <?php
-    $table = $_SESSION['selected_table'];
+    $table = @$_SESSION['selected_table'];
+    if(!$table) echo '<p style="color: red;">You need to select a table before you can do anything here.</p>';
 
 ?>
 <div>

@@ -10,19 +10,51 @@
     and for that we need a controlled vocabulary of statuses.
     Any actually updating the status in Rhakhis comes at a later stage.
 </p>
-<ul>
-<?php
+
+<table>
+    <tr>
+        <th>rhakhis_status Value</th>
+        <th>Count</th>
+        <th>Percent</th>
+    </tr>
+<?php   
+
+    // get overall row counts
     $sql = "SELECT count(*) AS 'total', count(`rhakhis_status`) AS 'mapped' FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_skip` IS NULL OR `rhakhis_skip` < 1 ";
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
     $total = number_format($rows[0]['total'], 0);
+    $total_int = $rows[0]['total'];
     $mapped = number_format($rows[0]['mapped'], 0);
-    $percent = number_format(($rows[0]['mapped']/$rows[0]['total'])*100, 2);
-    echo "<li>Total Un-skipped rows: $total</li>";
-    echo "<li>Rows with rhakhis_status completed: $mapped ($percent%)</li>";
+    $total_percent = number_format(($rows[0]['mapped']/$rows[0]['total'])*100, 2);
+
+    // show distinct values in the rhakhis_status column
+    $sql = "SELECT `rhakhis_status` as 'val', count(*) as 'n' FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_skip` IS NULL OR `rhakhis_skip` < 1 GROUP BY `rhakhis_status` ORDER BY `rhakhis_status`";
+    $response = $mysqli->query($sql);
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    $response->close();
+
+    foreach ($rows as $row) {
+
+        $n = number_format($row['n'], 0);
+        $percent = number_format($row['n']/$total_int * 100, 2);;
+
+        echo "<tr>";
+        echo "<td>{$row['val']}</td>";
+        echo "<td style=\"text-align: right\" >$n</td>";
+        echo "<td style=\"text-align: right\" >$percent%</td>";
+        echo "</tr>";
+
+    }
+
+    echo "<tr><th style=\"text-align: right\">Total completed:</th><td>$mapped</td><td> $total_percent%</td></tr>";
+
+    echo "<tr><td colspan=\"3\" style=\"text-align: right\"><a href=\"index.php?action=clear_rhakhis_col&table_name=$table&rhakhis_col=status&calling_action=view&calling_phase=nomenclature&calling_task=nomenclature_statuses\">Clear rhakhis_status</a></td></tr>";
+
+    
 ?>
-</ul>
+</table>
 
 
 <p>Use the form below to analyse the values in the data and then update the rhakhis_status column in the data table. Unrecognized values are highlighted in pink and you can select a mapping to use.</p>

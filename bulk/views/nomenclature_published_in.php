@@ -220,6 +220,8 @@ function render_ask_form($name, $published_in, $data_year, $table, $row_id){
     $params['action'] = 'set_rhakhis_value';
     $skip_query_string = http_build_query($params);
 
+    $rhakhis_published_in_escaped = htmlentities($rhakhis_published_in);
+    $published_in_escaped = htmlentities($published_in);
 
     echo '<h3>Resolve Issue</h3>';
     echo '<style>th{text-align: right}</style>';
@@ -235,7 +237,7 @@ function render_ask_form($name, $published_in, $data_year, $table, $row_id){
     // Rhakhis values
     echo "<tr>";
     echo "<th>Rhakhis:</th>";
-    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_in').value = '$rhakhis_published_in'\">$rhakhis_published_in</a></td>";
+    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_in').value = '$rhakhis_published_in_escaped'\">$rhakhis_published_in</a></td>";
     echo "<td><a href=\"#\" onclick=\"document.getElementById('published_year').value = '$rhakhis_year'\">$rhakhis_year</a></td>";
     echo "</tr>"; 
     echo "<tr>";
@@ -243,12 +245,12 @@ function render_ask_form($name, $published_in, $data_year, $table, $row_id){
     // data table 
     echo "<tr>";
     echo "<th>Data Table:</th>";
-    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_in').value = '$published_in'\">$published_in</a></td>";
+    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_in').value = '$published_in_escaped'\">$published_in</a></td>";
     echo "<td><a href=\"#\" onclick=\"document.getElementById('published_year').value = '$data_year'\">$data_year</a></td>";
     echo "</tr>";
 
     echo "<th>Update Rhakhis to:</th>";
-    echo "<td><input type=\"text\" name=\"published_in\" id=\"published_in\" value=\"$published_in\"  size=\"60\"/></td>";
+    echo "<td><input type=\"text\" name=\"published_in\" id=\"published_in\" value=\"$published_in_escaped\"  size=\"60\"/></td>";
     echo "<td><input type=\"text\" name=\"published_year\" id=\"published_year\" value=\"$data_year\" size=\"4\" /></td>";
     echo "</tr>"; 
     echo "<tr><td colspan=\"3\" style=\"text-align: right;\"> <input type=\"submit\" value=\"Update Rhakhis & Add Skip\" /></td></tr>"; 

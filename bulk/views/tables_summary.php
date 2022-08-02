@@ -46,12 +46,10 @@ foreach($tables as $t){
     echo "<td>";
     echo "<a href=\"index.php?action=db_select_table&table_name=$table\">Select</a>";
     echo " | <a href=\"index.php?action=db_export_table&export_table_name=$table\">Export</a>";
-    echo " | <a href=\"index.php?action=db_clear_skips&table_name=$table\">Clear Skips</a>";
-    echo " | <a href=\"index.php?action=db_clear_matches&table_name=$table\">Clear Matches</a>";
+    echo " | <a href=\"index.php?action=clear_rhakhis_col&table_name=$table&rhakhis_col=skip&calling_action=view&calling_phase=tables\">Clear Skips</a>";
+    echo " | <a href=\"index.php?action=clear_rhakhis_col&table_name=$table&rhakhis_col=wfo&calling_action=view&calling_phase=tables\">Clear Matches</a>";
     echo " | <a href=\"index.php?action=db_drop_table&drop_table_name=$table\" style=\"color: red\">Delete</a>";
     
-    
-
     echo "</td>";
 
     echo "</tr>";
