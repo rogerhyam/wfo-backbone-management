@@ -21,25 +21,55 @@ $sql = "CREATE TABLE $table_name (";
 
 $first = true;
 foreach($header_row as $header){
-    $col_name = preg_replace('/[^a-zA-Z0-9_]/', '_', $header);
+    $col_name = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower(trim($header)));
 
     if($first) $first = false;
     else $sql .= ',';
 
-    $sql .= "\n\t`$col_name` TEXT NULL";
+    // if any of these column names are recognised as ours
+    // we set their type appropriatedly if not they get TEXT NULL
+    switch ($col_name) {
+        case 'rhakhis_pk':
+            $sql .= "\n\t`rhakhis_pk` int NOT NULL AUTO_INCREMENT";
+            break;
+        case 'rhakhis_wfo':
+            $sql .= "\n\t`rhakhis_wfo` VARCHAR(15) NULL";
+            break;
+        case 'rhakhis_skip':
+            $sql .= "\n\t`rhakhis_skip` TINYINT NULL";
+            break;
+        case 'rhakhis_rank':
+            $sql .= "\n\t`rhakhis_rank` VARCHAR(15) NULL";
+            break;
+        case 'rhakhis_status':
+            $sql .= "\n\t`rhakhis_status` VARCHAR(15) NULL";
+            break;
+        case 'rhakhis_parent':
+            $sql .= "\n\t`rhakhis_parent` VARCHAR(15) NULL";
+            break;
+        case 'rhakhis_accepted':
+            $sql .= "\n\t`rhakhis_accepted` VARCHAR(15) NULL";
+            break;
+        case 'rhakhis_basionym':
+            $sql .= "\n\t`rhakhis_basionym` VARCHAR(15) NULL";
+            break;
+        default:
+            // All other fields are TEXT
+            $sql .= "\n\t`$col_name` TEXT NULL";
+            break;
+    }
+    
 }
-
 // add the rhakhis_* fields if they don't already exist
-if(!in_array('rhakhis_skip', $header_row)) $sql .= ",\n\t`rhakhis_skip` TINYINT NULL";
+if(!in_array('rhakhis_pk', $header_row)) $sql .= ",\n\t`rhakhis_pk` int NOT NULL AUTO_INCREMENT";
 if(!in_array('rhakhis_wfo', $header_row)) $sql .= ",\n\t`rhakhis_wfo` VARCHAR(15) NULL";
+if(!in_array('rhakhis_skip', $header_row)) $sql .= ",\n\t`rhakhis_skip` TINYINT NULL";
 if(!in_array('rhakhis_rank', $header_row)) $sql .= ",\n\t`rhakhis_rank` VARCHAR(15) NULL";
 if(!in_array('rhakhis_status', $header_row)) $sql .= ",\n\t`rhakhis_status` VARCHAR(15) NULL";
 if(!in_array('rhakhis_parent', $header_row)) $sql .= ",\n\t`rhakhis_parent` VARCHAR(15) NULL";
 if(!in_array('rhakhis_accepted', $header_row)) $sql .= ",\n\t`rhakhis_accepted` VARCHAR(15) NULL";
 if(!in_array('rhakhis_basionym', $header_row)) $sql .= ",\n\t`rhakhis_basionym` VARCHAR(15) NULL";
 
-// we must have a primary key - we assume this doesn't exist as we never export it.
-$sql .= ",\n\t`rhakhis_pk` int NOT NULL AUTO_INCREMENT";
 $sql .= ",\n\tPRIMARY KEY (`rhakhis_pk`)";
 
 $sql .= "\n)";
@@ -75,12 +105,19 @@ while($row = fgetcsv($in)){
 
     $first = true;
     foreach($row as $val){
-        $safe_val = $mysqli->real_escape_string($val);
 
         if($first) $first = false;
         else $sql .= ',';
+
+        if(is_numeric($val)){
+            $sql .= "\n\t$val";
+        }elseif(strlen($val) == 0) {
+            $sql .= "\n\tNULL";
+        }else{
+            $safe_val = $mysqli->real_escape_string($val);
+            $sql .= "\n\t'$safe_val'";
+        }
         
-        $sql .= "\n\t'$safe_val'";
     }
 
     $sql .= ")";

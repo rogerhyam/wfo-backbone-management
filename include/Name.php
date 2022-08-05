@@ -738,6 +738,7 @@ ao.
     protected function saveDangerously(){
         
         global $mysqli;
+        global $ranks_table;
 
         // we do nothing if the user doesn't have rights to change this name
         // They should never get here because interface should stop them
@@ -779,7 +780,19 @@ ao.
                 $wfo_id_db_id = $mysqli->insert_id;
 
         }
-        
+
+        // check our name parts are of the right number for our rank - no more 
+        // we do this here not at integrity check as it is changing the data
+        $my_level = array_search($this->rank, array_keys($ranks_table));
+        $genus_level = array_search('genus', array_keys($ranks_table));
+        $species_level = array_search('species', array_keys($ranks_table));
+
+        // if it is at or above species then it can't have a species value
+        if($my_level <= $species_level) $this->species = null;
+
+        // if it at or above genus level then it can't have a genus
+        if($my_level <= $genus_level) $this->genus = null;
+
 
         if($this->id){
             // we have a real db id so we can do an update
