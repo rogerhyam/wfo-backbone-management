@@ -419,7 +419,7 @@
                                 if(count($matches['name_parts']) == 1 && $my_level <= $genus_level){
                                     // genus or above
                                     $rank_matches_name = true;
-                                }elseif (count($matches['name_parts']) == 2 && ($my_level < $genus_level && $my_level <= $species_level)){
+                                }elseif (count($matches['name_parts']) == 2 && ($my_level > $genus_level && $my_level <= $species_level)){
                                     // below genus but species or above
                                     $rank_matches_name = true;
                                 }elseif (count($matches['name_parts']) == 3 && $my_level > $species_level){
@@ -473,7 +473,9 @@
                                     } // end name created OK
 
                             }else{
+                                    print_r($matches['name_parts']);
                                     echo "<p>Can't create name because of unrecognized rank value: \"$proposed_rank\"</p>";
+                                    exit;
                             }
 
                         }else{
@@ -678,6 +680,8 @@ function getMatches($nameString, $authorsString){
         'fuzzy' => array(), // fuzzy matches if all else fails
         'name_parts' => array() // parsed name
     );
+
+    $nameString = Name::sanitizeNameString($nameString);
 
     $name_parts = get_name_parts($nameString);
 

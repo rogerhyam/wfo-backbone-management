@@ -661,32 +661,6 @@ class Name extends WfoDbObject{
 
         // fixme - check my values are cool
         // return informative messages if not
-
-        /*
-
- 60.7.  Diacritical signs are not used in scientific names. When names
-(either new or old) are drawn from words in which such signs appear, the
-signs are to be suppressed with the necessary transcription of the letters so
-modified; for example ä, ö, ü become, respectively, ae, oe, ue (not æ or œ,
-see below); é, è, ê become e; ñ becomes n; ø becomes oe (not œ); å becomes
-ao.
-
-    // these should happen in setName I think not here because they are auto corrections
-    $scientificName = str_replace('ä', 'ae', $scientificName);
-    $scientificName = str_replace('ö', 'oe', $scientificName);
-    $scientificName = str_replace('ü', 'ue', $scientificName);
-    $scientificName = str_replace('é', 'e', $scientificName);
-    $scientificName = str_replace('è', 'e', $scientificName);
-    $scientificName = str_replace('ê', 'e', $scientificName);
-    $scientificName = str_replace('ñ', 'n', $scientificName);
-    $scientificName = str_replace('ø', 'oe', $scientificName);
-    $scientificName = str_replace('å', 'ao', $scientificName);
-    $scientificName = str_replace("", '', $scientificName); // can you believe an o'donolli 
-
-    // check here whether there are any non alpha chars or - 
-
-    */
-
         // the WFO-ID must either not exist or if it does exist have us as its name_id
 
         $out->consolidateSuccess();
@@ -1294,6 +1268,45 @@ ao.
             return null;
         }
         
+    }
+
+    /**
+     * Remove and swap any dodgy characters
+     * 
+     */
+    public static function sanitizeNameString($dirty){
+
+            /*
+
+                60.7.  Diacritical signs are not used in scientific names. When names
+                (either new or old) are drawn from words in which such signs appear, the
+                signs are to be suppressed with the necessary transcription of the letters so
+                modified; for example ä, ö, ü become, respectively, ae, oe, ue (not æ or œ,
+                see below); é, è, ê become e; ñ becomes n; ø becomes oe (not œ); å becomes
+                ao.
+
+            */
+
+            $cleaner = str_replace('ä', 'ae', $dirty);
+            $cleaner = str_replace('ö', 'oe', $cleaner);
+            $cleaner = str_replace('ü', 'ue', $cleaner);
+            $cleaner = str_replace('é', 'e', $cleaner);
+            $cleaner = str_replace('è', 'e', $cleaner);
+            $cleaner = str_replace('ê', 'e', $cleaner);
+            $cleaner = str_replace('ë', 'e', $cleaner);
+            $cleaner = str_replace('ñ', 'n', $cleaner);
+            $cleaner = str_replace('ø', 'oe', $cleaner);
+            $cleaner = str_replace('å', 'ao', $cleaner);
+            $cleaner = str_replace("", '', $cleaner); // can you believe an o'donolli 
+
+            // we don't do hybrid symbols or other weirdness
+            $cleaner = str_replace(' X ', '', $cleaner); // may use big X for hybrid  - we ignore
+            $cleaner = str_replace(' x ', '', $cleaner); // may use big X for hybrid - we ignore
+            $cleaner = preg_replace('/[^A-Za-z\-. ]/', '', $cleaner); // any non-alpha character, hyphen or full stop (OK in abbreviated ranks) 
+            $cleaner = preg_replace('/\s\s+/', ' ', $cleaner); // double spaces
+
+            return $cleaner;
+
     }
 
 } // name

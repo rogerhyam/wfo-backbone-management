@@ -3,25 +3,24 @@
 
     echo "<h3>$table</h3>";
 
-    $rhakhis_pk = @$_GET['rhakhis_pk'];
-    if(!$rhakhis_pk) $rhakhis_pk = 1;
-
-
     if(!@$_GET['search_field'] || !@$_GET['search_value']){
 
-        // we are just rendering one by one
-        $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_pk` = $rhakhis_pk";
+        $offset = @$_GET['offset'];
+        if(!$offset) $offset = 0;
+        if($offset < 0) $offset = 0;
 
+        $sql = "SELECT * FROM `rhakhis_bulk`.`$table` LIMIT 1 OFFSET $offset";
+        
         $response = $mysqli->query($sql);
         $row = $response->fetch_assoc();
 
         $params = $_GET;
-        $params['rhakhis_pk'] = ($rhakhis_pk -1);
+        $params['offset'] = $offset -1;
 
         $prev_uri = "index.php?" . http_build_query($params);
         $prev_link = "<td><a href=\"$prev_uri\">&lt; Previous</a></td>";
 
-        $params['rhakhis_pk'] = ($rhakhis_pk +1);
+        $params['offset'] = $offset +1;
         $next_uri = "index.php?" . http_build_query($params);
         $next_link = "<td style=\"text-align: right;\"><a href=\"$next_uri\">Next &gt;</a></td>";
     
