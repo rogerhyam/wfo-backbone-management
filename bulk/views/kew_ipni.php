@@ -147,7 +147,7 @@
     Caution: There are many columns (90+) and most are of type TEXT and not indexed so arbitrary queries might be slow. If you need queries to run faster let me know and I may be able to add indexes.
 </p>
 <p>
-    There is an arbitrary limit of 30,000 rows returned. This is to stop returning the whole DB. If you get 30k rows in a file you may want to refine your query. There will be no error it will just be chopped.
+    There is an arbitrary limit of 100,000 rows returned. This is to stop returning the whole DB. If you get 100k rows in a file you may want to refine your query. There will be no error it will just be chopped.
     This limit can be increased.
 </p>
 

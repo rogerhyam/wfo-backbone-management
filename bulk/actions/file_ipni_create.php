@@ -12,8 +12,8 @@ function arbitrary_query(){
     
     global $mysqli;
 
-    $sql = "SELECT * FROM `kew`.`ipni` WHERE {$_GET['sql_select']};";
-    $sql .= " LIMIT 30000";
+    $sql = "SELECT * FROM `kew`.`ipni` WHERE {$_GET['sql_select']} ";
+    $sql .= " LIMIT 100000";
 
     $response = $mysqli->query($sql, MYSQLI_USE_RESULT);
     if($mysqli->error){
@@ -53,7 +53,7 @@ function common_delta(){
     if(@$_GET['suppressed']) $conditions[] = "`suppressed_b` = '{$_GET['suppressed']}'";
 
     $sql .= " " . implode(' AND ', $conditions);
-    $sql .= " LIMIT 30000";
+    $sql .= " LIMIT 100000";
 /*
     echo "<pre>";
     print_r($_GET);
