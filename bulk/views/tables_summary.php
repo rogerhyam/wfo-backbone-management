@@ -30,7 +30,8 @@ foreach($tables as $t){
     echo "<td>". number_format($row['num_rows'], 0) . "</td>";
     echo "<td>" . number_format($row['num_skips'], 0) . "</td>";
     echo "<td>" . number_format($row['matches'], 0 );
-    echo ' (' . number_format(((int)$row['matches']/(int)$row['num_rows'])*100, 0 ) . '%)';
+    if($row['num_rows']) echo ' (' . number_format(((int)$row['matches']/(int)$row['num_rows'])*100, 0 ) . '%)';
+    else echo ' (100%)';
     echo "</td>";
 
     // list the cols
