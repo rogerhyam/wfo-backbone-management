@@ -15,6 +15,32 @@
 
 <table>
     <tr>
+        <th style="text-align: right" >Sync log:</th>
+<?php
+        $response = $mysqli->query("SELECT * FROM kew.ipni_log ORDER BY `created` DESC LIMIT 1");
+        $rows = $response->fetch_all(MYSQLI_ASSOC);
+        $response->close();
+        echo '<td colspan="2">';
+        echo $rows[0]['created'];
+        echo ' - ';
+        echo $rows[0]['message'];
+        echo '</td>';
+?>
+    </tr>
+     <tr>
+        <th style="text-align: right" >Lastest mod date:</th>
+        <td>
+<?php
+    $response = $mysqli->query("SELECT date_last_modified_date from kew.ipni ORDER BY date_last_modified_date DESC LIMIT 1 ;");
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    $response->close();
+    if(count($rows) > 0) echo $rows[0]['date_last_modified_date'];
+    else echo "none";
+?>
+        </td>
+        <td>The newest modification date found in the data dump.</td>
+    </tr>
+    <tr>
         <th style="text-align: right" >New names:</th>
         <td>
 <?php
