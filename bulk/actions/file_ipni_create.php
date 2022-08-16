@@ -43,7 +43,7 @@ function common_delta(){
     if(@$_GET['created_before']) $conditions[] = "`date_created_date` <= '{$_GET['created_before']}'";
 
     if(@$_GET['modified_after']) $conditions[] = "`date_last_modified_date` >= '{$_GET['modified_after']}'";
-    if(@$_GET['modified_before']) $conditions[] = "`date_last_modified_date` <= '{$_GET['modified_after']}'";
+    if(@$_GET['modified_before']) $conditions[] = "`date_last_modified_date` <= '{$_GET['modified_before']}'";
 
     if(@$_GET['publication_year']) $conditions[] = "`publication_year_i` = '{$_GET['publication_year']}'";
 
