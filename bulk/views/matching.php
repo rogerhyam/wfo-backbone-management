@@ -408,7 +408,31 @@
                             $proposed_rank = $row[$_GET['rank_col']];
                             $good_rank = isRankWord($proposed_rank);
 
+                            // need to check that the rank agrees with the number of name parts
+                            $rank_matches_name = false;
                             if($good_rank){
+
+                                $my_level = array_search($good_rank, array_keys($ranks_table));
+                                $genus_level = array_search('genus', array_keys($ranks_table));
+                                $species_level = array_search('species', array_keys($ranks_table));
+
+                                if(count($matches['name_parts']) == 1 && $my_level <= $genus_level){
+                                    // genus or above
+                                    $rank_matches_name = true;
+                                }elseif (count($matches['name_parts']) == 2 && ($my_level > $genus_level && $my_level <= $species_level)){
+                                    // below genus but species or above
+                                    $rank_matches_name = true;
+                                }elseif (count($matches['name_parts']) == 3 && $my_level > $species_level){
+                                    // below species
+                                    $rank_matches_name = true;
+                                }else{
+                                    $rank_matches_name = false;
+                                    $proposed_rank .= " - too many parts in the name for this rank";
+                                }
+
+                            }
+
+                            if($good_rank && $rank_matches_name){
 
                                     // we can't find anything and we have auto_create on so we should just create a new name and be done with it.
                                     $canonical_name = implode(' ', $matches['name_parts']);
@@ -449,7 +473,9 @@
                                     } // end name created OK
 
                             }else{
+                                    print_r($matches['name_parts']);
                                     echo "<p>Can't create name because of unrecognized rank value: \"$proposed_rank\"</p>";
+                                    exit;
                             }
 
                         }else{
@@ -654,6 +680,8 @@ function getMatches($nameString, $authorsString){
         'fuzzy' => array(), // fuzzy matches if all else fails
         'name_parts' => array() // parsed name
     );
+
+    $nameString = Name::sanitizeNameString($nameString);
 
     $name_parts = get_name_parts($nameString);
 
