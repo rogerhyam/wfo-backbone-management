@@ -8,3 +8,4 @@ bulk/csv/*
 composer.phar
 
 
+data/duplicate_names.csv

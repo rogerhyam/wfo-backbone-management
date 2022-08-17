@@ -558,7 +558,7 @@ class Name extends WfoDbObject{
         // add in our internal identifiers - they are useful to see!
         $out[] = new Identifier("rhakhis_name_id", array($this->id));
 
-        $taxon = Taxon::getTaxonForName($this   );
+        $taxon = Taxon::getTaxonForName($this);
         if($taxon->getId()){
             $out[] = new Identifier("rhakhis_taxon_id", array($taxon->getId()));
         }
@@ -1306,6 +1306,64 @@ class Name extends WfoDbObject{
             $cleaner = preg_replace('/\s\s+/', ' ', $cleaner); // double spaces
 
             return $cleaner;
+
+    }
+
+    /**
+     * Destroy this name and move any existing
+     * identifiers are references to
+     * the target name supplied
+     * returns true on success
+     * Intention is to only call this at cmd line so no response handing 
+     * 
+     */
+    public function deduplicate_into(Name $target_name){
+
+        global $mysqli;
+
+        // fail if we are in use in the taxonomy
+        $taxon = Taxon::getTaxonForName($this);
+        if($taxon->getId()){
+            return false;
+        }
+
+        // fail if we haven't been supplied with a good name
+        $target_name_id = $target_name->getId();
+        if(!$target_name_id){
+            return false;
+        }
+
+        $old_name_id = $this->getId();
+
+        /* Start transaction */
+        $mysqli->begin_transaction();
+
+        try {
+
+            // move ids over to new name
+            $mysqli->query("UPDATE `identifiers` SET `name_id` = $target_name_id WHERE `name_id` = $old_name_id;");
+
+            // move references over to new name
+            $mysqli->query("UPDATE `name_references` SET `name_id` = $target_name_id WHERE `name_id` = $old_name_id;");
+
+            // move matching hints across
+            $mysqli->query("UPDATE `matching_hints` SET `name_id` = $target_name_id WHERE `name_id` = $old_name_id;");
+     
+            // actually delete the name record
+            $mysqli->query("DELETE FROM `names` WHERE `id` = $old_name_id");
+
+            /* If code reaches this point without errors then commit the data in the database */
+            $mysqli->commit();
+
+
+        } catch (mysqli_sql_exception $exception) {
+            $mysqli->rollback();
+            print_r($exception); 
+            return false;
+        }
+
+        return true;
+
 
     }
 
