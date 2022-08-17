@@ -236,10 +236,10 @@ while($row = $response->fetch_assoc()){
         AND g.count > 0;");
     if($gap_response->num_rows > 0){
         $gap_row = $gap_response->fetch_assoc();
-        $stats["gbif_gap_species"] = $gap_row['species'];
-        $stats["gbif_gap_total_occurrences"] = $gap_row['total_occurrences'];
-        $stats["gbif_gap_mean"] = $gap_row['mean'];
-        $stats["gbif_gap_stddev"] = $gap_row['stddev'];
+        $stats["gbif_gap_species"] = $gap_row['species'] ? $gap_row['species'] : 0;
+        $stats["gbif_gap_total_occurrences"] = $gap_row['total_occurrences'] ? $gap_row['total_occurrences'] : 0;
+        $stats["gbif_gap_mean"] = $gap_row['mean']? $gap_row['mean'] : 0;
+        $stats["gbif_gap_stddev"] = $gap_row['stddev']? $gap_row['stddev'] : 0;
     }
 
     // OK we have the stats what do we do with them!?

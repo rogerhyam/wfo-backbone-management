@@ -29,7 +29,7 @@ FROM `names` as n
 LEFT JOIN `taxon_names` as tn on n.id = tn.name_id
 LEFT JOIN `gbif_occurrence_count` as g on n.id = g.name_id
 WHERE tn.name_id is null
-AND (g.modified is null OR g.modified < now() - INTERVAL 3 MONTH) 
+AND (g.modified is null OR g.modified < now() - INTERVAL 1 MONTH) 
 AND n.`rank` = 'species'
 AND n.`status` != 'deprecated'
 AND n.name_alpha not in (
