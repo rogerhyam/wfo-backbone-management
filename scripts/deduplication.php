@@ -3,11 +3,20 @@
 // this will generate a friendly file showing duplicates to be removed.
 // and remove them
 
+// php -d memory_limit=5G  deduplication.php
+
 require_once("../config.php");
 require_once("../include/WfoDbObject.php");
 require_once("../include/Name.php");
 require_once("../include/Taxon.php");
 require_once("../include/User.php");
+require_once("../include/Identifier.php");
+require_once("../include/Reference.php");
+require_once("../include/ReferenceUsage.php");
+require_once("../include/UpdateResponse.php");
+
+// we need to have a mock session  
+$_SESSION['user'] = serialize(User::loadUserForDbId(1));
 
 /*
 
@@ -136,9 +145,23 @@ function delete($bad_name_wfo, $good_name_wfo){
     $bad_name = Name::getName($bad_name_wfo);
     $good_name = Name::getName($good_name_wfo);
 
-    echo "\nkill:\t" . strip_tags($bad_name->getFullNameString());
-    echo "\nkeep:\t" . strip_tags($good_name->getFullNameString());
-    echo "\n";
+    // the names will load even if they are called with deduplicated wfo ids
+    // so check that they haven't already
+    if($bad_name == $good_name){
+        echo "\nNames already compbined";
+        exit;
+        return;
+    }
+
+    // name may have already been deleted 
+    if(!$bad_name->getId()){
+        echo "\nName already gone: $bad_name_wfo";
+        return false;
+    }
+
+    echo "\nkill:\t" . $bad_name->getPrescribedWfoId() . "\t" . strip_tags($bad_name->getFullNameString());
+    echo "\nkeep:\t" . $good_name->getPrescribedWfoId() . "\t" . strip_tags($good_name->getFullNameString());
+    echo "\n\n";
 
     return $bad_name->deduplicate_into($good_name);
 

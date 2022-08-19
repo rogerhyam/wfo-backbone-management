@@ -517,6 +517,10 @@ class Name extends WfoDbObject{
 
         if(!$this->id) throw new ErrorException("Attempt to remove identifier from Name which doesn't have a db id.");
 
+        // we can't remove our own prescribed WFO ID as there is a foreign key constraint
+        if ($kind == 'wfo' && $identifier == $this->getPrescribedWfoID())
+            throw new ErrorException("Can't remove prescribed WFO ID from name.");
+
         // we do this by primary key so we can keep safety lock on and don't accidentally delete more than we intend
         $result = $mysqli->query("SELECT * FROM `identifiers` WHERE `name_id` = {$this->id} AND `value` = '$identifier' AND `kind` = '$kind' ");
         if($result->num_rows == 0){
@@ -596,18 +600,6 @@ class Name extends WfoDbObject{
 
         // FIXME - this could do with limits checks on it but can run for many millions before we run out of space.
 
-    }
-
-    /**
-     * WFO-ID have to be associated with something so there is no ability to remove a WFO-ID
-     * they can be moved between names
-     * Fails silently if id has already been added.
-     * If id already belongs to another name it is moved.
-     * Unless it is the prescribed id in which case an error is thrown.
-     * 
-     */
-    public function addDeduplicationWfoId($wfo_id){
-        // fixme
     }
 
     /**
@@ -1324,46 +1316,67 @@ class Name extends WfoDbObject{
         // fail if we are in use in the taxonomy
         $taxon = Taxon::getTaxonForName($this);
         if($taxon->getId()){
+            echo "\nOccurs in taxonomy so failing\n";
             return false;
         }
 
         // fail if we haven't been supplied with a good name
         $target_name_id = $target_name->getId();
         if(!$target_name_id){
+            echo "\nTarget name is rubbish - failing\n";
             return false;
         }
+        // we have to be severed 
 
+        $identifiers = $this->getIdentifiers();
+        foreach ($identifiers as $identifier) {
+
+            foreach ($identifier->getValues() as $value) {
+                // we can't delete a prescribed WFO ID - it will go when the name is deleted
+                if($value !== $this->getPrescribedWfoId()){
+                    $this->removeIdentifier($value, $identifier->getKind());
+                }
+                // but we do add in if they are in the db enumeration
+                if(in_array($identifier->getKind(), array('ipni', 'tpl', 'wfo', 'if', 'ten', 'tropicos', 'uri', 'uri_deprecated'))){
+                    $target_name->addIdentifier($value, $identifier->getKind());
+                }
+                
+            }
+        }
+
+        $references = $this->getReferences();
+        foreach($references as $ref){
+            $this->removeReference($ref->reference);
+            $target_name->addReference($ref->reference, "Originally associated with " . $this->getPrescribedWfoId());
+        }
+
+        $hints = $this->getHints();
+        foreach($hints as $hint){
+            $this->removeHint($hint);
+            $target_name->addHint($hint);
+        }
+
+        $target_name->save();
+
+        // actually delete the name record
         $old_name_id = $this->getId();
 
-        /* Start transaction */
-        $mysqli->begin_transaction();
-
-        try {
-
-            // move ids over to new name
-            $mysqli->query("UPDATE `identifiers` SET `name_id` = $target_name_id WHERE `name_id` = $old_name_id;");
-
-            // move references over to new name
-            $mysqli->query("UPDATE `name_references` SET `name_id` = $target_name_id WHERE `name_id` = $old_name_id;");
-
-            // move matching hints across
-            $mysqli->query("UPDATE `matching_hints` SET `name_id` = $target_name_id WHERE `name_id` = $old_name_id;");
-     
-            // actually delete the name record
+        try{
+            $mysqli->query("SET foreign_key_checks = 0");
+            $mysqli->query("DELETE FROM `identifiers` WHERE `name_id` = $old_name_id");
             $mysqli->query("DELETE FROM `names` WHERE `id` = $old_name_id");
-
-            /* If code reaches this point without errors then commit the data in the database */
+            $mysqli->query("SET foreign_key_checks = 1");
             $mysqli->commit();
-
-
         } catch (mysqli_sql_exception $exception) {
             $mysqli->rollback();
-            print_r($exception); 
-            return false;
+            throw $exception;
+            echo $mysqli->error;
+            echo "\n$old_name_id\n";
+            echo $this->getPrescribedWfoId() . "\n";
+            exit;
         }
 
         return true;
-
 
     }
 
