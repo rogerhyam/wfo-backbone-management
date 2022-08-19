@@ -26,26 +26,31 @@ $offset = 0;
 $sql = "SELECT 
 	b.taxonID as wfo, 
     b.`references1.0` as linkUri,
-    concat('The Plant List version 1.0, record: ', trim(substr(b.`references1.0`, 40))) as displayText
+    concat('The Plant List version 1.0, record: ', trim(substr(b.`references1.0`, 38))) as displayText
     FROM 
     botalista_dump_2 as b
     JOIN identifiers as i on i.`value` = b.taxonID
     JOIN `names` as n on n.prescribed_id = i.id
-    where b.`references1.0` like 'http://www.theplantlist.org/tpl/record/%'";
+    where b.`references1.0` like 'http://www.theplantlist.org/browse/%'";
 
 $result = $mysqli->query($sql);
 
 $counter = $offset; // start where we left off.
 while($row = $result->fetch_assoc()){
 
+
+
     // get the reference by uri first - check we don't over create.
     $ref = Reference::getReferenceByUri($row['linkUri']);
     if(!$ref){
         $ref = Reference::getReference(null);
-        $ref->setLinkUri($row['linkUri']);
+        if(!$ref->setLinkUri($row['linkUri'])){
+            echo "\nFailed to set link - giving up on this one: {$row['linkUri']}";
+            continue;
+        }
     }
 
-    $ref->setDisplayText($row['displayText']);
+    $ref->setDisplayText(trim(preg_replace('/\//', ' ', $row['displayText'])));
     $ref->setKind('database');
     $ref->setUserId(1);
     $ref->save();
@@ -67,7 +72,7 @@ while($row = $result->fetch_assoc()){
     $usages = $name->getReferences();
     foreach($usages as $usage){
         if($usage->reference->getId() == $ref->getId()){
-            echo "\n Already got ref.";
+            echo "\n{$row['wfo']}\tAlready got ref.";
             $counter++;
             continue 2;
         }
