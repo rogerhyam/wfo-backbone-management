@@ -1,7 +1,6 @@
 <?php
 
 // this will generate a friendly file showing duplicates to be removed.
-<<<<<<< HEAD
 // and remove them
 
 // php -d memory_limit=5G  deduplication.php
@@ -23,28 +22,20 @@ $_SESSION['user'] = serialize(User::loadUserForDbId(1));
 
 Generate this table first
 
-=======
 
 require_once("../config.php");
 
 
 /*
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
 drop table if exists duplicates;
 create table duplicates
 select 
 	i.`value` as wfo, n1.id as name_id, n1.name_alpha, n1.`rank`, n1.authors, n1.citation_micro, n1.`status` 
 from `names` as n1 
 join `identifiers` as i on n1.prescribed_id = i.id
-<<<<<<< HEAD
 where concat_ws('*',n1.`name_alpha`, n1.`rank`, n1.`authors`) in (
 	select 
 	concat_ws('*',n2.`name_alpha`, n2.`rank`, n2.`authors`)
-=======
-where name_alpha in (
-	select 
-	n2.name_alpha
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
 	from names as n2 group by n2.name_alpha, n2.`rank`, n2.authors having count(*) > 1
 	order by n2.name_alpha, n2.authors
 )
@@ -72,11 +63,7 @@ $header = array(
 fputcsv($out, $header);
 
 // work through the rows in the dupes table and build sets to process
-<<<<<<< HEAD
 $response = $mysqli->query("SELECT concat_ws('*',`name_alpha`, `rank`, `authors`) as comparator, duplicates.* FROM duplicates ORDER BY `name_alpha`, `rank`, `authors`, `wfo`");
-=======
-$response = $mysqli->query("SELECT concat_ws('*',`name_alpha`, `rank`, `authors`) as comparator, duplicates.* FROM duplicates ORDER BY `name_alpha`, `rank`, `authors`, `wfo`", MYSQLI_USE_RESULT);
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
 
 $comparator = false;
 $set = array();
@@ -117,19 +104,12 @@ function put_set($out, $set, $comparator){
         foreach($deprecated as $bad_name){
             $bad_name['remove'] = "true";
             $bad_name['merge_with'] = $good_name['wfo'];
-<<<<<<< HEAD
             $bad_name['deleted'] = delete($bad_name['wfo'], $good_name['wfo']);
-=======
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
             fputcsv($out, $bad_name);
         }
     }elseif(count($not_deprecated) == 0){
 
         // if there are more than one of them then we can rationalize them down to a single bad name.
-<<<<<<< HEAD
-=======
-
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
         // first one is kept
         $saved_name = $deprecated[0];
         $saved_name['remove'] = "false";
@@ -140,11 +120,7 @@ function put_set($out, $set, $comparator){
             $damned_name = $deprecated[$i];
             $damned_name['remove'] = "true";
             $damned_name['merge_with'] = $saved_name['wfo'];
-<<<<<<< HEAD
             $damned_name['deleted'] = delete($damned_name['wfo'], $saved_name['wfo']);
-
-=======
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
             fputcsv($out, $damned_name);
         }
 
@@ -168,7 +144,6 @@ function put_set($out, $set, $comparator){
 
 }
 
-<<<<<<< HEAD
 function delete($bad_name_wfo, $good_name_wfo){
 
     $bad_name = Name::getName($bad_name_wfo);
@@ -195,6 +170,3 @@ function delete($bad_name_wfo, $good_name_wfo){
     return $bad_name->deduplicate_into($good_name);
 
 }
-=======
-
->>>>>>> d75d1c9f917bc2b31c45a1089aa5c2aea714470d
