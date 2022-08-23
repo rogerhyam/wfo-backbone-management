@@ -1347,7 +1347,22 @@ class Name extends WfoDbObject{
         $references = $this->getReferences();
         foreach($references as $ref){
             $this->removeReference($ref->reference);
-            $target_name->addReference($ref->reference, "Originally associated with " . $this->getPrescribedWfoId());
+
+            // we don't want to double up the references 
+            $already_there = false;
+            $existing_refs = $target_name->getReferences();
+            foreach ($existing_refs as $existing_ref) {
+                if($ref->reference->getLinkUri() == $existing_ref->reference->getLinkUri()){
+                    $already_there = true;
+                    break;
+                }
+            }
+
+            // not already in target so add it.
+            if(!$already_there){
+                $target_name->addReference($ref->reference, "Originally associated with " . $this->getPrescribedWfoId());
+            }
+            
         }
 
         $hints = $this->getHints();

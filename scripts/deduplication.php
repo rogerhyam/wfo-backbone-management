@@ -42,6 +42,17 @@ where concat_ws('*',n1.`name_alpha`, n1.`rank`, n1.`authors`) in (
 order by n1.name_alpha, n1.`rank`, n1.authors, n1.`status`
 ;
 
+
+ALTER TABLE `promethius_A`.`names`
+ADD COLUMN deduplication VARCHAR(400) 
+GENERATED ALWAYS AS (concat_ws('~',`name_alpha`,`rank`,`authors`)) STORED;
+
+ALTER TABLE `promethius_A`.`names` 
+ADD INDEX `dedupe_group` USING BTREE (`deduplication`);
+
+ALTER TABLE `promethius_A`.`names_log`
+ADD COLUMN deduplication VARCHAR(400) 
+
 */
 
 // set up the output file

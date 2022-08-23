@@ -6,8 +6,10 @@ require_once("../include/User.php");
 require_once("../include/WfoDbObject.php");
 require_once("../include/Name.php");
 require_once("../include/Taxon.php");
+require_once("../include/Identifier.php");
+require_once("../include/Reference.php");
+require_once("../include/ReferenceUsage.php");
 require_once("../include/UpdateResponse.php");
-
 require_once("../bulk/include/functions.php");
 
 

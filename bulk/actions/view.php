@@ -69,6 +69,8 @@
             <a href="index.php?action=view&phase=nomenclature">Nomenclature<a>
             |
             <a href="index.php?action=view&phase=taxonomy">Taxonomy<a>
+            |
+            <a href="index.php?action=view&phase=deduplication">Deduplication<a>
             
             <span style="border: solid 1px black; padding: 0.2em">
             <?php
