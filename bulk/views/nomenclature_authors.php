@@ -1,8 +1,8 @@
 <div style="width: 800px">
-<h2>Published In</h2>
+<h2>Authors</h2>
 <p style="color: red;">Changes data in Rhakhis.</p>
 <p>
-    Use this tool to copy data from the active table into the Published In (micro citation) field of Rhakhis. It works through the rows that have been matched to WFO IDs.
+    Use this tool to copy data from the active table into the <strong>Authors</strong> field of Rhakhis. It works through the rows that have been matched to WFO IDs.
     Progress through the table is tracked by adding a skip to each row that has been compared. A skip is added to the row under the following conditions:</p>
 <ul>
     <li>If there is no value in the data table when that row is examined.</li>
@@ -10,7 +10,6 @@
     <li>If Rhakhis is updated for that name.</li>
     <li>If the skip button is selected.</li>
 </ul>
-<p>You can concatenate up to four columns from the data table to form the string. Separators are only added if they are followed by a value.</p>
 
 <?php 
     if(@$_GET['active_run']){
@@ -20,6 +19,7 @@
     }
 ?>
 </div>
+
 
 <?php
 
@@ -36,74 +36,43 @@ function process_row($row, $table){
     if($row['rhakhis_skip']) return false;
     if(!$row['rhakhis_wfo']) return false;
 
-    // build the update string
-    $published_in = $row[$_GET['column_1']];
-
-    if($_GET['column_2'] && $row[$_GET['column_2']]){
-        $published_in .= $_GET['separator_1'];
-        $published_in .= $row[$_GET['column_2']];
-    }
-
-    if($_GET['column_3'] && $row[$_GET['column_3']]){
-        $published_in .= $_GET['separator_2'];
-        $published_in .= $row[$_GET['column_3']];
-    }
-
-    if($_GET['column_4'] && $row[$_GET['column_4']]){
-        $published_in .= $_GET['separator_3'];
-        $published_in .= $row[$_GET['column_4']];
-    }
-
-    $published_in = trim($published_in);
-
-    // get out of here if there is no published_in value
-    if(!$published_in){
+    // what's the incoming value
+    $new_authors = trim($row[$_GET['authors_column']]);
+    
+    // get out of here if there is no new value
+    if(!$new_authors){
         $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_skip` = 1 WHERE `rhakhis_pk` = {$row['rhakhis_pk']};");
         return false;
-    } 
-
-    // extract the year if we can
-    $matches = array();
-    $data_year = '';
-    if(preg_match_all('/([0-9]{4})/', $published_in, $matches, PREG_SET_ORDER)){
-        foreach($matches as $hit){
-            $year = (int)$hit[1];
-            if($year > 1750 && $year < 2022){
-               $data_year= $year;
-            }
-        }
     }
- 
+
     // load the name
     $name = Name::getName($row['rhakhis_wfo']);
+    $rhakhis_authors = trim($name->getAuthorsString());
 
-    $rhakhis_published_in = $name->getCitationMicro();
-    $rhakhis_year = $name->getYear();
-
-    // logic time..
+     // logic time..
     
     // if we are dry run then display a dumb table
     if($_GET['dry_run'] == 'yes'){
         echo "<table>";
         echo "<tr><th>". $name->getPrescribedWfoID() ."</th><td colspan=\"2\">".$name->getFullNameString()  ."</td></tr>";
-        echo "<tr><th>Data Table:</th><td>$published_in</td><td>$data_year</td></tr>"; 
-        echo "<tr><th>Rhakhis:</th><td>$rhakhis_published_in</td><td>$rhakhis_year</td></tr>"; 
+        echo "<tr><th>Data Table:</th><td>$new_authors</td></tr>"; 
+        echo "<tr><th>Rhakhis:</th><td>$rhakhis_authors</td></tr>"; 
         echo "</table>";
     }
 
-    if($published_in == $rhakhis_published_in && $data_year == $rhakhis_year){
+    if($new_authors == $rhakhis_authors){
         
-        // the published in and the year are the same
+        // the values are the same
         if($_GET['dry_run'] == 'yes'){
-            echo "<p style=\"color: green;\">Published in values are the same nothing to change.</p>";
+            echo "<p style=\"color: green;\">Authors values are the same nothing to change.</p>";
         }else{
             // gets flagged as a skip so we don't have to deal with it again
             $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_skip` = 1 WHERE `rhakhis_pk` = {$row['rhakhis_pk']};");
         }
     
-    }elseif(($published_in && !$rhakhis_published_in) || ($data_year && !$rhakhis_year)){
+    }elseif(!$rhakhis_authors){
 
-        // Either the publication or year are missing in Rhakhis
+        // We have no authors in Rhakhis
 
         if($_GET['insert'] == 'yes' ||  $_GET['overwrite'] == 'auto'){
 
@@ -118,18 +87,11 @@ function process_row($row, $table){
                 // actually do the inserting - field at a time
 
                 if($_GET['overwrite'] == 'auto'){
-
-                    // we don't overwrite with blank values
-                    if($published_in) $name->setCitationMicro($published_in);
-                    if($data_year) $name->setYear($data_year);
-
+                    // we are always inserting
+                    $name->setAuthorsString($new_authors);
                 }else{
-                    // we are only inserting missing
-                    // no published in so update that but keep year the same
-                    if(!$rhakhis_published_in && $published_in) $name->setCitationMicro($published_in);
-                    
-                    // no year so update that but keep published in the same
-                    if(!$rhakhis_year && $data_year) $name->setYear($data_year);    
+                    // we are only inserting if missing
+                    if(!$rhakhis_authors) $name->setAuthorsString($new_authors);
                 }
                 $name->save();
 
@@ -153,13 +115,13 @@ function process_row($row, $table){
                 echo "<p style=\"color: orange;\">You would be asked about updating this Rhakhis name.</p>";
             }else{
                 // actually ask what they want.
-                render_ask_form($name, $published_in, $data_year, $table, $row['rhakhis_pk']);
+                render_ask_form($name, $new_authors, $table, $row['rhakhis_pk']);
                 return true;
             }
             
         }
 
-    }elseif(($published_in && ($published_in != $rhakhis_published_in) || $data_year && ($data_year != $rhakhis_year))){
+    }elseif($new_authors != $rhakhis_authors){
 
         // we have different data to that in rhakhis
 
@@ -172,7 +134,7 @@ function process_row($row, $table){
                 echo "<p style=\"color: red;\">Overwrite is ON so would add data to Rhakhis.</p>";
             }else{
                 // actually do the inserting
-                $response = $name->updatePublication($published_in, $data_year, null);
+                $response = $name->updateAuthorsString($new_authors, null);
                 $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_skip` = 1 WHERE `rhakhis_pk` = {$row['rhakhis_pk']};");
                 return false;
             }
@@ -195,21 +157,21 @@ function process_row($row, $table){
                 echo "<p style=\"color: orange;\">Overwrite is OFF so you'd be asked what we should do.</p>";
             }else{
                 // ask what they want.
-                render_ask_form($name, $published_in, $data_year, $table, $row['rhakhis_pk']);
+                render_ask_form($name, $new_authors, $table, $row['rhakhis_pk']);
                 return true;
             }
         }
-
     }
 
     return false;
 
 }
 
-function render_ask_form($name, $published_in, $data_year, $table, $row_id){
-    $rhakhis_published_in = $name->getCitationMicro();
-    $rhakhis_year = $name->getYear();
+function render_ask_form($name, $new_authors, $table, $row_id){
 
+    $rhakhis_authors = $name->getAuthorsString();
+    $rhakhis_authors_escaped = htmlentities($rhakhis_authors);
+    $new_authors_escaped = htmlentities($new_authors);
 
     // build the skip query string
     $params = $_GET;
@@ -220,38 +182,35 @@ function render_ask_form($name, $published_in, $data_year, $table, $row_id){
     $params['action'] = 'set_rhakhis_value';
     $skip_query_string = http_build_query($params);
 
-    $rhakhis_published_in_escaped = htmlentities($rhakhis_published_in);
-    $published_in_escaped = htmlentities($published_in);
+    $rhakhis_authors_escaped = htmlentities($rhakhis_authors);
 
     echo '<h3>Resolve Issue</h3>';
     echo '<style>th{text-align: right}</style>';
     echo '<form action="index.php" method="GET" />';
-    echo '<input type="hidden" name="action" value="rhakhis_set_citation_micro" />';
+    echo '<input type="hidden" name="action" value="rhakhis_set_authors" />';
     echo '<input type="hidden" name="wfo" value="'. $name->getPrescribedWfoId() .'" />';
     echo '<input type="hidden" name="search_query" value="'.  http_build_query($_GET) .'" />';
     echo '<input type="hidden" name="table" value="'.  $table .'" />';
     echo '<input type="hidden" name="rhakhis_pk" value="'.  $row_id .'" />';
     echo "<table>";
+    // fixme - 
     echo "<tr><th><a target=\"rhakhis\" href=\"". get_rhakhis_uri($name->getPrescribedWfoID()) . "\"/>". $name->getPrescribedWfoID() ."</a></th><td colspan=\"2\">".$name->getFullNameString()  ."</td></tr>";
 
     // Rhakhis values
     echo "<tr>";
     echo "<th>Rhakhis:</th>";
-    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_in').value = '$rhakhis_published_in_escaped'\">$rhakhis_published_in</a></td>";
-    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_year').value = '$rhakhis_year'\">$rhakhis_year</a></td>";
+    echo "<td><a href=\"#\" onclick=\"document.getElementById('authors_string').value = '$rhakhis_authors_escaped'\">$rhakhis_authors</a></td>";
     echo "</tr>"; 
     echo "<tr>";
 
     // data table 
     echo "<tr>";
     echo "<th>Data Table:</th>";
-    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_in').value = '$published_in_escaped'\">$published_in</a></td>";
-    echo "<td><a href=\"#\" onclick=\"document.getElementById('published_year').value = '$data_year'\">$data_year</a></td>";
+    echo "<td><a href=\"#\" onclick=\"document.getElementById('authors_string').value = '$new_authors_escaped'\">$new_authors</a></td>";
     echo "</tr>";
 
     echo "<th>Update Rhakhis to:</th>";
-    echo "<td><input type=\"text\" name=\"published_in\" id=\"published_in\" value=\"$published_in_escaped\"  size=\"60\"/></td>";
-    echo "<td><input type=\"text\" name=\"published_year\" id=\"published_year\" value=\"$data_year\" size=\"4\" /></td>";
+    echo "<td><input type=\"text\" name=\"authors_string\" id=\"authors_string\" value=\"$new_authors_escaped\"  size=\"60\"/></td>";
     echo "</tr>"; 
     echo "<tr><td colspan=\"3\" style=\"text-align: right;\"> <input type=\"submit\" value=\"Update Rhakhis & Add Skip\" /></td></tr>"; 
     echo "<tr><td colspan=\"3\" style=\"text-align: right;\"><a href=\"index.php?$skip_query_string\">Skip</a></td></tr>"; 
@@ -259,11 +218,6 @@ function render_ask_form($name, $published_in, $data_year, $table, $row_id){
 
 }
 
-/**
- * 
- *  Render the form
- * 
- */
 function render_form($table){
 
     global $mysqli;
@@ -276,47 +230,22 @@ function render_form($table){
 <form action="index.php" method="GET">
     <input type="hidden" name="action" value="view" />
     <input type="hidden" name="phase" value="nomenclature" />
-    <input type="hidden" name="task" value="nomenclature_published_in" />
+    <input type="hidden" name="task" value="nomenclature_authors" />
     <input type="hidden" name="active_run" value="true" />
     <input type="hidden" name="page" value="0" />
     <input type="hidden" name="page_size" value="1000" />
-    <input type="hidden" name="names_compared" value="0" />
-    <input type="hidden" name="names_modified" value="0" />
-<style>
-    th{ text-align: right;}
-</style>
 
-<table>
-    <tr><td colspan="3" style="background-color: gray; color: white;"><strong>Mappings</strong></td></tr>
-    <!-- First -->
+    <style>
+        th{ text-align: right;}
+    </style>
+
+    <table>
+    <tr><td colspan="3" style="background-color: gray; color: white;"><strong>Mapping</strong></td></tr>
     <tr>
-        <th>First Column:</th>
+        <th>Authors Column</th>
         <td>
 
-    <select name="column_1">
-<?php
-    foreach($cols as $col){
-        $selected = @$_GET['rank_column'] == $col['Field'] ? 'selected' : '';
-        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
-    }
-?>
-   </select>
-
-        </td>
-        <td>You must select at least one column.</td>
-    <tr>
-    <tr>
-        <th>Separator:</th>
-            <td><input type="text" name="separator_1" size="3" value=" " /></td>
-        <td>This defaults to a space.</td>
-    </tr>
-
-    <!-- Second -->
-    <tr>
-        <th>Second Column:</th>
-        <td>
-    <select name="column_2">
-        <option value="">~ select second column ~</option>
+    <select name="authors_column">
 <?php
     foreach($cols as $col){
         $selected = @$_GET['rank_column'] == $col['Field'] ? 'selected' : '';
@@ -325,55 +254,8 @@ function render_form($table){
 ?>
    </select>
         </td>
-        <td>Optional second column</td>
+        <td>You must select the column with the data in it.</td>
     <tr>
-        <th>Separator:</th>
-        <td><input type="text" name="separator_2" size="3" value=" " /></td>
-        <td>This defaults to a space.</td>
-    </tr>
-
-    <!-- Third -->
-    </tr>
-        <tr>
-        <th>Third Column:</th>
-        <td>
-    <select name="column_3">
-        <option value="">~ select third column ~</option>
-<?php
-    foreach($cols as $col){
-        $selected = @$_GET['rank_column'] == $col['Field'] ? 'selected' : '';
-        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
-    }
-?>
-   </select>
-        </td>
-        <td>Optional third column</td>
-    </tr>
-    <tr>
-        <th>Separator:</th>
-        <td><input type="text" name="separator_3" size="3" value=" " /></td>
-        <td>This defaults to a space.</td>
-    </tr>
-    <!-- Fourth -->
-    </tr>
-        <tr>
-        <th>Fourth Column:</th>
-        <td>
-    <select name="column_4">
-        <option value="">~ select fourth column ~</option>
-<?php
-    foreach($cols as $col){
-        $selected = @$_GET['rank_column'] == $col['Field'] ? 'selected' : '';
-        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
-    }
-?>
-   </select>
-        </td>
-        <td>Optional fourth column</td>
-    </tr>
-
-
-    <!-- Rules -->
 
     <tr><td colspan="3" style="background-color: gray; color: white;" ><strong>Overwrite Rules</strong></td></tr>
     <tr>
@@ -405,14 +287,9 @@ function render_form($table){
     <tr>
         <td style="text-align: right" colspan="5" >Start run through non-skipped rows with WFO ID set: <input type="submit" /></td>
     </tr>
-
-
-</table>
-
-
-
-</form>
-
+    </table>
 <?php
-} // end render form
+    
+}// render form
+
 ?>

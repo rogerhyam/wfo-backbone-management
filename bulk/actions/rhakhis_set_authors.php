@@ -1,9 +1,9 @@
-<p>Set Published In: Processing ... </p>
+<p>Set Author String: Processing ... </p>
 
 <?php
 
     $name = Name::getName($_GET['wfo']);
-    $response = $name->updatePublication($_GET['published_in'], $_GET['published_year'], null);
+    $response = $name->updateAuthorsString($_GET['authors_string'], null);
 
     if($response->status){
 
