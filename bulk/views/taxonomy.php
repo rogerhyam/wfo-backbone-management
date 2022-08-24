@@ -18,7 +18,7 @@
 <strong>Taxonomy: </strong>
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_summary">Summary</a>
 |
-<a href="index.php?action=view&phase=taxonomy&task=taxonomy_internal">Internal Consistency</a>
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_internal">Internal Mapping</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_rhakhis">Rhakhis Consistency</a>
 </div>

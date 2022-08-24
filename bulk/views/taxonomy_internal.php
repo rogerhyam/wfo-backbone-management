@@ -1,12 +1,116 @@
-<h3>Internal Consistency</h3>
+<h2>Internal Mapping</h2>
+<p style="color: green;">Only updates rhakhis_* fields in data table.</p>
 
-<p>Check the relationships defined in the table are consistent with each other.</p>
+<p>Build the taxonomy of WFO IDs in the data table. It only works on rows that have been mapped to their WFO ID i.e. have a value in the rhakhis_wfo column.</p>
 
-<h4>Check Upward Links</h4>
-<p>This looks at each row in the table to see if it has upward links (to a taxon or an accepted name but not both) and either creates those links or fails and writes the issues to the table.</p>
+<p>At this stage we are not comparing anything to data in Rhakhis. </p>
+
+<?php
+
+    $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
+    $cols = $response->fetch_all(MYSQLI_ASSOC);
+    $response->close();
+
+?>
+
 
 <form>
-    
+
+    <style>
+        th{ text-align: right;}
+        table{
+            width: 1000px;
+        }
+    </style>
+    <table>
+    <tr><td colspan="3" style="background-color: gray; color: white;"><strong>Mapping</strong></td></tr>
+
+    <!-- Taxon ID -->
+
+    <tr>
+        <th>Taxon ID Column</th>
+        <td>
+
+    <select name="taxon_id_column">
+<?php
+    foreach($cols as $col){
+        $selected = @$_GET['taxon_id_column'] == $col['Field'] ? 'selected' : '';
+        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
+    }
+?>
+   </select>
+        </td>
+        <td>This is the column that identifiers the Name/Taxon concerned. The following columns you specify will reference the values in this column. Other rows are ignored.</td>
+    <tr>
+
+    <!-- Parent ID -->
+
+    <tr>
+        <th>Parent ID Column</th>
+        <td>
+
+    <select name="parent_id_column">
+        <option value="IGNORE">~ Don't Map ~</option>;
+<?php
+    foreach($cols as $col){
+        $selected = @$_GET['authors_column'] == $col['Field'] ? 'selected' : '';
+        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
+    }
+?>
+   </select>
+        </td>
+        <td>This is the column that contains the identifier for the parent taxon. Note it is overridden by the accepted id column. Both can't have values. </td>
+    <tr>
+
+    <!-- Accepted Name ID -->
+
+    <tr>
+        <th>Accepted ID Column</th>
+        <td>
+
+    <select name="accepted_id_column">
+        <option value="IGNORE">~ Don't Map ~</option>;
+<?php
+    foreach($cols as $col){
+        $selected = @$_GET['accepted_id_column'] == $col['Field'] ? 'selected' : '';
+        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
+    }
+?>
+   </select>
+        </td>
+        <td>If the row is a synonym then this column contains the id of the accepted taxon. If this has a value then any value in rhakhis_parent will be removed. Some datasets may not enforce the mutually exclusive nature of the fields but we do from here on in.</td>
+    <tr>
+
+    <!-- Accepted Name ID -->
+
+    <tr>
+        <th>Basionym ID Column</th>
+        <td>
+
+    <select name="accepted_id_column">
+        <option value="IGNORE">~ Don't Map ~</option>;
+<?php
+    foreach($cols as $col){
+        $selected = @$_GET['accepted_id_column'] == $col['Field'] ? 'selected' : '';
+        echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
+    }
+?>
+   </select>
+        </td>
+        <td>If this row is a comb nov of some kind then this column contains the basionym id. (Yes I know this is nomenclature not synonym but data-wise it fits here to make the links)</td>
+    <tr>
+
+    <!-- submit for a run -->
+    <tr>
+        <td style="text-align: right" colspan="5" >Start run: <input type="submit" /></td>
+    </tr>
+
+</table>
+
+
+
+
+</form>
 
 
 

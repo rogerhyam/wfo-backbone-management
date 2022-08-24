@@ -248,7 +248,7 @@ function render_form($table){
     <select name="authors_column">
 <?php
     foreach($cols as $col){
-        $selected = @$_GET['rank_column'] == $col['Field'] ? 'selected' : '';
+        $selected = @$_GET['authors_column'] == $col['Field'] ? 'selected' : '';
         echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
     }
 ?>

@@ -1,4 +1,4 @@
-<h2>Processing ... </h2>
+<h2>Update Status: Processing ... </h2>
 
 <?php
 
