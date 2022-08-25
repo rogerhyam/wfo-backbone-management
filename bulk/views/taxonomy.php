@@ -1,6 +1,9 @@
 <?php
-    $table = $_SESSION['selected_table'];
-
+    $table = @$_SESSION['selected_table'];
+    if(!$table){
+        echo '<p style="color: red;">You need to select a table before you can do anything here.</p>';
+        exit();
+    } 
     /*
 
     Validity check.
@@ -19,6 +22,8 @@
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_summary">Summary</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_internal">Internal Mapping</a>
+|
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_browse">Browse</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_rhakhis">Rhakhis Consistency</a>
 </div>

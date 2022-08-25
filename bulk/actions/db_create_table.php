@@ -13,16 +13,16 @@ $mysqli->query("DROP TABLE IF EXISTS $table_name");
 // open the file for input
 $in = fopen('../bulk/csv/' . $_GET['file_in'] , 'r');
 
-// read the header in 
-$header_row = fgetcsv($in);
+// read the header in and clean it up
+$header_row = sanitize_header(fgetcsv($in));
+
 
 // create the table with all text fields
 $sql = "CREATE TABLE $table_name (";
 
 $first = true;
-foreach($header_row as $header){
-    $col_name = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower(trim($header)));
-
+foreach($header_row as $col_name){
+    
     if($first) $first = false;
     else $sql .= ',';
 
@@ -92,9 +92,8 @@ while($row = fgetcsv($in)){
     $sql = "INSERT INTO $table_name (";
 
     $first = true;
-    foreach($header_row as $header){
-        $col_name = preg_replace('/[^a-zA-Z0-9_]/', '_', $header);
-
+    foreach($header_row as $col_name){
+      
         if($first) $first = false;
         else $sql .= ',';
         
@@ -133,3 +132,26 @@ while($row = fgetcsv($in)){
 // redirect back to tables page
 header('Location: index.php?action=view&phase=tables');
 
+function sanitize_header($row){
+    $header_row = array();
+    foreach ($row as $col_name) {
+        
+
+
+        // remove non alphanumeric characters because of the MS bang 
+        $col_name = remove_utf8_bom($col_name);
+        $col_name = preg_replace('/[^a-zA-Z0-9] /', '', strtolower(trim($col_name)));
+
+        // replace spaces with _
+        $col_name = str_replace(" ", "_", $col_name);
+
+        $header_row[] = $col_name;
+    }
+    return $header_row;
+}
+
+function remove_utf8_bom($text){
+    $bom = pack('H*','EFBBBF');
+    $text = preg_replace("/^$bom/", '', $text);
+    return $text;
+}

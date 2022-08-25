@@ -6,16 +6,14 @@
 <p>At this stage we are not comparing anything to data in Rhakhis. </p>
 
 <?php
-
     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
     $cols = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
-
 ?>
 
-
 <form>
-
+    <input type="hidden" name="action" value="taxonomy_internal_mapping" />
+    <input type="hidden" name="table" value="<?php echo $table ?>" />
     <style>
         th{ text-align: right;}
         table{
@@ -53,7 +51,7 @@
         <option value="IGNORE">~ Don't Map ~</option>;
 <?php
     foreach($cols as $col){
-        $selected = @$_GET['authors_column'] == $col['Field'] ? 'selected' : '';
+        $selected = @$_GET['parent_id_column'] == $col['Field'] ? 'selected' : '';
         echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
     }
 ?>
@@ -81,17 +79,17 @@
         <td>If the row is a synonym then this column contains the id of the accepted taxon. If this has a value then any value in rhakhis_parent will be removed. Some datasets may not enforce the mutually exclusive nature of the fields but we do from here on in.</td>
     <tr>
 
-    <!-- Accepted Name ID -->
+    <!-- Basionym Name ID -->
 
     <tr>
         <th>Basionym ID Column</th>
         <td>
 
-    <select name="accepted_id_column">
+    <select name="basionym_id_column">
         <option value="IGNORE">~ Don't Map ~</option>;
 <?php
     foreach($cols as $col){
-        $selected = @$_GET['accepted_id_column'] == $col['Field'] ? 'selected' : '';
+        $selected = @$_GET['basionym_id_column'] == $col['Field'] ? 'selected' : '';
         echo "<option $selected value=\"{$col['Field']}\">{$col['Field']}</option>";
     }
 ?>
