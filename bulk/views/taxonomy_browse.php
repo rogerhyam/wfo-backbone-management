@@ -6,6 +6,13 @@
 </p>
 
 <?php
+
+    // how many rows all together
+    $response = $mysqli->query("SELECT count(*) as n FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` IS NOT NULL");
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    $matched_rows_count = $rows[0]['n'];
+    $response->close();
+
     
     // get a list of root taxa - we always display this.
     $response = $mysqli->query("SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_parent` IS NULL AND `rhakhis_accepted` IS NULL AND `rhakhis_wfo` IS NOT NULL");
@@ -13,6 +20,11 @@
     $response->close();
 
     echo "<strong>Root Taxa:</strong> ";
+
+    if(count($roots)/$matched_rows_count > 0.8){
+        echo "<p>Greater than 80% of matched names are potential root taxa! Have you done the internal mapping stage? Stopping here.</p>";
+        exit;
+    }
 
     $first = true;
     foreach ($roots as $root) {

@@ -21,11 +21,11 @@
 <strong>Taxonomy: </strong>
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_summary">Summary</a>
 |
-<a href="index.php?action=view&phase=taxonomy&task=taxonomy_internal">Internal Mapping</a>
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_internal">Mapping</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_browse">Browse</a>
 |
-<a href="index.php?action=view&phase=taxonomy&task=taxonomy_rhakhis">Rhakhis Consistency</a>
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_rhakhis">Impact</a>
 </div>
 <hr/>
 <?php

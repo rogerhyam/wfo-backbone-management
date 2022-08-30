@@ -1,6 +1,6 @@
 
 <div style="width: 800px">
-<h2>Statuses</h2>
+<h2>Status Mapping</h2>
 <p style="color: green;">Only updates rhakhis_* fields in data table.</p>
 <p>
     The second stage of reconciling the nomenclature is making sure that the values in the nomenclatural status column of the data table map onto values that Rhakhis understands.
@@ -50,7 +50,7 @@
 
     echo "<tr><th style=\"text-align: right\">Total completed:</th><td>$mapped</td><td> $total_percent%</td></tr>";
 
-    echo "<tr><td colspan=\"3\" style=\"text-align: right\"><a href=\"index.php?action=clear_rhakhis_col&table_name=$table&rhakhis_col=status&calling_action=view&calling_phase=nomenclature&calling_task=nomenclature_statuses\">Clear rhakhis_status</a></td></tr>";
+    echo "<tr><td colspan=\"3\" style=\"text-align: right\"><a href=\"index.php?action=clear_rhakhis_col&table_name=$table&rhakhis_col=status&calling_action=view&calling_phase=nomenclature&calling_task=nomenclature_status_mapping\">Clear rhakhis_status</a></td></tr>";
 
     
 ?>
@@ -64,7 +64,7 @@
 
 <form method="GET" action="index.php">
     <input type="hidden" name="phase" value="nomenclature" />
-    <input type="hidden" name="task" value="nomenclature_statuses" />
+    <input type="hidden" name="task" value="nomenclature_status_mapping" />
     <select name="status_column">
         <option value="">~ select status column ~</option>
 <?php

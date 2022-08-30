@@ -941,7 +941,7 @@ class Name extends WfoDbObject{
      * that follows the update -> UpdateResponse pattern for GraphQL (or other) API
      * 
      */
-    public function updateNameParts($args,$response){
+    public function updateNameParts($args,$response = null){
 
         $this->setNameString($args['nameString']);
         $this->setGenusString($args['genusString']);
@@ -951,28 +951,28 @@ class Name extends WfoDbObject{
 
     }
 
-    public function updateStatus($new_status, $response){
+    public function updateStatus($new_status, $response = null){
         $this->setStatus($new_status);
         return $this->save();
     }
 
-    public function updateAuthorsString($new_authors, $response){
+    public function updateAuthorsString($new_authors, $response = null){
         $this->setAuthorsString($new_authors);
         return $this->save();
     }
 
-    public function updatePublication($new_citation_micro, $year, $response){
+    public function updatePublication($new_citation_micro, $year, $response = null){
         $this->setCitationMicro($new_citation_micro);
         $this->setYear($year);
         return $this->save();
     }
 
-    public function updateComment($new_comment, $response){
+    public function updateComment($new_comment, $response = null){
         $this->setComment($new_comment);
         return $this->save();
     }
 
-    public function updateBasionym($new_basionym, $response){
+    public function updateBasionym($new_basionym, $response = null){
         $this->setBasionym($new_basionym);
         return $this->save();
     }

@@ -40,7 +40,7 @@ if(count($rows) > 0){
     $auto_render_next_page = "<script>window.location = \"$uri\"</script>";
 }else{
     // send them back to the form.
-    $uri = "index.php?phase=nomenclature&task=nomenclature_statuses&status_column=" . $column;
+    $uri = "index.php?phase=nomenclature&task=nomenclature_status_mapping&status_column=" . $column;
     $auto_render_next_page = "<script>window.location = \"$uri\"</script>";
 }
 

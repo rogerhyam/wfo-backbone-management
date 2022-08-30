@@ -7,7 +7,9 @@
 <strong>Nomenclature: </strong>
 <a href="index.php?action=view&phase=nomenclature&task=nomenclature_ranks">Ranks</a>
 |
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_statuses">Statuses</a>
+<a href="index.php?action=view&phase=nomenclature&task=nomenclature_status_mapping">Status Mapping</a>
+|
+<a href="index.php?action=view&phase=nomenclature&task=nomenclature_status_import">Status Import</a>
 |
 <a href="index.php?action=view&phase=nomenclature&task=nomenclature_authors">Authors</a>
 |
@@ -34,6 +36,7 @@ function process_page($table){
     $page_size = (int)$_GET['page_size'];
     $offset = $page_size * $page;
 
+    /*
     $sql = "SELECT count(*) as total_rows, count(`rhakhis_skip`) as total_skips FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` is not null;";
     $response = $mysqli->query($sql);
     $row = $response->fetch_assoc();
@@ -44,7 +47,9 @@ function process_page($table){
     echo "<tr><th>Total mapped rows:</th><td>". number_format($row['total_rows'], 0) . "</td></tr>";
     echo "<tr><th>Total skips:</th><td>". number_format($row['total_skips'], 0) . "</td></tr>";
     echo "</table>";
-
+    
+    */
+    
     $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` is not null LIMIT $page_size OFFSET $offset";
 
     $response = $mysqli->query($sql);
