@@ -19,6 +19,9 @@ $page_size = 1000;
 $offset = $page * $page_size;
 $end = $offset + $page_size;
 
+// if we are page 0 then we reset the error reporting in the session
+if($page == 0) $_SESSION['taxonomy_internal_mapping'] = array();
+
 echo "<p>From $offset to $end</p>";
 
 // load the rows
@@ -58,20 +61,25 @@ foreach ($rows as $row) {
         $parents = $response->fetch_all(MYSQLI_ASSOC);
         $response->close();
         if(count($parents) > 1){
-            echo "<p>FAILURE: There are multiple rows with taxon id {$row[$parent_id_column]} so can't map parentage.</p>";
-            $auto_render_next_page = null;
+            $errors = $_SESSION['taxonomy_internal_mapping'];
+            $errors[] = "FAILURE: There are multiple rows with taxon id {$row[$parent_id_column]} so can't map parentage.";
+            $_SESSION['taxonomy_internal_mapping'] = $errors;
         }
         if(count($parents) < 1){
-            echo "<p>WARNING: Can't find parent row with id '{$row[$parent_id_column]}' so can't map parentage for {$row['rhakhis_wfo']}. Maybe it is a synonym or root.</p>";
-            $auto_render_next_page = null;
+
+            $errors = $_SESSION['taxonomy_internal_mapping'];
+            $errors[] = "WARNING: Can't find parent row with id '{$row[$parent_id_column]}' so can't map parentage within table for {$row['rhakhis_wfo']}. This may be resolved in impact report as name may exist in Rhakhis.";
+            $_SESSION['taxonomy_internal_mapping'] = $errors;
+
         }
         if(count($parents) == 1){
             // just right!
             if($parents[0]['rhakhis_wfo']){
                 $parent_wfo = $parents[0]['rhakhis_wfo'];
             }else{
-                echo "<p>FAILURE: Found parent row with id {$row[$parent_id_column]} but it doesn't have a WFO mapped in rhakhis_wfo yet.</p>";
-                $auto_render_next_page = null;
+                $errors = $_SESSION['taxonomy_internal_mapping'];
+                $errors[] = "FAILURE: Found parent row with id {$row[$parent_id_column]} but it doesn't have a WFO mapped in rhakhis_wfo yet.";
+                $_SESSION['taxonomy_internal_mapping'] = $errors;
             }
         }
     }
@@ -83,12 +91,14 @@ foreach ($rows as $row) {
         $accepted_ones = $response->fetch_all(MYSQLI_ASSOC);
         $response->close();
         if(count($accepted_ones) > 1){
-            echo "<p>FAILURE: There are multiple rows with taxon id {$row[$accepted_id_column]} so can't map accepted name to a single one for {$row['rhakhis_wfo']}..</p>";
-            $auto_render_next_page = null;
+            $errors = $_SESSION['taxonomy_internal_mapping'];
+            $errors[] = "FAILURE: There are multiple rows with taxon id {$row[$accepted_id_column]} so can't map accepted name to a single one for {$row['rhakhis_wfo']}.";
+            $_SESSION['taxonomy_internal_mapping'] = $errors;
         }
         if(count($accepted_ones) < 1){
-            echo "<p>FAILURE: Can't find accepted row with id {$row[$accepted_id_column]} so can't map synonym for {$row['rhakhis_wfo']}..</p>";
-            $auto_render_next_page = null;
+            $errors = $_SESSION['taxonomy_internal_mapping'];
+            $errors[] = "FAILURE: Can't find accepted row with id {$row[$accepted_id_column]} so can't map synonym for {$row['rhakhis_wfo']} within the data table. This may be resolved in the impact report if name exists in Rhakhis.";
+            $_SESSION['taxonomy_internal_mapping'] = $errors;
         }
         if(count($accepted_ones) == 1){
             // just right!
@@ -97,8 +107,9 @@ foreach ($rows as $row) {
                 // we can't have a parent wfo as well
                 $parent_wfo = null;
             }else{
-                echo "<p>FAILURE: Found accepted name row with id {$row[$accepted_id_column]} but it doesn't have a WFO mapped in rhakhis_wfo yet so can't map {$row['rhakhis_wfo']}..</p>";
-                $auto_render_next_page = null;
+                $errors = $_SESSION['taxonomy_internal_mapping'];
+                $errors[] = "FAILURE: Found accepted name row with id {$row[$accepted_id_column]} but it doesn't have a WFO mapped in rhakhis_wfo yet so can't map {$row['rhakhis_wfo']}.";
+                $_SESSION['taxonomy_internal_mapping'] = $errors;
             }
         }
     }
@@ -114,20 +125,23 @@ foreach ($rows as $row) {
 
         
         if(count($basionym_ones) > 1){
-            echo "<p>FAILURE: There are multiple rows with taxon id {$row[$basionym_id_column]} so can't map basionym to a single one.</p>";
-            $auto_render_next_page = null;
+            $errors = $_SESSION['taxonomy_internal_mapping'];
+            $errors[] = "FAILURE: There are multiple rows with taxon id {$row[$basionym_id_column]} so can't map basionym to a single one.";
+            $_SESSION['taxonomy_internal_mapping'] = $errors;
         }
         if(count($basionym_ones) < 1){
-            echo "<p>FAILURE: Can't find accepted row with id {$row[$basionym_id_column]} so can't map basionym.</p>";
-            $auto_render_next_page = null;
+            $errors = $_SESSION['taxonomy_internal_mapping'];
+            $errors[] = "FAILURE: Can't find accepted row with id {$row[$basionym_id_column]} so can't map basionym within the data table. This may be resolved in impact report if name exists in Rhakhis.";
+            $_SESSION['taxonomy_internal_mapping'] = $errors;
         }
         if(count($basionym_ones) == 1){
             // just right!
             if($basionym_ones[0]['rhakhis_wfo']){
                 $basionym_wfo = $basionym_ones[0]['rhakhis_wfo'];
             }else{
-                echo "<p>FAILURE: Found basionym name row with id {$row[$basionym_id_column]} but it doesn't have a WFO mapped in rhakhis_wfo yet.</p>";
-                $auto_render_next_page = null;
+                $errors = $_SESSION['taxonomy_internal_mapping'];
+                $errors[] = "FAILURE: Found basionym name row with id {$row[$basionym_id_column]} but it doesn't have a WFO mapped in rhakhis_wfo yet.";
+                $_SESSION['taxonomy_internal_mapping'] = $errors;
             }
         }
     }

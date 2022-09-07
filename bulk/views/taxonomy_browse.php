@@ -26,12 +26,13 @@
         exit;
     }
 
-    $first = true;
+    echo "<ul>";
     foreach ($roots as $root) {
-        echo $first ? '':" | ";
-        if($first) $first = false;
+       echo "<li>";
        render_label($root);
+       echo "</li>";
     }
+    echo "</ul>";
 
     echo "<hr/>";
 
@@ -44,7 +45,6 @@
         $taxon_row = $taxon_rows[0];
         $response->close();
 
-        echo "<strong>Path:</strong> ";
         $ancestors = array();
         get_ancestors($taxon_row, $ancestors, $table);
         $ancestors = array_reverse($ancestors);
@@ -54,7 +54,9 @@
         for ($i=0; $i < count($ancestors); $i++) { 
             echo "<ul>";
             echo "<li>";
+            
             render_label($ancestors[$i]);
+            echo " --&gt; <a href=\"index.php?action=view&phase=taxonomy&task=taxonomy_impact&root_taxon_wfo={$ancestors[$i]['rhakhis_wfo']}\" >Generate impact report</a> ";
             echo "</li>";
 
             // if we are on the last one 

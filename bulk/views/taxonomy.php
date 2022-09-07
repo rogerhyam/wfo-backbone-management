@@ -25,7 +25,7 @@
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_browse">Browse</a>
 |
-<a href="index.php?action=view&phase=taxonomy&task=taxonomy_rhakhis">Impact</a>
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_impact">Impact</a>
 </div>
 <hr/>
 <?php

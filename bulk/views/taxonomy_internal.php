@@ -6,6 +6,22 @@
 <p>At this stage we are not comparing anything to data in Rhakhis. </p>
 
 <?php
+
+    // report on the last import if there was one
+    if(@$_SESSION['taxonomy_internal_mapping']){
+
+        echo "<h3>Issues from last run</h3>";
+        echo "<ol>";
+
+        foreach ($_SESSION['taxonomy_internal_mapping'] as $error) {
+            echo "<li>$error</li>";
+        }       
+        
+         echo "</ol>";
+
+    }
+
+    // get the table colums
     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
     $cols = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
