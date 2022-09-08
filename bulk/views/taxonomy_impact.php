@@ -1,11 +1,8 @@
 <h3>Impact Report</h3>
 
-<p><img src="images/under_construction.gif" style="height: 80px;"/></p>
-<p>Don't play with this yet. It is just here because I wanted to update code elsewhere.</p>
+<div style="width: 1000px">
 
 <p style="color: green;">Doesn't change data.</p>
-
-
 
 <?php
     // if we haven't been passed a root taxon then we render a message.
@@ -17,11 +14,15 @@
     }else{
         $name = Name::getName($_GET['root_taxon_wfo']);      
 ?>
+    <p>This will generate an impact report based on the root taxon <strong><?php echo $name->getPrescribedWfoId() ?> <?php echo $name->getFullNameString() ?> </strong>
+    It will run across the taxonomic tree in Rhakhis and include unplaced names <strong>below the genus level only</strong>. 
+    
+    It may take some time to run if it is a big group.</p>
 
-   
-    <p>This will generate a impact report based on the root taxon <strong><?php echo $name->getPrescribedWfoId() ?> <?php echo $name->getFullNameString() ?> </strong>
+    <p>The results will be written to a file called <strong><?php echo $table ?>_impact.csv</strong> under the files tab from where you can download/delete it.</p>
 
-    <p>It may take some time to run if it is a big group.</p>
+    <p>This may take some time to run if it is a big group.</p>
+
 
     <form action="index.php" method="GET">
         <input type="hidden" name="action" value="impact_report" />
@@ -34,5 +35,7 @@
 
     } 
 ?>
+
+</div>
 
 

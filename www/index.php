@@ -5,6 +5,7 @@ require_once("../include/User.php");
 
 require_once("../include/WfoDbObject.php");
 require_once("../include/Name.php");
+require_once("../include/UnplacedFinder.php");
 require_once("../include/Taxon.php");
 require_once("../include/Identifier.php");
 require_once("../include/Reference.php");
