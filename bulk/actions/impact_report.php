@@ -34,6 +34,9 @@ if(@$_GET['root_taxon_wfo']){
     // initialize the queue
     $_SESSION['impact_queue'] = array();
 
+    // initialize name tracker - to compare with file at end
+    $_SESSION['impact_track'] = array();
+
     // initialize the csv file
     $out = fopen("../bulk/csv/{$_GET['table']}_impact.csv", 'w');
 
@@ -45,29 +48,65 @@ if(@$_GET['root_taxon_wfo']){
 
 }else{
 
+    // open csv file to append rows
+    $out = fopen("../bulk/csv/{$_GET['table']}_impact.csv", 'a');
+
     // if the queue is empty then stop
     if(count($_SESSION['impact_queue']) == 0){
+
+        // we have reached the end of the taxonomy in rhakhis
+        // what about the names in the data table that didn't
+        // fall under the taxonomy?
+
+        $track = $_SESSION['impact_track'];
+
+        $table = $_GET['table'];
+        $response = $mysqli->query("SELECT rhakhis_wfo FROM `rhakhis_bulk`.`$table` where length(rhakhis_wfo)  > 0");
+        if($mysqli->error){
+            echo $mysqli->error;
+            exit;
+        }
+        $rows = $response->fetch_all(MYSQLI_ASSOC);
+        $missing_wfo_ids = false;
+        foreach ($rows as $row) {
+            if(!in_array($row['rhakhis_wfo'], $track)){
+                $name = Name::getName($row['rhakhis_wfo']);
+
+                if($name->getId()){
+                    process_name($name, $out, $headers);
+                }else{
+                    $missing_wfo_ids = true;
+                    echo "<p>Missing from Rhakhis: {$row['rhakhis_wfo']}</p>";
+                }
+
+            }
+        }
+
         echo "<p>Impact report is complete and can be downloaded under the files tab.</p>";
         $uri = "index.php?action=view&phase=csv";
-        echo "<script>window.location = \"$uri\"</script>";
+        if(!$missing_wfo_ids) echo "<script>window.location = \"$uri\"</script>";
+        fclose($out);
         exit;
+    
+    }else{
+    
+        $wfo = array_shift($_SESSION['impact_queue']);
+        process_children($wfo, $out, $headers);
+
     }
-
-   $wfo = array_shift($_SESSION['impact_queue']);
-
-   // open csv file to append rows
-   $out = fopen("../bulk/csv/{$_GET['table']}_impact.csv", 'a');
-
-   process_children($wfo, $out, $headers);
 
 }
 
 fclose($out);
 // call self to process the stuff that will have been put in the queue
 $uri = "index.php?action=impact_report&table={$_GET['table']}";
-$remaining = count($_SESSION['impact_queue']);
+
 echo "<h2>Generating Impact Report</h2>";
-echo "<p>Working ... Queue size: $remaining</p>";
+echo "<p>Working ... ";
+$queue_size = count($_SESSION['impact_queue']);
+echo "Queue size: $queue_size</p>";
+$tracker_size = count($_SESSION['impact_track']);
+echo "Names processed: $tracker_size</p>";
 echo "<p>Queue size will go up and down as we do a widthwise crawl of the taxonomic tree.</p>";
 echo "<script>window.location = \"$uri\"</script>";
 
@@ -89,6 +128,11 @@ function process_children($wfo, $out, $headers){
 function process_name($name, $out, $headers){
 
     global $mysqli;
+
+    // track the names we have done
+    $track = $_SESSION['impact_track'];
+    $track[] = $name->getPrescribedWfoId();
+    $_SESSION['impact_track'] = $track;
 
     $out_row = array();
 
