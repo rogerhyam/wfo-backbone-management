@@ -11,6 +11,7 @@
 */
 
 $headers = array(
+        'in bounds',
         'consequence',
         'rank ok',
         'status ok',
@@ -30,6 +31,9 @@ $headers = array(
 
 // are we called with the root taxon?
 if(@$_GET['root_taxon_wfo']){
+
+    // keep a handle on which root we are using
+    $_SESSION['import_root'] = $_GET['root_taxon_wfo'];
 
     // initialize the queue
     $_SESSION['impact_queue'] = array();
@@ -159,7 +163,11 @@ function process_name($name, $out, $headers){
     $taxon = Taxon::getTaxonForName($name);
     if($taxon->getId()>0){
 
+        // it is placed within Rhakhis
+
         if($taxon->getAcceptedName() == $name){
+
+            // it is accepted within Rhakhis
 
             $rhakhis_role = "accepted";
 
@@ -181,6 +189,8 @@ function process_name($name, $out, $headers){
 
         }else{
 
+            // it is a synonym within Rhakhis
+
             $rhakhis_role = "synonym";
 
             $out_row['current placement'] = "synonym of";
@@ -189,9 +199,30 @@ function process_name($name, $out, $headers){
 
         }
 
+        // the name is placed in the taxonomy but is it placed
+        // below the root taxon and therefore available to be moved
+        // if it isn't then it won't be freed up by the removal part of the 
+        // import routine
+        $out_row['in bounds'] = "NO";
+        $ancestors = $taxon->getAncestors();
+        foreach($ancestors as $anc){
+            if($anc->getAcceptedName()->getPrescribedWfoId() == $_SESSION['import_root']){
+                $out_row['in bounds'] = "YES";
+                break;
+            }
+        }
+
+        // edge case - if it is the root then it is in bounds
+        if($taxon->getAcceptedName()->getPrescribedWfoId() == $_SESSION['import_root']){
+            $out_row['in bounds'] = "YES";
+        }
+
+ 
     }else{
 
+        // it isn't placed in rhakhis so it is also in bounds
         $rhakhis_role = "unplaced";
+        $out_row['in bounds'] = "YES";
 
         $out_row['current placement'] = "unplaced";
         $out_row['current placement wfo'] = ""; // placement wfo
@@ -299,7 +330,6 @@ function process_name($name, $out, $headers){
 
 
             }else{
-
 
                 // unplaced in the data table
                 if($data_row['rhakhis_wfo'] == @$_GET['root_taxon_wfo']){

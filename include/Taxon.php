@@ -309,7 +309,7 @@ class Taxon extends WfoDbObject{
                 break;
             }
 
-            // if on is not success then we add a warning
+            // if one is not success then we add a warning
             if(!$check->status != WFO_INTEGRITY_OK){
                 $integrity->status = WFO_INTEGRITY_WARN;
                 $integrity->success = true;
@@ -410,7 +410,7 @@ class Taxon extends WfoDbObject{
         if(count($higher_level_siblings)){
             $integrity->status = WFO_RANK_REBALANCE;
             $integrity->success = false;
-            $integrity->message = "There is an imbalance of ranks at this point in the hierarchy. These will be rebalanced on save.";
+            $integrity->message = "There is an imbalance of ranks at this point in the hierarchy.";
             $integrity->taxa = $potential_parents;
         }
 
@@ -1038,6 +1038,30 @@ class Taxon extends WfoDbObject{
     }
 
     /**
+     * This will recursively remove all children
+     * and synonyms from this taxon leaving it
+     * as a leaf node. Beware memory issues 
+     * or of completely destroying the whole taxonomy!
+     * 
+     */
+    public function prune(){
+
+        // recurse the children
+        $children = $this->getChildren();
+        foreach($children as $kid){
+            $kid->prune();
+            $kid->delete();
+        }
+
+        // remove the synonyms
+        $synonyms = $this->getSynonyms();
+        foreach($synonyms as $syn){
+            $this->removeSynonym($syn);
+        }
+
+    }
+
+    /**
      * 
      * Makes necessary changes to taxon_names table 
      * to remove a name. Could be called when removing 
@@ -1091,16 +1115,21 @@ class Taxon extends WfoDbObject{
             return;
         }
 
+        if(!$name || !$name->getId()){
+            throw new ErrorException("Trying to assign non-name to taxon_id {$this->id}. " . print_r($name, true));
+            return false;
+        }
+
         // is the name already in use in the taxon_names table?
-        $result = $mysqli->query("SELECT * FROM taxon_names WHERE name_id = {$name->id}");
-        if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->id}.");
+        $result = $mysqli->query("SELECT * FROM taxon_names WHERE name_id = {$name->getId()}");
+        if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->getId()}.");
         if($result->num_rows == 0){
             // the name is not assigned to any taxon we can go ahead and create the row
-            $result = $mysqli->query("INSERT INTO taxon_names (taxon_id, name_id) VALUES ({$this->id}, {$name->id})");
+            $result = $mysqli->query("INSERT INTO taxon_names (taxon_id, name_id) VALUES ({$this->id}, {$name->getId()})");
             if($mysqli->affected_rows == 1){
                 return $mysqli->insert_id;
             }else{
-                throw new ErrorException("Failed to create taxon_names row for taxon_id {$this->id} and name_id {$name->id}");
+                throw new ErrorException("Failed to create taxon_names row for taxon_id {$this->id} and name_id {$name->getId()}");
                 return false;
             }
 
@@ -1170,6 +1199,46 @@ class Taxon extends WfoDbObject{
         }
 
         return $this->children;
+
+    }
+
+    /**
+     * Gets the count of children without
+     * loading them all
+     */
+    public function getChildCount(){
+
+        global $mysqli;
+
+        $sql = "SELECT count(*) as n FROM taxa WHERE `parent_id` = {$this->id} AND t.`id` != {$this->id}";
+        $result = $mysqli->query($sql); 
+        $rows = $result->fetch_all(MYSQLI_ASSOC);
+        $result->close();
+        return (int)$rows[0]['n'];
+    }
+
+    /**
+     * Count all the descendants without
+     * loading them all
+     */
+    public function getDescendantCount($taxon_id = false){
+
+        global $mysqli;
+
+        if(!$taxon_id) $taxon_id = $this->getId();
+
+        $sql = "SELECT id FROM taxa as t WHERE `parent_id` = {$taxon_id} AND t.`id` != {$taxon_id}";
+        $result = $mysqli->query($sql); 
+        $rows = $result->fetch_all(MYSQLI_ASSOC);
+        $result->close();
+
+        $count = count($rows);
+
+        foreach($rows as $row){
+            $count += $this->getDescendantCount($row['id']);
+        }
+
+        return (int)$count;
 
     }
 

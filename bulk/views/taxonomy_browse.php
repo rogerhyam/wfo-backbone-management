@@ -57,6 +57,7 @@
             
             render_label($ancestors[$i]);
             echo " --&gt; <a href=\"index.php?action=view&phase=taxonomy&task=taxonomy_impact&root_taxon_wfo={$ancestors[$i]['rhakhis_wfo']}\" >Generate impact report</a> ";
+            echo " --&gt; <a href=\"index.php?action=view&phase=taxonomy&task=taxonomy_import&root_taxon_wfo={$ancestors[$i]['rhakhis_wfo']}\" >Start import</a> ";
             echo "</li>";
 
             // if we are on the last one 

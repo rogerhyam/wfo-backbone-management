@@ -26,6 +26,8 @@
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_browse">Browse</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_impact">Impact</a>
+|
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_import">Import</a>
 </div>
 <hr/>
 <?php
