@@ -258,7 +258,7 @@ class Reference{
     public function setKind($kind)
     {
 
-        $kinds = $this->getReferenceKindEnumeration();
+        $kinds = Reference::getReferenceKindEnumeration();
         if(in_array($kind, $kinds)){
             $this->kind = $kind;
             return true;
@@ -270,7 +270,7 @@ class Reference{
     }
 
 
-    public function getReferenceKindEnumeration(){
+    public static function getReferenceKindEnumeration(){
 
         global $mysqli;
 

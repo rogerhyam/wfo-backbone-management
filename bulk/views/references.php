@@ -24,7 +24,13 @@ function run_references($table){
     $offset = $page_size * $page;
 
     // if we are on the first page then we initialize the messages session variable
-    if($page == 0) $_SESSION['references_messages'] = array();
+    if($page == 0){
+        $_SESSION['references_messages'] = array();
+        $_SESSION['references_row_count'] = 0;
+        $_SESSION['references_created'] = 0;
+        $_SESSION['references_added'] = 0;
+        $_SESSION['references_updated'] = 0;  
+    } 
 
     echo "<p><strong>Offset: </strong>$offset | <strong>Page Size: </strong>$page_size</p>";
 
@@ -35,7 +41,6 @@ function run_references($table){
     $ref_kind = $_GET['ref_kind'];
     $uri_filter  = $_GET['uri_filter'];
     $subject_type = @$_GET['taxonomic'] ? 1:0;
-
 
     $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `$wfo_column` IS NOT NULL";
     if($uri_filter) $sql .= " AND `$uri_column` LIKE 'uri_filter%'";
@@ -55,7 +60,12 @@ function run_references($table){
         echo "<h3>Messages</h3>\n<p>";
         echo implode("</p>\n<p>", $_SESSION['references_messages']);
         echo "</p>";
-        $auto_render_next_page = "<p>Reached end of table. <a href=\"index.php?action=view&phase=linking\">Back to form.</a></p>";
+        echo "<h3>Results</h3>";
+        echo "<p><strong>References Created</strong> {$_SESSION['references_created']}</p>";
+        echo "<p><strong>References Added</strong> {$_SESSION['references_added']}</p>";
+        echo "<p><strong>References Updated</strong> {$_SESSION['references_updated']}</p>";
+
+        $auto_render_next_page = "<p>Reached end of table. <a href=\"index.php?action=view&phase=references\">Back to form.</a></p>";
 
     }
 
@@ -64,17 +74,18 @@ function run_references($table){
         $wfo = $row[$wfo_column];
         $uri = $row[$uri_column];
         $label = $row[$label_column];
-        $comment = $row[$comment_column];
+        if($comment_column) $comment = $row[$comment_column];
+        else $comment = "";
 
         // is it a good wfo?
-        if(!preg_match('\\', $wfo)){
+        if(!preg_match('/wfo-[0-9]{10}/', $wfo)){
             $_SESSION['references_messages'][] = "'$wfo' doesn't look like a valid WFO ID so skipping it.";
             continue;
         }
 
         // get the name
         $name = Name::getName($wfo);
-        if(!$name->geId()){
+        if(!$name->getId()){
             $_SESSION['references_messages'][] = "Couldn't load name for '$wfo' so skipping it.";
             continue;
         }
@@ -95,27 +106,31 @@ function run_references($table){
         $ref = Reference::getReferenceByUri($uri);
         if(!$ref){
             // no reference so lets make one
-            $ref = new Reference();
+            $ref = new Reference(false);
             $user = unserialize($_SESSION['user']);
             $ref->setUserId($user->getId());
             $ref->setLinkUri($uri);
             $ref->setDisplayText($label);
             $ref->setKind($ref_kind);
             $ref->save();
+
+            $_SESSION['references_created']++;
+
         }
 
         // is the reference already in the name?
         $ref_usages = $name->getReferences();
         $found = false;
         foreach($ref_usages as $ref_use){
-            if($ref_use->reference == $ref && $ref_use->subject_type == $subject_type){
+            if($ref_use->reference == $ref && $ref_use->subjectType == $subject_type){
+                
                 // we already have that reference as a taxon/name type.
+
                 // update the comment if there is one
                 if($ref_use->comment != $comment){
-
                     // update comment
-                    // fixme
-
+                    $name->updateReference($ref, $comment, $subject_type);
+                    $_SESSION['references_updated']++;
                 }
 
                 // no need to look further
@@ -124,16 +139,17 @@ function run_references($table){
             }
         }
         
+        // we didn't find it above so add it in
         if(!$found){
-
             // reference doesn't belong to name so add it
-            // fixme
-
+            $name->addReference($ref, $comment, $subject_type);
+            $_SESSION['references_added']++;
         }
-
 
     }
 
+    // load the next page or stop.
+    echo $auto_render_next_page;
 
 }
 
@@ -216,16 +232,19 @@ function render_form($table){
             <th>Reference Kind</th>
             <td>
                 <select name="ref_kind">
-                    <option value="literature">Literature</option>
-                    <option value="database">Database</option>
-                    <option value="specimen">Specimen</option>
-                    <option value="person">Person</option>
+<?php
+    $kinds = Reference::getReferenceKindEnumeration();
+    sort($kinds);
+    foreach($kinds as $kind){
+        echo "<option value=\"$kind\">$kind</option>";
+    }
+?>                  
                 </select>
             </td>
             <td>What does the reference point to?</td>
         </tr>
         <tr>
-            <th>Taxonomic Reference</th>
+            <th>Is Taxonomic Reference</th>
             <td>
                 <input type="checkbox" name="taxonomic" />
             </td>
