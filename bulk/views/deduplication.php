@@ -6,11 +6,6 @@
 
 <?php
 
-    if(!$table){
-        echo '<p style="color: red;">No table selected.</p>';
-        exit;
-    }
-
     if(@$_GET['duplicate']){
         render_deduplication_form($_GET['duplicate']);
     }else{

@@ -66,6 +66,8 @@
             |
             <a href="index.php?action=view&phase=linking">Linking<a>
             |
+            <a href="index.php?action=view&phase=references">References<a>
+            |
             <a href="index.php?action=view&phase=nomenclature">Nomenclature<a>
             |
             <a href="index.php?action=view&phase=taxonomy">Taxonomy<a>

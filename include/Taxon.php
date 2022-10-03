@@ -103,7 +103,7 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
-        if(!$name->getId()) throw new ErrorException("You can't call load on a Taxon with a Name that doesn't have an id i.e. has not been saved to the db");
+        if(!$name || !$name->getId()) throw new ErrorException("You can't call load on a Taxon with a Name that doesn't have an id i.e. has not been saved to the db: " . print_r($name, true) );
 
         // is it in the names yet (we could possible check if it is in self::loaded before going to the db if this proves slow)
         $result = $mysqli->query("SELECT `taxon_id` FROM `taxon_names` WHERE `name_id` = {$name->getId()}");

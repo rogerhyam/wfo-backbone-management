@@ -158,6 +158,7 @@ class Name extends WfoDbObject{
         }else{
             // don't know what you asked for but you get nothing!
             error_log("No name for init value: " . $init_value);
+            throw new ErrorException("No name for init value: " . $init_value);
             return null;
         }
 

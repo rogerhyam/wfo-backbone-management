@@ -108,7 +108,7 @@ if(@$_GET['root_taxon_wfo']){
 
                     $kid_taxon->setParent($taxon);
                     $integrity = $kid_taxon->checkRank();
-                    if($integrity->success){
+                    if($integrity->success || $integrity->status == WFO_RANK_REBALANCE){
                         $kid_taxon->save();
                     }else{
                         echo "<p>$kid_wfo problems with rank</p>";
