@@ -16,7 +16,125 @@
     }
 
 function run_references($table){
-    echo "doing shit";
+
+    global $mysqli;
+
+    $page = (int)$_GET['page'];
+    $page_size = (int)$_GET['page_size'];
+    $offset = $page_size * $page;
+
+    // if we are on the first page then we initialize the messages session variable
+    if($page == 0) $_SESSION['references_messages'] = array();
+
+    echo "<p><strong>Offset: </strong>$offset | <strong>Page Size: </strong>$page_size</p>";
+
+    $wfo_column = $_GET['wfo_column'];
+    $label_column = $_GET['label_column'];
+    $comment_column  = $_GET['comment_column'];
+    $uri_column  = $_GET['uri_column'];
+    $ref_kind = $_GET['ref_kind'];
+    $uri_filter  = $_GET['uri_filter'];
+    $subject_type = @$_GET['taxonomic'] ? 1:0;
+
+
+    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `$wfo_column` IS NOT NULL";
+    if($uri_filter) $sql .= " AND `$uri_column` LIKE 'uri_filter%'";
+    $sql .= " LIMIT $page_size OFFSET $offset";
+
+    $response = $mysqli->query($sql);
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    $response->close();
+
+    if(count($rows) > 0){
+        $params = $_GET;
+        $params['page'] = ($page + 1);
+        $uri = "index.php?" . http_build_query($params);
+        $auto_render_next_page = "<script>window.location = \"$uri\"</script>";
+    }else{
+
+        echo "<h3>Messages</h3>\n<p>";
+        echo implode("</p>\n<p>", $_SESSION['references_messages']);
+        echo "</p>";
+        $auto_render_next_page = "<p>Reached end of table. <a href=\"index.php?action=view&phase=linking\">Back to form.</a></p>";
+
+    }
+
+    foreach($rows as $row){
+
+        $wfo = $row[$wfo_column];
+        $uri = $row[$uri_column];
+        $label = $row[$label_column];
+        $comment = $row[$comment_column];
+
+        // is it a good wfo?
+        if(!preg_match('\\', $wfo)){
+            $_SESSION['references_messages'][] = "'$wfo' doesn't look like a valid WFO ID so skipping it.";
+            continue;
+        }
+
+        // get the name
+        $name = Name::getName($wfo);
+        if(!$name->geId()){
+            $_SESSION['references_messages'][] = "Couldn't load name for '$wfo' so skipping it.";
+            continue;
+        }
+
+        // is the uri a cool uri?
+        if(!filter_var($uri, FILTER_VALIDATE_URL)){            
+            $_SESSION['references_messages'][] = "'$uri' doesn't look like a valid URI so skipping row for $wfo";
+            continue;
+        }
+
+        // do we have a label?
+        if(!$label){
+            $_SESSION['references_messages'][] = "'$wfo' - '$uri' - does not have a label text so skipping.";
+            continue;
+        }
+
+        // get the reference if it exists
+        $ref = Reference::getReferenceByUri($uri);
+        if(!$ref){
+            // no reference so lets make one
+            $ref = new Reference();
+            $user = unserialize($_SESSION['user']);
+            $ref->setUserId($user->getId());
+            $ref->setLinkUri($uri);
+            $ref->setDisplayText($label);
+            $ref->setKind($ref_kind);
+            $ref->save();
+        }
+
+        // is the reference already in the name?
+        $ref_usages = $name->getReferences();
+        $found = false;
+        foreach($ref_usages as $ref_use){
+            if($ref_use->reference == $ref && $ref_use->subject_type == $subject_type){
+                // we already have that reference as a taxon/name type.
+                // update the comment if there is one
+                if($ref_use->comment != $comment){
+
+                    // update comment
+                    // fixme
+
+                }
+
+                // no need to look further
+                $found = true;
+                break;
+            }
+        }
+        
+        if(!$found){
+
+            // reference doesn't belong to name so add it
+            // fixme
+
+        }
+
+
+    }
+
+
 }
 
 function render_form($table){
@@ -67,6 +185,7 @@ function render_form($table){
             <th>Comment Column</th>
             <td>
                 <select name="comment_column">
+                    <option value="">~ Ignore ~</option>
 <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
@@ -96,7 +215,7 @@ function render_form($table){
         <tr>
             <th>Reference Kind</th>
             <td>
-                <select name="kind_column">
+                <select name="ref_kind">
                     <option value="literature">Literature</option>
                     <option value="database">Database</option>
                     <option value="specimen">Specimen</option>
@@ -115,7 +234,7 @@ function render_form($table){
         <tr>
             <th>URI Filter</th>
             <td>
-                <input type="text" name="uri_filter" />
+                <input type="text" name="uri_filter" placeholder="start of uri"/>
             </td>
             <td>If specified here, only rows where the URI starts with this string (case insensitive) will be imported. This may be useful when there are references of multiple kinds in the table and they need to be imported in batches. e.g. Using https://doi.org/ to separate literature references from database references.</td>
         </tr>
