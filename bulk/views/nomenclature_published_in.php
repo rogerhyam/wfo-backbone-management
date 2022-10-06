@@ -68,7 +68,7 @@ function process_row($row, $table){
     if(preg_match_all('/([0-9]{4})/', $published_in, $matches, PREG_SET_ORDER)){
         foreach($matches as $hit){
             $year = (int)$hit[1];
-            if($year > 1750 && $year < 2022){
+            if($year > 1750 && $year <= date("Y")){
                $data_year= $year;
             }
         }
