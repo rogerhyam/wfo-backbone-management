@@ -286,6 +286,9 @@ We only provide the ability to cite specimens if they are available online as an
 
 Each branch of the taxonomy within Rhakhis is supported by some external source. We therefore aim to have a Reference in the Taxonomic Source section for each accepted name that links to the authority we use to assert that taxon exists and has those synonyms. Ideally this will be a single database reference and/or a single literature reference although this isn't currently enforced by the system. An analogy is the linking to external sources for statements of fact in Wikipedia. Sometimes this Reference may be at a higher level within the taxonomy that the current taxon e.g. a single Taxonomic Source for a whole genus or family.
 
+### Nomenclatural References
+
+All names should have nomenclatural references. Eventually they will all have links to the original place of publication but it is appropriate to include any reference here that would be useful for someone researching the nomenclatural aspects of this name. These might include links to the authors and type specimens or nomenclatural databases (e.g. [IPNI](https://www.ipni.org/)) that contain such information. It would be inappropriate to have links here to simple occurrences of the name such as in a flora or occurrence database like [GBIF](https://www.gbif.org/) unless these were the only known source of the name would be useful to figure out the place of publication etc. 
 
 
 
