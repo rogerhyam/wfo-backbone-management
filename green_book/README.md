@@ -112,6 +112,18 @@ To distinguish between homonyms and isonyms we need to know the types of both na
 
  FIXME: Aspiration for each WFO to equate to a unique full name string of Does not make WFO-ID redundant as a WFO-ID only applies to one record and therefore one normative name string. A name string could be matched to multiple WFO-IDs based on approximation.
 
+ #### FIXME: Notes for expansion
+
+ Bring on the crazy edge cases!
+ 
+1.	Spelling variants (correctable) – There are corrections specified in the code (e.g. 'ä' becomes 'ae'). These should be automatically corrected on the way into Rhakhis and on searching so are effectively the same string. Nothing to see here.
+2.	Spelling variants (common) – It may be desirable to include common miss spellings of names as invalid or nom nud and synonymised to the correct spelling. But this is a judgement call and the subject of loads of work Mark has to do talking to people. It doesn’t affect the rule because, by definition, they have different name parts. (We could add a “spelling error” nomenclatural status but I’m reluctant to do that – a separate discussion).
+3.	Aus bus Koch ex Koch implies we could also have Aus bus Koch as the root name but this doesn’t affect the rule. We could have two Name Records one with Koch (nom nud?) and one with Koch ex Koch and synonymise them. If someone searches for Aus bus Koch they would get it as a synonym of Aus bus Koch ex Koch if they didn’t just go straight to the original because Aus bus Koch is an accepted name. I see no issues.
+4.	Author publishes same name with same type in multiple places - typically in a paper and in a flora account – maybe in same year.
+a.	The flora account will typically have different authors and therefore a different authors string so it can have a different record and be synonymised.
+b.	If the paper and flora account have exactly the same author and it is imperative to have two records then the superfluous record can be bastardised with and “in Flora Bulgaria” to differentiate it. (I struggle a bit with why we would want to include two records here. If the second publication of a name isn’t a nomenclatural act but merely a use of the name that people mistakenly believe was the initial publication then we aren’t talking about two names at all but a correction of the place of publication of one name. We wouldn’t track all errors in places of publication with new records! If it is a nomenclatural act then we would have an “ex” in the author string and so the rule applies and the earlier name would not be valid. See Koch ex Kock.)
+ 
+
 ## Taxonomic status of Names
 
 A name can only have a single __taxonomic__ status (that is play one role) in the system.
@@ -253,7 +265,7 @@ References are normalized, there can be only one instance of a reference with it
 Names are associated with References through name_references. These allow the relationship to have two properties:
 
 1. __Comment__ - An explanation of how the reference applies specifically to this name. It could be something like "Holotype specimen" or "Only known mention of name" or "Author based on abbreviation in the authors string."
-1. __Placement Replated__ - A flag so indicate this reference is concerned with the taxonomic placement of the name rather than the nomenclatural status of the name. In the current interface reference links with this flag are presented in a yellow box called "Taxonomic Sources". Reference links without this flag appear in the gray box entitled "Nomenclatural References".
+1. __Placement Related__ - A flag so indicate this reference is concerned with the taxonomic placement of the name rather than the nomenclatural status of the name. In the current interface reference links with this flag are presented in a yellow box called "Taxonomic Sources". Reference links without this flag appear in the gray box entitled "Nomenclatural References".
 
 ### What if I don't have a URI for my reference?
 
@@ -284,11 +296,11 @@ We only provide the ability to cite specimens if they are available online as an
 
 ### Taxonomic Sources
 
-Each branch of the taxonomy within Rhakhis is supported by some external source. We therefore aim to have a Reference in the Taxonomic Source section for each accepted name that links to the authority we use to assert that taxon exists and has those synonyms. Ideally this will be a single database reference and/or a single literature reference although this isn't currently enforced by the system. An analogy is the linking to external sources for statements of fact in Wikipedia. Sometimes this Reference may be at a higher level within the taxonomy that the current taxon e.g. a single Taxonomic Source for a whole genus or family.
+Each branch of the taxonomy within Rhakhis is supported by some external source. We therefore aim to have a Reference in the Taxonomic Source section for each accepted name that links to the authority we use to assert that taxon exists and has those synonyms. Ideally this will be a single database reference and/or a single literature reference although this isn't currently enforced by the system. An analogy is the linking to external sources for statements of fact in Wikipedia. Sometimes this Reference may be at a higher level within the taxonomy than the current taxon e.g. a single Taxonomic Source for a whole genus or family.
 
 ### Nomenclatural References
 
-All names should have nomenclatural references. Eventually they will all have links to the original place of publication but it is appropriate to include any reference here that would be useful for someone researching the nomenclatural aspects of this name. These might include links to the authors and type specimens or nomenclatural databases (e.g. [IPNI](https://www.ipni.org/)) that contain such information. It would be inappropriate to have links here to simple occurrences of the name such as in a flora or occurrence database like [GBIF](https://www.gbif.org/) unless these were the only known source of the name would be useful to figure out the place of publication etc. 
+All names should have nomenclatural references. Eventually they will all have links to the original place of publication but it is appropriate to include any reference here that would be useful for someone researching the nomenclatural aspects of this name. These might include links to the authors and type specimens or nomenclatural databases (e.g. [IPNI](https://www.ipni.org/)) that contain such information. It would be inappropriate to have links here to simple occurrences of the name such as in a flora or occurrence database like [GBIF](https://www.gbif.org/) unless these were the only known source of the name and would be useful to figure out the place of publication etc. 
 
 
 
