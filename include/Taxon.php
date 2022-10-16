@@ -186,6 +186,7 @@ class Taxon extends WfoDbObject{
 
         global $ranks_table;
 
+
         // no name if we have no name
         if(!$this->getAcceptedName()) return "no name";
 
@@ -215,19 +216,23 @@ class Taxon extends WfoDbObject{
         if($italics) $hybrid_symbol = "</i>$hybrid_symbol<i>";
 
         if($this->isHybrid){
-            $n = $this->name->getNameString();
-            $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+            $n = preg_quote($this->name->getNameString(), '/');
+            //$fns = str_replace($n, $hybrid_symbol . $n, $fns);
+            $fns = preg_replace("/$n/", $hybrid_symbol . $n, $fns, 1);
         }
 
         if($genus_is_hybrid){
-            $n = $this->name->getGenusString();
-            $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+            $n = preg_quote($this->name->getGenusString(), '/');
+            // $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+            $fns = preg_replace("/$n/", $hybrid_symbol . $n, $fns, 1);
         }
 
 
         if($species_is_hybrid){
-            $n = $this->name->getSpeciesString();
-            $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+
+            $n = preg_quote($this->name->getSpeciesString(), '/');
+            // $fns = str_replace($n, $hybrid_symbol . $n, $fns);
+            $fns = preg_replace("/$n/", $hybrid_symbol . $n, $fns, 1);
 
             // we are a subspecific taxon so our rank has notho put in front of it
             $fns = str_replace($this->name->getRank(), "notho" . $this->name->getRank(), $fns);

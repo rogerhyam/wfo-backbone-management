@@ -28,6 +28,8 @@
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_impact">Impact</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_import">Import</a>
+|
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_hybrids">Hybrids</a>
 </div>
 <hr/>
 <?php

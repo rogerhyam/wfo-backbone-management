@@ -40,7 +40,7 @@ function run_references($table){
     $uri_column  = $_GET['uri_column'];
     $ref_kind = $_GET['ref_kind'];
     $uri_filter  = $_GET['uri_filter'];
-    $subject_type = @$_GET['taxonomic'] ? 1:0;
+    $subject_type = @$_GET['taxonomic'] ? 'taxon':'name';
 
     $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `$wfo_column` IS NOT NULL";
     if($uri_filter) $sql .= " AND `$uri_column` LIKE 'uri_filter%'";

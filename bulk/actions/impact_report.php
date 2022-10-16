@@ -29,6 +29,11 @@ $headers = array(
         'new status'
 );
 
+// keep track of how many names we are processing
+// or we will run out of memory in some tree topologies.
+$name_process_count = 0; 
+$name_process_max = 5000;
+
 // are we called with the root taxon?
 if(@$_GET['root_taxon_wfo']){
 
@@ -64,27 +69,11 @@ if(@$_GET['root_taxon_wfo']){
 
         $track = $_SESSION['impact_track'];
 
-        $table = $_GET['table'];
-        $response = $mysqli->query("SELECT rhakhis_wfo FROM `rhakhis_bulk`.`$table` where length(rhakhis_wfo)  > 0");
-        if($mysqli->error){
-            echo $mysqli->error;
-            exit;
-        }
-        $rows = $response->fetch_all(MYSQLI_ASSOC);
-        $missing_wfo_ids = false;
-        foreach ($rows as $row) {
-            if(!in_array($row['rhakhis_wfo'], $track)){
-                $name = Name::getName($row['rhakhis_wfo']);
-
-                if($name->getId()){
-                    process_name($name, $out, $headers);
-                }else{
-                    $missing_wfo_ids = true;
-                    echo "<p>Missing from Rhakhis: {$row['rhakhis_wfo']}</p>";
-                }
-
-            }
-        }
+        // look at all the names in the table 
+        // below the root taxon and check they are not
+        // out of bounds in rhakhis.
+        $root_wfo = $_SESSION['import_root'];
+        crawl_table_tree($root_wfo, $out, $headers);
 
         echo "<p>Impact report is complete and can be downloaded under the files tab.</p>";
         $uri = "index.php?action=view&phase=csv";
@@ -94,8 +83,13 @@ if(@$_GET['root_taxon_wfo']){
     
     }else{
     
+        // get the next wfo to process off the queue
         $wfo = array_shift($_SESSION['impact_queue']);
+
+        // this will prevent all the children and
+        // all the unplaced names being loaded at once
         process_children($wfo, $out, $headers);
+        process_unplaced($wfo, $out, $headers);
 
     }
 
@@ -106,33 +100,144 @@ fclose($out);
 $uri = "index.php?action=impact_report&table={$_GET['table']}";
 
 echo "<h2>Generating Impact Report</h2>";
-echo "<p>Working ... ";
+echo "<p>Working ... </p>";
 $queue_size = count($_SESSION['impact_queue']);
-echo "Queue size: $queue_size</p>";
+echo "<p>Queue size: ". number_format($queue_size, 0). "</p>";
 $tracker_size = count($_SESSION['impact_track']);
-echo "Names processed: $tracker_size</p>";
-echo "<p>Queue size will go up and down as we do a widthwise crawl of the taxonomic tree.</p>";
+echo "Names processed: ". number_format($tracker_size, 0). "</p>";
+echo "<p>Queue size will go up and down as we do a widthwise crawl of the taxonomic tree. Names with children or associated unplaced names are added to the list then processed with another call.</p>";
+//render_queue($_SESSION['impact_queue']);
 echo "<script>window.location = \"$uri\"</script>";
+
+
+/**
+ * We use this to crawl the tree in the 
+ * data table to be sure we have accounted
+ * for all the names in it.
+ * Some of them may have been out of bounds
+ * i.e. we crawled the tree in rhakhis before
+ * if the name in the tree in the table i not below
+ * the root in rhakhis but belongs to some other family 
+ * it won't have been found.
+ * 
+ */
+
+function crawl_table_tree($wfo, $out, $headers){
+
+    global $mysqli;
+
+    // if we haven't processed it already then process it
+    if(!in_array($wfo, $_SESSION['impact_track'])){
+        $name = Name::getName($wfo);
+        if($name->getId()) process_name($name, $out, $headers);
+        else echo "<p>$wfo not found it Rhakhis</p>";
+    }
+
+    // we now process its children
+    $table = $_GET['table'];
+    $response = $mysqli->query("SELECT rhakhis_wfo FROM `rhakhis_bulk`.`$table` where rhakhis_parent = '$wfo'");
+    while($row = $response->fetch_assoc()){
+        crawl_table_tree($row['rhakhis_wfo'], $out, $headers);
+    }
+
+
+}
+
+function render_queue($queue){
+
+    echo "<ul>";
+    if(!$queue) echo "<li>~ empty ~</li>";
+    foreach($queue as $wfo){
+        $name = Name::getName($wfo);
+        echo "<li><strong>$wfo:</strong> {$name->getFullNameString()}</li>";
+    }
+    echo "</ul>";
+
+}
 
 /**
  * 
  * Given a WFO ID it gets the children
  * of that taxon and puts their names through
+ * and their 
  * 
  */
 function process_children($wfo, $out, $headers){
+
+    global $name_process_count;
+    global $name_process_max;
+
     $name = Name::getName($wfo);
     $taxon = Taxon::getTaxonForName($name);
     $children = $taxon->getChildren();
+
+   
+    $processed_this_call = 0;
     foreach($children as $kid){
-        process_name($kid->getAcceptedName(), $out, $headers);
+
+        // if we haven't done it before we consider doing it
+        if(!in_array($kid->getAcceptedName()->getPrescribedWfoId(),  $_SESSION['impact_track'])){
+
+            // if we haven't reached the max
+            if($name_process_count <= $name_process_max){
+                process_name($kid->getAcceptedName(), $out, $headers);
+            }else{
+                // we have a name to process but have run out of memory
+                // add the parent back to the queue 
+                $queue = $_SESSION['impact_queue'];
+                if(!in_array($name->getPrescribedWfoId(), $queue)){
+                    $queue[] = $name->getPrescribedWfoId();
+                }
+                $_SESSION['impact_queue'] = $queue;
+                break;
+            }
+            
+        }      
+        
+    }
+
+}
+
+function process_unplaced($wfo, $out, $headers){
+
+    global $name_process_count;
+    global $name_process_max;
+
+    $name = Name::getName($wfo);
+    // if the name is a genus then we process each
+    if( $name->getRank() == 'genus'){
+        $finder = new UnplacedFinder($name->getPrescribedWfoId(), 0, 5000, true); // just a page of 5,000 and include deprecated names
+        foreach($finder->unplacedNames as $unplaced){
+
+            // if we haven't done it before we consider doing it
+            if(!in_array($unplaced->getPrescribedWfoId(),  $_SESSION['impact_track'])){
+
+                // if we haven't reached the max
+                if($name_process_count <= $name_process_max){
+                    process_name($unplaced, $out, $headers);
+                }else{
+                    // we have a name to process but have run out of memory
+                    // add the parent back to the queue 
+                    $queue = $_SESSION['impact_queue'];
+                    if(!in_array($name->getPrescribedWfoId(), $queue)){
+                        $queue[] = $name->getPrescribedWfoId();
+                    }
+                    $_SESSION['impact_queue'] = $queue;
+                    break;
+                }
+                
+            } 
+        }
     }
 }
 
 function process_name($name, $out, $headers){
 
     global $mysqli;
+    global $name_process_count;
 
+    $name_process_count++;
+    
     // track the names we have done
     $track = $_SESSION['impact_track'];
     $track[] = $name->getPrescribedWfoId();
@@ -148,15 +253,7 @@ function process_name($name, $out, $headers){
     $out_row['wfo'] = $name->getPrescribedWfoId();
     $out_row['name'] = strip_tags($name->getFullNameString());
     $out_row['current rank'] = $name->getRank();
-    $out_row['current status'] = $name->getStatus();    
-
-    // if the name is a genus then we process each
-    if( $name->getRank() == 'genus'){
-        $finder = new UnplacedFinder($name->getPrescribedWfoId(), 0, 5000, true); // just a page of 5,000 and include deprecated names
-        foreach($finder->unplacedNames as $unplaced){
-            process_name($unplaced, $out, $headers);
-        }
-    }
+    $out_row['current status'] = $name->getStatus(); 
 
     // is it an accepted name of a taxon?
     $rhakhis_status = null;
@@ -164,7 +261,6 @@ function process_name($name, $out, $headers){
     if($taxon->getId()>0){
 
         // it is placed within Rhakhis
-
         if($taxon->getAcceptedName() == $name){
 
             // it is accepted within Rhakhis

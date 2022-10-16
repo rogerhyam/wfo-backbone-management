@@ -766,8 +766,16 @@ function get_name_parts($nameString){
     // clean up the name first
     $nameString = trim($nameString);
 
-    // hybrid symbol gone
-    $nameString = str_replace('×', '', $nameString);
+    // U+00D7 = multiplication sign
+    // U+2715 ✕ MULTIPLICATION X
+    // U+2A09 ⨉ N-ARY TIMES OPERATOR
+
+    // hybrid symbol be gone
+    $json = '["\u00D7","\u2715","\u2A09"]';
+    $hybrid_symbols = json_decode($json);
+    foreach ($hybrid_symbols as $symbol) {
+        $nameString = str_replace($symbol, '', $nameString);
+    }
 
     // the name may include a rank abbreviation
     $nameParts = explode(' ', $nameString);

@@ -19,20 +19,11 @@
     $roots = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
 
-    echo "<strong>Root Taxa:</strong> ";
-
-    if(!$matched_rows_count || count($roots)/$matched_rows_count > 0.8){
+    if(count($roots)/$matched_rows_count > 0.8){
         echo "<p>Greater than 80% of matched names are potential root taxa! Have you done the internal mapping stage? Stopping here.</p>";
         exit;
     }
 
-    echo "<ul>";
-    foreach ($roots as $root) {
-       echo "<li>";
-       render_label($root);
-       echo "</li>";
-    }
-    echo "</ul>";
 
     echo "<hr/>";
 
@@ -124,6 +115,17 @@
         }
 
     }
+
+    // put the root taxa after browser.
+    echo "<hr/>";
+    echo "<strong>Root Taxa:</strong> ";
+    echo "<ul>";
+    foreach ($roots as $root) {
+       echo "<li>";
+       render_label($root);
+       echo "</li>";
+    }
+    echo "</ul>";
 
 
     function render_label($taxon_row, $as_link = true){

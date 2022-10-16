@@ -61,11 +61,68 @@ Names can have a nomenclatural status. This is separate from their taxonomic sta
 
 The nomenclatural status of __deprecated__ is introduced primarily as an internal device. This is not a nomenclatural status according to the botanical code. It is meant in the modern sense of the word particularly with regard to software:
 
-"_to withdraw official support for or discourage the use of_"
+> to withdraw official support for or discourage the use of
 
 We use it for names that we believe have been created in error and that we can't attribute clear meaning to. __It is recommended that these names are not used in future for any purpose.__ They are maintained in the database for name matching purposes and so they can be resurrected in the future without creating new WFO IDs if more information is discovered.
 
 The status deprecated is introduced to quell the plague of zombie names. These are names that may have occurred in the literature or a database just once and have subsequently been propagated from one list to the next without ever dying a natural death, just soaking up time and resources. Zombie names are particularly problematic in the age of big data. This is where they find peace.
+
+### More on Names
+
+The code's definition of a name includes the word "name" includes "name". 
+
+> 6.3. In this Code, unless otherwise indicated, the word “name” means a name that has been validly published, whether it is legitimate or illegitimate (see Art. 12; but see Art. 14.9 and 14.14).
+
+Unfortunately we don't know whether a name has been validly published or not before we have to start tracking it within Rhakhis. Even if we discover a name is not validly published but is in common usage (people reasonably assume it has been validly published or it is causing some confusion) then we need to take account of it. For clarity here are some of the terms we use when discussing names:
+
+1.	__Name String:__  A string of characters that looks like it is an effective/validly published botanical name. Something in a database or publication.
+1.	__Name parts:__ One, two or three words only. See above. Edge case is that hyphens are allowed in some of the words but two hyphenated words count as a word for our purposes.
+1.	__Rank:__ A rank word from our controlled vocabulary of ranks. The controlled vocabulary keeps track of abbreviations and acts as a gate keeper for arbitrary ranks.
+1.	__Authors String:__ The string of characters representing the author(s) of the name. This may follow standard author abbreviations but for our purposes here it is just a correctable string.
+1.	__Publication String:__ The string of character representing the place of publication. May follow standards but is just a correctable string here. 
+1.	__Name Record:__ A row in the database representing a name. Each row has a single prescribed WFO-ID. (It may also have deduplicated WFO-IDs, issued in error in the past, that resolve to it but only one that should be used going forward.)
+1.	__WFO-ID:__ An identifier used to represent the Name Record in the wider world.
+1.	__Homonyms:__ Two or more names that have the same Name Parts – ignoring rank, authors string and publication string for our purposes. For our purposes Isonyms are a subset of Homonyms although this is not the strict definition in the code. See not below.
+1.	__Duplicates:__ Two or more Rank Records that have the same Name Parts, Authors String and Rank.
+
+
+#### Homonyms and Isonyms
+
+The code has the following note under point 6.3
+
+> Note 2. When the same name, based on the same type, has been published independently at different times, perhaps by different authors, then only the earliest of these “isonyms” has nomenclatural status. The name is always to be cited from its original place of valid publication, and later isonyms may be disregarded (but see Art. 14.14).
+
+In the glossary Isonym is defined as: 
+
+> __isonym.__ The same name based on the same type, published independently at different times perhaps by different authors. Note: only the earliest isonym has nomenclatural status (Art. 6 Note 2; but see Art. 14.14).
+
+The glossary defines homonym as:
+
+> __homonym.__ A name spelled exactly like another name published for a taxon at the same rank based on a different type (Art. 53.1). Note: names of subdivisions of the same genus or of infraspecific taxa within the same species that are based on different types and have the same final epithet are homonyms, even if they differ in rank (Art. 53.3), because the rank-denoting term is not part of the name (Art. 21 Note 1 and Art. 24 Note 2) (see also confusingly similar names).
+
+To distinguish between homonyms and isonyms we need to know the types of both names but won't know this until both names have been researched and we need to track the names in Rhakhis to facilitate that research. Until that point names are potential homonyms or isonyms and fit this description:
+
+> A name spelled exactly like another name published for a taxon at the same rank, unless the name is a subdivision of genus or a species in which case the rank isn't taken into account.
+
+ Unfortunately we don't have a word in the code for this class of names. Homonyms are far more common than isonyms (although putting a figure on that is hard without finding them all). Many isonyms are created by the author publishing the name again, perhaps in a paper and in a flora or catalogue, and so have the same Authors String and are unlikely to warrant a Name Record in Rhakhis or indeed cause any taxonomic confusion beyond correctly quoting the original place of publication. Indeed isonyms are the "same name" according to the code which implies they should only have one Name Record in Rhakhis. We therefore use the term homonym in this looser sense within Rhakhis to apply to names that have the same spelling, are probably homonyms _sensu stricto_ but might be isonyms. If they turn out to be isonyms their records will probably be merged unless there is a compelling reason to keep them.
+
+ ## Aspiration: Unique Full Name String
+
+> Rhakhis should not have records that have identical name-parts, rank and author string. If such records exist it is an error. If two records exist in this state we should merge one into the other or differentiate them by correcting one of them. We should prevent such records from being created.
+
+ FIXME: Aspiration for each WFO to equate to a unique full name string of Does not make WFO-ID redundant as a WFO-ID only applies to one record and therefore one normative name string. A name string could be matched to multiple WFO-IDs based on approximation.
+
+ #### FIXME: Notes for expansion
+
+ Bring on the crazy edge cases!
+ 
+1.	Spelling variants (correctable) – There are corrections specified in the code (e.g. 'ä' becomes 'ae'). These should be automatically corrected on the way into Rhakhis and on searching so are effectively the same string. Nothing to see here.
+2.	Spelling variants (common) – It may be desirable to include common miss spellings of names as invalid or nom nud and synonymised to the correct spelling. But this is a judgement call and the subject of loads of work Mark has to do talking to people. It doesn’t affect the rule because, by definition, they have different name parts. (We could add a “spelling error” nomenclatural status but I’m reluctant to do that – a separate discussion).
+3.	Aus bus Koch ex Koch implies we could also have Aus bus Koch as the root name but this doesn’t affect the rule. We could have two Name Records one with Koch (nom nud?) and one with Koch ex Koch and synonymise them. If someone searches for Aus bus Koch they would get it as a synonym of Aus bus Koch ex Koch if they didn’t just go straight to the original because Aus bus Koch is an accepted name. I see no issues.
+4.	Author publishes same name with same type in multiple places - typically in a paper and in a flora account – maybe in same year.
+a.	The flora account will typically have different authors and therefore a different authors string so it can have a different record and be synonymised.
+b.	If the paper and flora account have exactly the same author and it is imperative to have two records then the superfluous record can be bastardised with and “in Flora Bulgaria” to differentiate it. (I struggle a bit with why we would want to include two records here. If the second publication of a name isn’t a nomenclatural act but merely a use of the name that people mistakenly believe was the initial publication then we aren’t talking about two names at all but a correction of the place of publication of one name. We wouldn’t track all errors in places of publication with new records! If it is a nomenclatural act then we would have an “ex” in the author string and so the rule applies and the earlier name would not be valid. See Koch ex Kock.)
+ 
 
 ## Taxonomic status of Names
 
@@ -191,5 +248,64 @@ A user can be assigned as the curator of a taxon and this gives them rights to e
 If a user has the rights to edit a taxon they can also assign another user to be the curator of that taxon. If a user is made the curator of a family (so they can edit that family and everything it contains) they can assign a colleague to work on a genus within the family by making them the curator of that genus. Taxa have multiple editors so when a genus is assigned to a colleague the original user doesn't lose control of it. Both users can work on the genus together. Taxa can also have multiple curators so a team of user could work on a whole family if that were desired.
 
 Unplaced names are not controlled by this authorization mechanism. An unplaced name can be edited by any user who is an editor of a taxon (any taxon) but once that name is placed within the taxonomic hierarchy it is controlled by the editors of the associated taxa and becomes "locked" into the consensus taxonomy.
+
+## References
+
+The scope of Rhakhis is nomenclature and taxonomy. We are working to make it as complete and authoritative as possible. Progress would be slower if we also tried build a system for managing ancillary data and, for example, incorporated a full citation manager or specimen catalogue. Those functions are better performed by other systems elsewhere on the internet. Certain classes of data are therefore handled by _References_ to other systems. These can be presented as decorated links in user interfaces and documents or can be explored by software agents.
+
+A Reference in Rhakhis consists of the following fields:
+
+1. __URI__ - A unique HTTP(s) web reference to another system on the internet. This includes DOIs in there HTTP form.
+1. __Label__ - The display text to present to the user. For a book this might be a human readable version of the citation.
+1. __Kind__ - The type of reference the URI points to. This can be one of: Person, Literature, Specimen or Database.
+1. __Image URI (optional)__ - A link to a thumbnail image that may be useful to decorate the link. e.g. A low resolution image of the specimen, portrait of the person or the title page of a PDF.
+
+References are normalized, there can be only one instance of a reference with its unique URI within Rhakhis. Multiple names can link to each reference.
+
+Names are associated with References through name_references. These allow the relationship to have two properties:
+
+1. __Comment__ - An explanation of how the reference applies specifically to this name. It could be something like "Holotype specimen" or "Only known mention of name" or "Author based on abbreviation in the authors string."
+1. __Placement Related__ - A flag so indicate this reference is concerned with the taxonomic placement of the name rather than the nomenclatural status of the name. In the current interface reference links with this flag are presented in a yellow box called "Taxonomic Sources". Reference links without this flag appear in the gray box entitled "Nomenclatural References".
+
+### What if I don't have a URI for my reference?
+
+#### Database
+
+If the database isn't available online then we can't link to it. If you have a heritage database that is unlikely to be made available online but can be stored in an archival way (e.g. CSV files not Microsoft Access) then you could consider submitting it to [Zenodo](https://zenodo.org/) for safe keeping. This will create a DOI for the dataset that you can then use as the link.
+
+#### Literature
+
+It is common to have a list of literature references with no URIs. Typically this is because they don't have DOIs because they are too old to have been given one. There are different approaches you could take:
+
+1. If the publication is in the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) you can link to it there. This can either be done using the BHL link or a DOI they have minted for their publications. There is a [BHL working group](https://blog.biodiversitylibrary.org/2021/05/persistent-identifier-working-group.html) on this.
+1. Check if the treatment is in [Plazi TreatmentBank](https://plazi.org/treatmentbank/) and engage with them in getting literature submitted if possible. 
+1. Link to an entry in [WikiData](https://www.wikidata.org/) for the article or book. If one doesn't exist you can create it. Put the page information in the name_reference comment if that is appropriate, e.g. the page in a book so you don't have to create a WikiData entry for every page.
+1. If you can't or don't want to create article level entries in [WikiData](https://www.wikidata.org/) you can link to the publication (e.g. The book or journal) entry and include the details of the volume, page and article title in the name_reference comment.
+
+We will work to come up with more detailed guidance on creating links to literature in the future.
+
+#### Person
+
+If the person is alive then you should use their [ORCID](https://orcid.org/) as the link. If they don't have one you could ask them to register. If they don't want to register then you can't link to them. As a human they have a right not to be involved.
+
+If the person is historical (a.k.a. dead) then you can link to them in [WikiData](https://www.wikidata.org/), creating an entry if need be. Don't try and solve the problem of no ORCID by moving someone from the alive to historical. That wouldn't be ethical.
+
+#### Specimens
+
+We only provide the ability to cite specimens if they are available online as an entry in a catalogue or image. If you have an image of the specimen and it is unlikely to be put online by the holding institution then you might consider uploading it to [Zenodo](https://zenodo.org/) where it will be given a DOI that you can cite. If you only have text you can add it to the comments on the name.
+
+### Taxonomic Sources
+
+Each branch of the taxonomy within Rhakhis is supported by some external source. We therefore aim to have a Reference in the Taxonomic Source section for each accepted name that links to the authority we use to assert that taxon exists and has those synonyms. Ideally this will be a single database reference and/or a single literature reference although this isn't currently enforced by the system. An analogy is the linking to external sources for statements of fact in Wikipedia. Sometimes this Reference may be at a higher level within the taxonomy than the current taxon e.g. a single Taxonomic Source for a whole genus or family.
+
+### Nomenclatural References
+
+All names should have nomenclatural references. Eventually they will all have links to the original place of publication but it is appropriate to include any reference here that would be useful for someone researching the nomenclatural aspects of this name. These might include links to the authors and type specimens or nomenclatural databases (e.g. [IPNI](https://www.ipni.org/)) that contain such information. It would be inappropriate to have links here to simple occurrences of the name such as in a flora or occurrence database like [GBIF](https://www.gbif.org/) unless these were the only known source of the name and would be useful to figure out the place of publication etc. 
+
+
+
+
+
+
 
 
