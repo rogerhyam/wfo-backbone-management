@@ -176,7 +176,7 @@
                                 echo "<p>Homonyms exist:</p>";
                                 foreach ($matches['homonyms'] as $homo) {
                                     echo '<p style="padding-left: 2em">';
-                                    render_name_set_link($homo, $table, $row['rowid'], $page);
+                                    render_name_set_link($homo['id'], $row['rhakhis_pk'], 'rhakhis_wfo');
                                     echo "</p>";
                                 }
                             }

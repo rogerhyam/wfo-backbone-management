@@ -21,7 +21,7 @@
 
     echo "<strong>Root Taxa:</strong> ";
 
-    if(count($roots)/$matched_rows_count > 0.8){
+    if(!$matched_rows_count || count($roots)/$matched_rows_count > 0.8){
         echo "<p>Greater than 80% of matched names are potential root taxa! Have you done the internal mapping stage? Stopping here.</p>";
         exit;
     }
