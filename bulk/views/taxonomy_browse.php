@@ -24,6 +24,7 @@
         exit;
     }
 
+    // FIXME - BUILD THE PATHS IF THEY NEED IT
 
     echo "<hr/>";
 
@@ -84,6 +85,7 @@
                     foreach($children as $kid){
                         echo "<li>";
                         render_label($kid);
+                        render_differences($kid);
                         echo "</li>";
                     }
                     echo "</ul>";
@@ -163,12 +165,17 @@
                 echo  "<a target=\"rhakhis\" href=\"$link_url\">{$rhakhis_taxon->getFullNameString()}</a>";
 
             }
-            
-        
  
           }
-
           
+    }
+
+    function render_differences($taxon_row){
+        echo "<pre>";
+        print_r($taxon_row);
+        echo "</pre>";
+        echo " * {$taxon_row['rhakhis_t_path']}";
+
     }
 
     function get_ancestors($taxon_row, &$ancestors, $table){

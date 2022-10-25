@@ -1279,6 +1279,134 @@ class Taxon extends WfoDbObject{
         return null;
     }
 
+    /**
+     * Return the path for a name
+     * 
+     */
+    public static function getPath($name){
+
+        // is this name placed 
+        $taxon = Taxon::getTaxonForName($name);
+        if($taxon->getId()){
+
+            // it is placed in the taxonomy so we need to
+            // build a proper path
+            $parts = array();
+            $ancestors = array_reverse($taxon->getAncestors());
+            foreach ($ancestors as $anc) {
+                $parts[] = $anc->getAcceptedName()->getPrescribedWfoId();
+            }
+
+            $path =  "/" . implode('/', $parts) . "/" . $taxon->getAcceptedName()->getPrescribedWfoId();
+
+            if($taxon->getAcceptedName() != $name){
+                // the name is a synonym so it is on the end of the taxon path 
+                // with a dollar
+                $path .= $path . "$" . $name->getPrescribedWfoId();
+            }
+
+            return $path;
+
+        }else{
+            // it is unplaced so has no path but itself!
+            return $name->getPrescribedWfoId();
+        }
+
+    }
+
+    /**
+     * Return the paths of all the descendants
+     * of the  without loading all the 
+     * taxon and name objects for efficiency
+     * @param name is the 
+     * @param absolute will include path from root of tree
+     */
+    public static function getDescendantPaths($name, $absolute = false){
+
+        $paths = array();
+
+        $taxon = Taxon::getTaxonForName($name);
+        if($taxon->getId()){
+            if($taxon->getAcceptedName() == $name){
+
+                // we might have children so start work
+                if($absolute) $current_path = Taxon::getPath($name);
+                else $current_path = '';
+
+                $wfo = $name->getPrescribedWfoId();
+
+                // recursively build the paths
+                Taxon::add_paths_elements($wfo, $current_path, $paths);
+
+            }
+        }
+
+        return $paths;
+
+    }
+
+    private static function add_paths_elements($wfo, $current_path, &$paths){
+
+        global $mysqli;
+
+        // get all the taxa below the taxon with this wfo
+        // and all the names associated with them.
+        $sql = "SELECT 
+            i.`value` as 'wfo', tn.name_id, atn.name_id as accepted_name_id,  atn.name_id = tn.name_id as 'accepted'
+            FROM 
+            taxon_names as tn 
+            join identifiers as i on i.name_id = tn.name_id
+            join taxa as t on tn.taxon_id = t.id
+            join taxon_names as atn on t.taxon_name_id = atn.id
+            WHERE i.kind = 'wfo'
+            AND t.parent_id in 
+            (
+                SELECT t.id FROM 
+                taxon_names as tn join identifiers as i on i.name_id = tn.name_id
+                join taxa as t on tn.taxon_id = t.id
+                WHERE i.kind = 'wfo'
+                AND i.`value` = '$wfo'
+            )
+            order by accepted_name_id, accepted desc";
+                
+        $response = $mysqli->query($sql);
+        if($response->num_rows > 0){
+
+            $current_path_accepted = $current_path;
+            while($row = $response->fetch_assoc()){
+
+                // accepted names will come before any synonyms
+
+                if($row['accepted']){
+
+                    $current_path_accepted = $current_path;
+                    $current_path_accepted .= $current_path ? "/": "";
+                    $current_path_accepted .= $row['wfo'];
+                    $paths[$row['wfo']] = $current_path_accepted;
+   
+                    // we might have children so aren't the end of a path      
+                    //if($current_path && substr($current_path, -1) != "/") $current_path .= "/";
+                  
+                    Taxon::add_paths_elements($row['wfo'], $current_path, $paths);
+                }else{
+                    // it is a synonym so has to be the end of the path
+                    //if($current_path && substr($current_path, -1) != "/") $current_path .= "/";
+                    // finally add it
+                    $paths[$row['wfo']]= $current_path_accepted . "$" . $row['wfo'];
+                }
+
+            }
+
+        }else{
+            // no children so this is the end of the line
+            // but it might also have synonyms
+            if($current_path) $current_path .= "/";
+            $paths[$wfo] =  $current_path . $wfo;
+        }
+
+    } // add_path_element
+
+
     public function isRoot(){
         return $this->parent == $this;
     }

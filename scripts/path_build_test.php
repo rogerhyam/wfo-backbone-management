@@ -1,20 +1,34 @@
 <?php
 
-
-
 // test to see how fast we can build a set of paths
 // and how much memory they use.
 
 require_once('../config.php');
+require_once('../include/WfoDbObject.php');
+require_once('../include/Name.php');
+require_once('../include/Taxon.php');
 
-$root_wfo = 'wfo-7000000323';
+$root_wfo = 'wfo-4000004150';
 
+$name = Name::getName($root_wfo);
+
+$path = Taxon::getPath($name);
+echo $path;
+echo "\n";
+
+$paths = Taxon::getDescendantPaths($name, true);
+
+print_r($paths);
+echo(count($paths));
+echo "\n";
+
+
+/*
 $paths = array();
-
 add_name($root_wfo, $root_wfo, $paths);
 echo convert(memory_get_usage(true));
 print_r($paths);
-
+*/
 
 function add_name($wfo, $current_path, &$paths){
 
@@ -44,10 +58,10 @@ function add_name($wfo, $current_path, &$paths){
 
             if($row['accepted']){
                 // we have children so aren't the end of a path
-                add_name($row['wfo'], $current_path . ">" . $wfo, $paths);
+                add_name($row['wfo'], $current_path . "/" . $wfo, $paths);
             }else{
                 // it is a synonym so has to be the end of the path
-                $paths[$row['wfo']]['rhakhis'] = $current_path . ":" . $row['wfo'];
+                $paths[$row['wfo']]['rhakhis'] = $current_path . "$" . $row['wfo'];
             }
         }
 
