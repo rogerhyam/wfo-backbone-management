@@ -36,7 +36,8 @@
     if(count($repeats)){
         echo "<tr><th style=\"text-align: center;\" colspan=\"2\">Repeating rhakhis_wfo values</th></tr>";
         foreach($repeats as $repeat){
-            echo "<tr><th style=\"text-align: right;\">{$repeat['rhakhis_wfo']}</th><td>{$repeat['n']}</td></tr>";
+            $val = $repeat['rhakhis_wfo'] === null ? 'null' : $repeat['rhakhis_wfo'];
+            echo "<tr><th style=\"text-align: right;\">$val</th><td>{$repeat['n']}</td></tr>";
         }
     }else{
         echo "<tr><th style=\"text-align: right;\">Repeat&nbsp;rhakhis_wfo&nbsp;values</th><td>0</td></tr>";

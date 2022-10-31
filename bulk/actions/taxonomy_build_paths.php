@@ -1,5 +1,13 @@
 <?php
 
+/*
+
+ALTER TABLE `rhakhis_bulk`.`sphaerosepalaceae` 
+ADD COLUMN `rhakhis_r_path` VARCHAR(1000) NULL AFTER `rhakhis_basionym`,
+ADD COLUMN `rhakhis_t_path` VARCHAR(1000) NULL AFTER `rhakhis_r_path`;
+
+*/
+
 // build the paths for this table
 $table = @$_SESSION['selected_table'];
 
@@ -52,30 +60,31 @@ echo "<p>Done</p>";
  function table_add_name($wfo, $current_path, &$paths, $table){
 
     global $mysqli;
-    
-    // select the children of the root
-    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` where rhakhis_parent = '$wfo' || rhakhis_accepted = '$wfo'";
+
+    // we append a / to the path if we aren't at the beginning
+    if($current_path && substr($current_path, -1) != "/") $current_path .= "/";
+
+    // every name has a path
+    $paths[$wfo] = $current_path . $wfo; 
+
+    // if the name has synonyms we add those
+    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` where rhakhis_accepted = '$wfo'";
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
-    if($rows){
+    foreach($rows as $row){
+        $syn_wfo = $row['rhakhis_wfo'];
+        $paths[$syn_wfo] = $current_path . '$' . $syn_wfo; 
+    }
 
-        foreach($rows as $row){
-            if($row['rhakhis_parent']){
-                // we have a parent so are a taxon child
-                if($current_path && substr($current_path, -1) != "/") $current_path .= "/";
-                table_add_name($row['rhakhis_wfo'], $current_path . $wfo, $paths, $table);
-            }else{
-                // we don't have a parent so must be a synonym
-                $paths[$row['rhakhis_wfo']] = $current_path . "$" . $row['rhakhis_wfo'];
-            }
-        }
-
-    }else{
-        // no children so this is the end of the line
-        // can't be a synonym because we aren't called for those
-        if($current_path) $current_path .= "/"; // spacer if we are not at root
-        $paths[$wfo]     = $current_path . $wfo;
+    // if the name has children we create rows for them
+    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` where rhakhis_parent = '$wfo'";
+    $response = $mysqli->query($sql);
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    $response->close();
+    foreach($rows as $row){
+        $child_wfo = $row['rhakhis_wfo'];
+        table_add_name($child_wfo, $current_path . $wfo, $paths, $table);
     }
 
 }

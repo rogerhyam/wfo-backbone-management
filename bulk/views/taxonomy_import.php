@@ -34,7 +34,7 @@
 ?>
 
 <form action="index.php" method="GET">
-    <input type="hidden" name="action" value="taxonomy_import" />
+    <input type="hidden" name="action" value="taxonomy_import_incremental" />
     <input type="hidden" name="table" value="<?php echo $table ?>" />
     <input type="hidden" name="root_taxon_wfo" value="<?php echo $_GET['root_taxon_wfo'] ?>" />
 
@@ -44,23 +44,45 @@
     </tr>
     <tr>
         <th style="text-align: right">Root taxon is: <?php echo $name->getFullNameString(); ?></th>
-        <td><input type="checkbox" id="root_taxon" onchange="enable_submit()"/></td>
+        <td style="text-align: center"><input type="checkbox" id="root_taxon" onchange="enable_submit()"/></td>
     </tr>
     <tr>
+        <th style="text-align: right" >Boundary taxon: </th>
+        <td>
+        <select name="boundary_taxon_wfo">
+<?php
+
+        $taxon = Taxon::getTaxonForName($name); // must be accepted name from how we got here
+        $ancestors = $taxon->getAncestors();
+        array_unshift($ancestors, $taxon);
+        foreach($ancestors as $anc){
+            $fns = strip_tags($anc->getAcceptedName()->getFullNameString());
+            $anc_wfo = $anc->getAcceptedName()->getPrescribedWfoId();
+            echo "<option value=\"$anc_wfo\">$anc_wfo: $fns</option>";
+        }
+
+?>
+        </select>
+
+    </td>
+
+    </tr>
+
+    <tr>
         <th style="text-align: right">Impact report has been generated:</th>
-        <td><input type="checkbox" id="impact_report" onchange="enable_submit()"/></td>
+        <td style="text-align: center"><input type="checkbox" id="impact_report" onchange="enable_submit()"/></td>
     </tr>
     <tr>
         <th style="text-align: right">No serious errors in impact report:</th>
-        <td><input type="checkbox" id="impact_errors" onchange="enable_submit()" /></td>
+        <td style="text-align: center"><input type="checkbox" id="impact_errors" onchange="enable_submit()" /></td>
     </tr>
     <tr>
         <th style="text-align: right">Table has not changed since impact report:</th>
-        <td><input type="checkbox" id="no_changes" onchange="enable_submit()" /></td>
+        <td style="text-align: center"><input type="checkbox" id="no_changes" onchange="enable_submit()" /></td>
     </tr>
     <tr>
         <th style="text-align: right">I really want to do this:</th>
-        <td><input type="checkbox" id="do_it"  onchange="enable_submit()" /></td>
+        <td style="text-align: center"><input type="checkbox" id="do_it"  onchange="enable_submit()" /></td>
     </tr>
     <tr>
         <td style="text-align: right" colspan="2"><input type="submit" id="import_submit" value="Import Taxonomy" disabled="true" /></td>

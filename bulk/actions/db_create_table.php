@@ -27,7 +27,7 @@ foreach($header_row as $col_name){
     else $sql .= ',';
 
     // if any of these column names are recognised as ours
-    // we set their type appropriatedly if not they get TEXT NULL
+    // we set their type appropriately if not they get TEXT NULL
     switch ($col_name) {
         case 'rhakhis_pk':
             $sql .= "\n\t`rhakhis_pk` int NOT NULL AUTO_INCREMENT";
@@ -71,6 +71,12 @@ if(!in_array('rhakhis_accepted', $header_row)) $sql .= ",\n\t`rhakhis_accepted` 
 if(!in_array('rhakhis_basionym', $header_row)) $sql .= ",\n\t`rhakhis_basionym` VARCHAR(15) NULL";
 
 $sql .= ",\n\tPRIMARY KEY (`rhakhis_pk`)";
+
+// we have indexes on the other rhakhis fields
+$sql .= ",\n\tINDEX `wfo` USING BTREE (`rhakhis_wfo`)";
+$sql .= ",\n\tINDEX `parent` USING BTREE (`rhakhis_parent`)";
+$sql .= ",\n\tINDEX `accepted` USING BTREE (`rhakhis_accepted`)";
+$sql .= ",\n\tINDEX `basionym` USING BTREE (`rhakhis_basionym`)";
 
 $sql .= "\n)";
 

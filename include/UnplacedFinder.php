@@ -77,7 +77,6 @@ class UnplacedFinder{
         if($this->totalUnplacedNames > 0){
             $sql = "SELECT n.id as id " . $sql . " ORDER BY name_alpha LIMIT " . preg_replace('/[^0-9]/', '', $this->limit) . " OFFSET " . preg_replace('/[^0-9]/', '', $this->offset);
             $response = $mysqli->query($sql);
-//            error_log($sql);
             while ($row = $response->fetch_assoc()) {
                 $this->unplacedNames[] = Name::getName($row['id']);
             }

@@ -1134,7 +1134,7 @@ class Taxon extends WfoDbObject{
             if($mysqli->affected_rows == 1){
                 return $mysqli->insert_id;
             }else{
-                throw new ErrorException("Failed to create taxon_names row for taxon_id {$this->id} and name_id {$name->getId()}");
+                throw new ErrorException("Failed to create taxon_names row for taxon_id {$this->id} and name_id {$name->getId()}. {$mysqli->error}");
                 return false;
             }
 
@@ -1187,6 +1187,11 @@ class Taxon extends WfoDbObject{
         // when we are adding and removing kids it causes havoc
         // this call is quite cheap and objects may already be loaded.
         $this->children = array();
+
+        // we don't have children if we have never been saved.
+        if(!$this->getId()) return $this->children;
+
+        // load children based on our id
         $sql = "SELECT t.id FROM taxa as t
             join `taxon_names` as tn on t.`taxon_name_id` = tn.id
             join `names` as n on n.id = tn.`name_id`
@@ -1215,7 +1220,7 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
-        $sql = "SELECT count(*) as n FROM taxa WHERE `parent_id` = {$this->id} AND t.`id` != {$this->id}";
+        $sql = "SELECT count(*) as n FROM taxa as t WHERE `parent_id` = {$this->id} AND t.`id` != {$this->id}";
         $result = $mysqli->query($sql); 
         $rows = $result->fetch_all(MYSQLI_ASSOC);
         $result->close();
@@ -1387,7 +1392,7 @@ class Taxon extends WfoDbObject{
                     // we might have children so aren't the end of a path      
                     //if($current_path && substr($current_path, -1) != "/") $current_path .= "/";
                   
-                    Taxon::add_paths_elements($row['wfo'], $current_path, $paths);
+                    Taxon::add_paths_elements($row['wfo'], $current_path_accepted, $paths);
                 }else{
                     // it is a synonym so has to be the end of the path
                     //if($current_path && substr($current_path, -1) != "/") $current_path .= "/";
@@ -1400,8 +1405,9 @@ class Taxon extends WfoDbObject{
         }else{
             // no children so this is the end of the line
             // but it might also have synonyms
-            if($current_path) $current_path .= "/";
-            $paths[$wfo] =  $current_path . $wfo;
+            //if($current_path) $current_path .= "/";
+            //$paths[$wfo] =  $current_path . $wfo;
+            $paths[$wfo] =  $current_path;
         }
 
     } // add_path_element
