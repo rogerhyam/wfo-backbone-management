@@ -45,5 +45,6 @@ start=$(date +"%H:%M:%S")
 echo "This may take a while. Starting at $start"
 gunzip < $filename | mysql $databasename
 end=$(date +"%H:%M:%S")
-echo "Finished at $start"
+stop=$(date +"%H:%M:%S")
+echo "Finished at $stop"
 echo "All done!"

@@ -265,6 +265,11 @@ class Taxon extends WfoDbObject{
     }
 
     public function setParent($parent){
+
+        if($this->getId() == $parent->getId()){
+            throw new ErrorException("A taxon can't have itself set as a parent. We only have one root! Parent id: {$parent->getId()}.");
+            return;
+        }
         $this->getAcceptedName()->updateChangeLog("Child of: " . $parent->getAcceptedName()->getPrescribedWfoId());
         $this->parent = $parent;
     }
@@ -1130,11 +1135,12 @@ class Taxon extends WfoDbObject{
         if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->getId()}.");
         if($result->num_rows == 0){
             // the name is not assigned to any taxon we can go ahead and create the row
-            $result = $mysqli->query("INSERT INTO taxon_names (taxon_id, name_id) VALUES ({$this->id}, {$name->getId()})");
+            $sql = "INSERT INTO taxon_names (taxon_id, name_id) VALUES ({$this->id}, {$name->getId()})";
+            $result = $mysqli->query($sql);
             if($mysqli->affected_rows == 1){
                 return $mysqli->insert_id;
             }else{
-                throw new ErrorException("Failed to create taxon_names row for taxon_id {$this->id} and name_id {$name->getId()}. {$mysqli->error}");
+                throw new ErrorException("Failed to create taxon_names row for taxon_id {$this->id} and name_id {$name->getId()}. {$mysqli->error} . $sql");
                 return false;
             }
 
@@ -1360,14 +1366,17 @@ class Taxon extends WfoDbObject{
             i.`value` as 'wfo', tn.name_id, atn.name_id as accepted_name_id,  atn.name_id = tn.name_id as 'accepted'
             FROM 
             taxon_names as tn 
-            join identifiers as i on i.name_id = tn.name_id
+            join `names` as n on tn.name_id = n.id 
+            join identifiers as i on n.prescribed_id = i.id
             join taxa as t on tn.taxon_id = t.id
             join taxon_names as atn on t.taxon_name_id = atn.id
             WHERE i.kind = 'wfo'
             AND t.parent_id in 
             (
                 SELECT t.id FROM 
-                taxon_names as tn join identifiers as i on i.name_id = tn.name_id
+                taxon_names as tn 
+                join `names` as n on tn.name_id = n.id 
+				join identifiers as i on n.prescribed_id = i.id
                 join taxa as t on tn.taxon_id = t.id
                 WHERE i.kind = 'wfo'
                 AND i.`value` = '$wfo'
@@ -1378,6 +1387,7 @@ class Taxon extends WfoDbObject{
         if($response->num_rows > 0){
 
             $current_path_accepted = $current_path;
+            $last_name_id = null; // names may occur multiple times
             while($row = $response->fetch_assoc()){
 
                 // accepted names will come before any synonyms

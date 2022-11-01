@@ -19,7 +19,7 @@
     
     It may take some time to run if it is a big group.</p>
 
-    <p>The results will be written to a file called <strong><?php echo $table ?>_impact.csv</strong> under the files tab from where you can download/delete it.</p>
+    <p>The results will be written to a file called <strong><?php echo "{$name->getNameString()}_{$_GET['root_taxon_wfo']}_impact.csv" ?></strong> under the files tab from where you can download/delete it.</p>
 
     <p>The boundary taxon specifies where names can be moved from. Typically this will be the root but it could be above the root if, for example, a genus is being imported and it is OK to move taxa 
         from anywhere within the family</p>

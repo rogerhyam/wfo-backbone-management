@@ -1,15 +1,25 @@
 <?php
 
-/*
-
-ALTER TABLE `rhakhis_bulk`.`sphaerosepalaceae` 
-ADD COLUMN `rhakhis_r_path` VARCHAR(1000) NULL AFTER `rhakhis_basionym`,
-ADD COLUMN `rhakhis_t_path` VARCHAR(1000) NULL AFTER `rhakhis_r_path`;
-
-*/
 
 // build the paths for this table
 $table = @$_SESSION['selected_table'];
+
+// alter the table to add the paths columns if they don't exist.
+$response = $mysqli->query("SHOW COLUMNS FROM `rhakhis_bulk`.`$table` LIKE 'rhakhis_t_path'");
+if($response->num_rows == 0){
+
+    $mysqli->query("ALTER TABLE `rhakhis_bulk`.`$table` 
+        ADD COLUMN `rhakhis_r_path` VARCHAR(1000) NULL AFTER `rhakhis_basionym`,
+        ADD COLUMN `rhakhis_t_path` VARCHAR(1000) NULL AFTER `rhakhis_r_path`,
+        ADD INDEX `r_path` (`rhakhis_r_path`(100)),
+        ADD INDEX `t_path` (`rhakhis_t_path`(100));");
+
+    if($mysqli->error){
+        echo $mysqli->error;
+        exit;
+    }
+
+}
 
 // get a list of the root taxa
 $response = $mysqli->query("SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_parent` IS NULL AND `rhakhis_accepted` IS NULL AND `rhakhis_wfo` IS NOT NULL");
@@ -42,12 +52,7 @@ foreach($roots as $root){
 
 }
 
-echo "<pre>";
-print_r($paths);
-echo "</pre>";
-
 echo "<p>Done</p>";
-
 
 
 /**

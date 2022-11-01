@@ -34,7 +34,7 @@
 ?>
 
 <form action="index.php" method="GET">
-    <input type="hidden" name="action" value="taxonomy_import_incremental" />
+    <input type="hidden" name="action" value="taxonomy_import_wave" />
     <input type="hidden" name="table" value="<?php echo $table ?>" />
     <input type="hidden" name="root_taxon_wfo" value="<?php echo $_GET['root_taxon_wfo'] ?>" />
 

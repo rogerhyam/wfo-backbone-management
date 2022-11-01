@@ -40,6 +40,7 @@ if(@$_GET['root_taxon_wfo']){
         crawl_table_tree($_SESSION['import_root']);
 
         echo "<p>Import is completed. The taxonomies should be in sync.</p>";
+        echo "<p><a href=\"index.php?action=view&phase=taxonomy\">Back to taxonomy pages.</a></p>";
 
         foreach ($_SESSION['import_incremental_warnings'] as $warning) {
             echo "<p>$warning</p>\n";
@@ -157,6 +158,8 @@ function process_name($name){
 
     global $mysqli;
     global $ranks_table;
+
+    error_log($name->getPrescribedWfoId());
     
     // if we have finished processing a name we never do it again
     if(in_array($name->getPrescribedWfoId(), $_SESSION['import_incremental_track'])){
@@ -287,7 +290,9 @@ function process_name($name){
                             $taxon->delete();
                             $accepted_taxon->addSynonym($name);
                         }else{
+
                             process_name($accepted_name);
+                            
                             $accepted_taxon = Taxon::getTaxonForName($accepted_name);
                             
                             $taxon->prune();
