@@ -72,7 +72,7 @@
             <li><strong>raised: </strong> A synonym becomes the name of an accepted taxon.</li>
             <li><strong>removed: </strong> A name that was placed as a synonym or accepted name becomes unplaced.</li>
             <li><strong>placed: </strong> A name that was unplaced in the Rhakhis taxonomy is placed within the new taxonomy.</li>
-            <li><strong>missing: </strong> A name that occurs in Rhakhis (either placed in the taxonomy or detected as unplaced but likely within bounds) does not occur in the data table. It will become unplaced.</li>
+            <li><strong>missing: </strong> A name that occurs in Rhakhis (either placed in the taxonomy or detected as unplaced but likely within bounds) does not occur in the data table. It will not be changed during import.</li>
             <li><strong>root: </strong> Turning and turning in the widening gyre. The falcon cannot hear the falconer; Things fall apart; the centre cannot hold; Mere anarchy is loosed upon the world. This is the root taxon it can not change! (It's from a very famous Yeats poem).</li>
         </ul>
     </li>

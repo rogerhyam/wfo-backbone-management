@@ -10,7 +10,6 @@ if(!$offset) $offset = 0;
 
 $table = $_GET['table'];
 $root_wfo = $_GET['root_taxon_wfo'];
-$boundary_wfo = $_GET['boundary_taxon_wfo'];
 
 $page_size = 1000;
 
@@ -44,9 +43,11 @@ $sql = "SELECT *
 $response = $mysqli->query($sql);
 
 echo "<h3>Import Taxonomy - Wave Strategy</h3>";
-echo "<pre>";
-print_r($_SESSION['import_wave_stats']);
-echo "</pre>";
+
+echo "<p><strong>Differences: </strong> {$_SESSION['import_wave_stats']['differences']} </p>";
+echo "<p><strong>Processed: </strong> {$_SESSION['import_wave_stats']['processed']} </p>";
+echo "<p><strong>Changed: </strong> {$_SESSION['import_wave_stats']['changed']} </p>";
+
 
 echo "<p>Postponed: ".count($_SESSION['import_wave_postponed'])."</p>";
 
@@ -60,29 +61,28 @@ if($response->num_rows > 0){
 
     // call for the next page
     $next_offset = $offset + $page_size;
-    $uri = "index.php?action=taxonomy_import_wave&table=$table&root_taxon_wfo=$root_wfo&boundary_taxon_wfo=$boundary_wfo&offset=$next_offset";
+    $uri = "index.php?action=taxonomy_import_wave&table=$table&root_taxon_wfo=$root_wfo&offset=$next_offset";
     echo "<script>window.location = \"$uri\"</script>";
 
 }else{
 
     // we have finished
+    echo "<p>We have finished this wave.</p>";
     
-   
-
     if($_SESSION['import_wave_stats']['changed'] > 0){
-        echo "<p>We have finished this wave.</p>";
+        
         echo "<p>Keep doing waves until there are no more changes made.</p>";
         echo '<p><form method="GET" action="index.php">';
         echo '<input type="hidden" name="action" value="taxonomy_import_wave" />';
         echo "<input type=\"hidden\" name=\"table\" value=\"$table\" />";
         echo "<input type=\"hidden\" name=\"root_taxon_wfo\" value=\"$root_wfo\" />";
-        echo "<input type=\"hidden\" name=\"boundary_taxon_wfo\" value=\"$boundary_wfo\" />";
-        echo "<input type=\"submit\" value=\"Next Wave\" />";
+        echo "<input type=\"submit\" value=\"Next Wave\" onclick=\"this.disabled = true; this.form.submit(); \" />";
         echo '</form></p>';
     }else{
         echo "<p>It looks like there are no more changes. If you are happy with the postponed names then you should run the Impact Report again to see how the new state of Rhakhis compares to the data table.</p>";
-        echo "<p><a href=\"index.php?action=view&phase=taxonomy&task=taxonomy_impact&root_taxon_wfo=$root_wfo\">Go to Impact Report page.</a></p>";
     }
+
+    echo "<p><a href=\"index.php?action=view&phase=taxonomy&task=taxonomy_impact&root_taxon_wfo=$root_wfo\">Go to Impact Report page.</a></p>";
 
     if(count($_SESSION['import_wave_postponed']) < 2000){
         echo "<h3>Postponed Names</h3>";
@@ -100,7 +100,7 @@ function process_row($row, $table){
 
     global $ranks_table;
 
-    error_log($row['rhakhis_wfo']);
+    //error_log($row['rhakhis_wfo']);
     $_SESSION['import_wave_stats']['processed']++;
     
     // OK let's do this!

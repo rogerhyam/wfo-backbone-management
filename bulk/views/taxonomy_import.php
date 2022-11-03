@@ -4,22 +4,17 @@
 
 <p style="color: red;">Definitely changes data in Rhakhis!</p>
 
-<p>This tool has the following effects:</p>
+<p>This tool uses the "wave" approach to synchronizing the taxonomic trees, it will:</p>
 <ol>
-    <li>It will remove everything below the root taxon from the taxonomy in Rhakhis. This includes all the descendants and their synonyms and but not the synonyms of the root taxon.</li>
-    <li>It will work through the taxonomy in the data table, <strong><?php echo $table ?></strong>, from the root taxon and add back in the taxa and synonyms as specified in the table.</li>
-    <li>Before each taxon is added the nomenclatural status and rank will be set in the associated name (if specified in <strong><?php echo $table ?></strong>).
-        <ul>
-            <li>If either the rank or the status are not compatible with the placement of the name in the taxonomy errors may be thrown and import stop.</li>
-            <li>There should be no surprises as any clashes in rank/status will have been given in the Impact Report.</li>
-        </ul>
-    </li>
-    <li>Basionym links are also established here even though they are strictly a nomenclatural construct.
-        <ul>
-            <li>If a name row in the data table has a rhakhis_basionym set then that name will be added as the basionym to the current name.</li>
-            <li>This process is additive. If no basionym is specified in the data table but one is present in Rhakhis then the one in Rhakhis will not be removed. This must be done manually.</li>
-        </ul>
-    </li>
+    <li>Generate a string representation of the path in Rhakhis for each name in the table and store it in rhakhis_r_path. </li>
+    <li>Generate a string representation of the path in the table for each name in the table and store it in rhakhis_t_path. </li>
+    <li>Select only the rows in the table where the rhakhis_t_path and rhakhis_r_path differ and sort them by longest to shortest.</li>
+    <li>Work through the rows that differ.  If a change can be made in Rhakhis it will make it. If there is something blocking the move (e.g. an accepted name of a synonym isn't accepted yet) it will continue to the next path without doing anything.</li>
+    <li>When it reaches the end of the list of differences it will stop, print out the number of changes and ask if you want to repeat the process - a second wave.</li>
+    <li>This can be repeated until no further changes can be made.</li>
+    <li>The number of waves will depend on the complexity of changes that are needed not the size of the data.</li>
+    <li>Generating the paths in the first two steps can be time consuming if the data is large. Be patient after initiating a wave.</li>
+    <li style="color: red;">Currently no bounding checks are made! The impact report will have said if any taxa are out of bounds. This tool will move taxa regardless. You did run the impact report didn't you!</li>
 </ol>
 
 <?php
@@ -46,6 +41,7 @@
         <th style="text-align: right">Root taxon is: <?php echo $name->getFullNameString(); ?></th>
         <td style="text-align: center"><input type="checkbox" id="root_taxon" onchange="enable_submit()"/></td>
     </tr>
+<!--
     <tr>
         <th style="text-align: right" >Boundary taxon: </th>
         <td>
@@ -67,6 +63,7 @@
     </td>
 
     </tr>
+    -->
 
     <tr>
         <th style="text-align: right">Impact report has been generated:</th>
@@ -85,7 +82,7 @@
         <td style="text-align: center"><input type="checkbox" id="do_it"  onchange="enable_submit()" /></td>
     </tr>
     <tr>
-        <td style="text-align: right" colspan="2"><input type="submit" id="import_submit" value="Import Taxonomy" disabled="true" /></td>
+        <td style="text-align: right" colspan="2"><input type="submit" id="import_submit" value="Import Taxonomy" disabled="true" onclick="this.disabled = true; this.form.submit(); "/></td>
     </tr>
 </table>
 

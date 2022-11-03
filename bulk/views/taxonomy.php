@@ -31,6 +31,8 @@
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_hybrids">Hybrids</a>
 |
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_basionyms">Basionyms</a>
+|
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_prescribed">Prescribed IDs</a>
 </div>
 <hr/>
