@@ -47,7 +47,8 @@ class Taxon extends WfoDbObject{
         global $mysqli;
         if(!$this->id) throw new ErrorException("You can't call load on a Taxon that doesn't have an db id yet");
 
-        $sql = "SELECT * FROM taxa as t left join taxon_names as tn on t.id = tn.taxon_id WHERE t.id = {$this->id}";
+//      $sql = "SELECT * FROM taxa as t left join taxon_names as tn on t.id = tn.taxon_id WHERE t.id = {$this->id}"; // returning multiple rows!!! should join on preferened name
+        $sql = "SELECT * FROM taxa as t left join taxon_names as tn on t.taxon_name_id = tn.id WHERE t.id = {$this->id}";
         $result = $mysqli->query($sql);
         if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
         // echo $sql; exit;
@@ -186,7 +187,6 @@ class Taxon extends WfoDbObject{
 
         global $ranks_table;
 
-
         // no name if we have no name
         if(!$this->getAcceptedName()) return "no name";
 
@@ -238,7 +238,43 @@ class Taxon extends WfoDbObject{
             $fns = str_replace($this->name->getRank(), "notho" . $this->name->getRank(), $fns);
             $fns = str_replace($ranks_table[$this->name->getRank()]["abbreviation"], "notho" . $ranks_table[$this->name->getRank()]["abbreviation"], $fns);
 
-        }    
+        } 
+
+
+        // if we are a child of a subspecific name (e.g. a var of a subsp)
+        $ancestor = $this;
+        $species_level = array_search('species', array_keys($ranks_table));
+        $additions = '';
+        while($ancestor = $ancestor->getParent()){
+
+            // if the ancestor is below species then we need 
+            // to add it to the name
+            if(array_search($ancestor->getRank(), array_keys($ranks_table)) > $species_level){
+
+                // rank - abbreviated if need be
+                if($abbreviate_rank){
+                    $rank = $ranks_table[$ancestor->getAcceptedName()->getRank()]['abbreviation'];
+                }else{
+                    $rank = ucfirst($ancestor->getAcceptedName()->getRank());
+                }
+                $additions .= " <span class=\"wfo-name-rank\">$rank</span>";
+
+                // the ancestor might be a hybrid
+                if($ancestor->getHybridStatus()) $anc_hybrid_symbol = $hybrid_symbol;
+                else $anc_hybrid_symbol = '';
+                
+                // name part
+                if($italics){
+                    $additions .= " <i>$anc_hybrid_symbol{$ancestor->getAcceptedName()->getNameString()}</i>";
+                }else{
+                    $additions .= " $anc_hybrid_symbol{$ancestor->getAcceptedName()->getNameString()}";
+                }
+            }else{
+                break;
+            }
+        }
+        $fns = str_replace('<span class="wfo-name-rank">', $additions  . ' <span class="wfo-name-rank">', $fns);
+
 
         return $fns;
 
@@ -1130,12 +1166,15 @@ class Taxon extends WfoDbObject{
             return false;
         }
 
+        error_log("**** assignName **********");
+
         // is the name already in use in the taxon_names table?
         $result = $mysqli->query("SELECT * FROM taxon_names WHERE name_id = {$name->getId()}");
         if($result->num_rows > 1) throw new ErrorException("Something terrible happened! There are multiple entries in taxon_names for name_id {$name->getId()}.");
         if($result->num_rows == 0){
             // the name is not assigned to any taxon we can go ahead and create the row
             $sql = "INSERT INTO taxon_names (taxon_id, name_id) VALUES ({$this->id}, {$name->getId()})";
+            error_log("Not assigned");
             $result = $mysqli->query($sql);
             if($mysqli->affected_rows == 1){
                 return $mysqli->insert_id;
@@ -1149,6 +1188,8 @@ class Taxon extends WfoDbObject{
             // the name is assigned to something.
            // print_r($this);
             $row = $result->fetch_assoc();
+            
+            error_log("Assigned");
 
             // is it us? If so nothing to do
             if($row['taxon_id'] == $this->id) return $row['id'];
@@ -1163,8 +1204,13 @@ class Taxon extends WfoDbObject{
             }else{
 
                 // now the highjack
-                $mysqli->query("UPDATE taxon_names SET taxon_id = {$this->id} WHERE id = {$row['id']}");
+                $sql = "UPDATE taxon_names SET taxon_id = {$this->id} WHERE id = {$row['id']}";
+                $mysqli->query($sql);
+                error_log($sql);
+                if($mysqli->error) error_log($mysqli->error);
+
                 if($mysqli->affected_rows == 1){
+                    error_log("one row affected");
                     return $row['id'];
                 }else{
                     throw new ErrorException("Failed to update taxon_names row {$row['id']} for taxon_id {$this->id} and name_id {$name->id}");

@@ -14,7 +14,8 @@
 <a href="index.php?action=view&phase=nomenclature&task=nomenclature_authors">Authors</a>
 |
 <a href="index.php?action=view&phase=nomenclature&task=nomenclature_published_in">Published In</a>
-
+|
+<a href="index.php?action=view&phase=nomenclature&task=nomenclature_spelling">Fix Spelling</a>
 </div>
 <hr/>
 <?php

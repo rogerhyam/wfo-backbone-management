@@ -141,7 +141,7 @@ function crawl_table_tree($wfo, $out, $headers){
     global $mysqli;
 
     // if we haven't processed it already then process it
-    if(!in_array($wfo, $_SESSION['impact_track'])){
+    if(!in_array($wfo, $_SESSION['impact_track']) && preg_match('/wfo-[0-9]{10}/', $wfo)){
         $name = Name::getName($wfo);
         if($name->getId()) process_name($name, $out, $headers);
         else echo "<p>$wfo not found it Rhakhis</p>";
@@ -149,7 +149,7 @@ function crawl_table_tree($wfo, $out, $headers){
 
     // we now process its children
     $table = $_GET['table'];
-    $response = $mysqli->query("SELECT rhakhis_wfo FROM `rhakhis_bulk`.`$table` where rhakhis_parent = '$wfo'");
+    $response = $mysqli->query("SELECT rhakhis_wfo FROM `rhakhis_bulk`.`$table` where rhakhis_parent = '$wfo' AND length(`rhakhis_wfo`) = 14");
     while($row = $response->fetch_assoc()){
         crawl_table_tree($row['rhakhis_wfo'], $out, $headers);
     }

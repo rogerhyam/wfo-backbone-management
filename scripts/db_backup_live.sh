@@ -11,8 +11,13 @@ gzip $filename
 rm "../data/db_dumps/latest.sql.gz"
 ln -s "${filename}.gz" "../data/db_dumps/latest.sql.gz"
 
+# move it to the hidden place so the sandbox can pick it up
 dir_name=$(php db_hidden_dir.php)
 dir_path="../www/downloads/${dir_name}/"
 mkdir -p $dir_path
 cp  "${filename}.gz" "${dir_path}latest.sql.gz"
+
+# prevent backups filling disk
+find ../data/db_dumps -type f -mtime +45 -delete
+
 

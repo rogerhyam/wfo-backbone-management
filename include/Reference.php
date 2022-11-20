@@ -215,13 +215,34 @@ class Reference{
     public function setLinkUri($linkUri)
     {
         $linkUri = trim($linkUri);
+       
+        // there is an issue with non-ascii characters in the urls 
+        // these won't pass the PHP validator 
+        // we therefore do a crude parsing and check the schema
+        $parts = parse_url($linkUri);
 
-        if (filter_var($linkUri, FILTER_VALIDATE_URL)) {
+        if($parts && ($parts['scheme'] == 'http' || $parts['scheme'] == 'https') ){
             $this->linkUri = $linkUri;
             return true;
-        } else {
+        }else{
+            error_log("Invalid URI format: " . $linkUri);
             return false;
         }
+
+        /*
+
+        if (filter_var($linkUri, FILTER_VALIDATE_URL)) {
+
+        } else {
+            echo "\nInvalid URI format";
+            echo "\n$linkUri";
+            return false;
+        }
+
+        */
+
+
+
     }
 
     /**
@@ -300,7 +321,9 @@ class Reference{
 
         global $mysqli;
 
-        $result = $mysqli->query("SELECT id FROM `references` WHERE link_uri = '$uri'");
+        $safe_uri = $mysqli->real_escape_string($uri);
+
+        $result = $mysqli->query("SELECT id FROM `references` WHERE link_uri = '$safe_uri'");
         if($result->num_rows > 0){
             $row = $result->fetch_assoc();
             return Reference::getReference($row['id']);
@@ -309,4 +332,10 @@ class Reference{
         }
 
     }
+
+
+    public static function resetSingletons(){
+        self::$loaded = array();
+    }
+
 }

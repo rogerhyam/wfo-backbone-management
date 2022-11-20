@@ -101,5 +101,14 @@ class WfoDbObject{
 
     }
 
+    /**
+     * Will destroy references to loaded objects
+     * Useful when processing big lists as all taxa and names are maintained in memory unless they are actively forgotten
+     * Dangerous if you are doing object comparisons because objects with the same id might be different instances.
+     */
+    public static function resetSingletons(){
+        self::$loaded = array();
+    }
+
 
 }

@@ -47,6 +47,11 @@ $counter = 0;
 
 while($row = $response->fetch_assoc()){
 
+    // before we start a family we clear the links to old taxa 
+    // so we don't run out of memory 
+    Taxon::resetSingletons();
+    Name::resetSingletons();
+
     $file_path = $downloads_dir . $row['name'] . '_'. $row['wfo'];
 
     // if the file is less than a day old then skip it
@@ -64,7 +69,7 @@ while($row = $response->fetch_assoc()){
     process_family($row['wfo'], $file_path);
     $counter++;
 
-    if($counter > 9) break;
+    if($counter > 0) break;
     
 }
 
@@ -144,56 +149,41 @@ function process_family($family_wfo, $file_path){
         echo "\n";
 
         // now we can write it out to file :)
+        $out = fopen($file_path . '.csv', 'w');
 
-        $header = array(
+        $fields = array(
             "taxonID",
+            "scientificNameID",
+            "localID",
             "scientificName",
             "taxonRank",
+            "parentNameUsageID",
             "scientificNameAuthorship",
+            "family",
+            "subfamily",
+            "tribe",
+            "subtribe",
             "genus",
+            "subgenus",
             "specificEpithet",
             "infraspecificEpithet",
+            "verbatimTaxonRank",
             "nomenclaturalStatus",
             "namePublishedIn",
-            "originalNameUsageID",
-            "parentNameUsageID",
             "taxonomicStatus",
             "acceptedNameUsageID",
+            "originalNameUsageID",
+            "nameAccordingToID",
             "taxonRemarks",
-            "references",
-            "tplID",
-            "source",
             "created",
             "modified",
-            "majorGroup"
+            "references",
+            "source",
+            "majorGroup",
+            "tplID"
         );
 
-        // we need a list of higher ranks
-        // those above genus and below family
-        $extra_ranks = array();
-
-        $upper_level = array_search("order", array_keys($ranks_table));
-        $genus_level = array_search("species", array_keys($ranks_table));
-        for ($i=0; $i < count($ranks_table) ; $i++) { 
-            if($i < $upper_level) continue; // not got there yet
-            if($i >= $genus_level) continue; // gone past it
-            if(array_keys($ranks_table)[$i] == 'genus') continue; // the genus is part of the name so not added here
-            $header[] =  array_keys($ranks_table)[$i]; // add it to the header
-            $extra_ranks[] =  array_keys($ranks_table)[$i]; // add it to the header
-        }
-
-        $out = fopen($file_path . ".csv", 'w');
-
-        // add in the extra fields william asked for
-        $header[] = "verbatimTaxonRank";
-        $header[] = "scientificNameId";
-        $header[] = "localId";
-        $header[] = "doNotProcess";
-        $header[] = "doNotProcess_reason";
-        $header[] = "deprecated";
-        $header[] = "nameAccordingToID";
-
-        fputcsv($out, $header);
+        fputcsv($out, $fields);
 
         foreach ($link_index as $wfo => $item) {
             
@@ -212,38 +202,42 @@ function process_family($family_wfo, $file_path){
             // there is always a name.
 
             // taxonID = prescribed wfo ID
-            $row[] = $name->getPrescribedWfoId();
+            $row["taxonID"] = $name->getPrescribedWfoId();
 
             // scientificName = 
-            $row[] = trim(strip_tags($name->getFullNameString(false,false)));
+            $row["scientificName"] = trim(strip_tags($name->getFullNameString(false,false)));
+
+            // localID
+
+ //           ENUM('ipni', 'tpl', 'wfo', 'if', 'ten', 'tropicos', 'uri', 'uri_deprecated')
 
             // rank
-            $row[] = $name->getRank();
+            $row["taxonRank"] = $name->getRank();
 
             // scientificNameAuthorship = authorship field
-            $row[] = $name->getAuthorsString();
+            $row["scientificNameAuthorship"] = $name->getAuthorsString();
 
             // genus = the genus name part or the name if this is of rank genus
             if($name->getRank() == 'genus'){
-                $row[] = $name->getNameString();
+                $row["genus"] = $name->getNameString();
             }else{
-                $row[] = $name->getGenusString(); // will be empty above genus level
+                $row["genus"] = $name->getGenusString(); // will be empty above genus level
             }
             
             // specificEpithet = species name part if set or the species name if this is of rank species
             if($name->getRank() == 'species'){
                 // we are an actual species
-                $row[] = $name->getNameString();
-                $row[] = ''; // nothing in the infraspecificEpithet
+                $row["specificEpithet"] = $name->getNameString();
+                $row["infraspecificEpithet"] = ''; // nothing in the infraspecificEpithet
             }else{
                 if($name->getSpeciesString()){
                     // we are below species level so will have an infraspecific epithet
-                    $row[] = $name->getSpeciesString(); // specificEpithet
-                    $row[] = $name->getNameString(); // infraspecificEpithet
+                    $row["specificEpithet"] = $name->getSpeciesString(); // specificEpithet
+                    $row["infraspecificEpithet"] = $name->getNameString(); // infraspecificEpithet
                 }else{
                     // we are species or above so these are empty
-                    $row[] = ""; // specificEpithet
-                    $row[] = ""; // infraspecificEpithet
+                    $row["specificEpithet"] = ""; // specificEpithet
+                    $row["infraspecificEpithet"] = ""; // infraspecificEpithet
                 }
             }
             
@@ -272,10 +266,10 @@ function process_family($family_wfo, $file_path){
                     break;
             }
 
-            $row[] = $nomStatus;
+            $row["nomenclaturalStatus"] = $nomStatus;
 
             // namePublishedIn = citation
-            $row[] = $name->getCitationMicro();
+            $row["namePublishedIn"] = $name->getCitationMicro();
 
             // originalNameUsageID = basionym WFO ID
             if($name->getBasionym()){
@@ -283,7 +277,7 @@ function process_family($family_wfo, $file_path){
                 // double check the basionym is in the list.
                 $basionym_wfo = $name->getBasionym()->getPrescribedWfoId();
                 if( isset($link_index[$basionym_wfo]) ){
-                    $row[] = $basionym_wfo;
+                    $row["originalNameUsageID"] = $basionym_wfo;
                 }else{
                     echo "\n BROKEN BASIONYM LINK FOUND \n";
                     print_r($name);
@@ -293,45 +287,67 @@ function process_family($family_wfo, $file_path){
                 }
 
             }else{
-                $row[] = null;
+                $row["originalNameUsageID"] = null;
             }
             
             // now fields that only taxa == accepted names
             if($taxon){
                 
                 // parentNameUsageID = For accepted names of taxa only the parent taxon wfo_ID
-                $row[] = $taxon->getParent()->getAcceptedName()->getPrescribedWfoId();
+                $row["parentNameUsageID"] = $taxon->getParent()->getAcceptedName()->getPrescribedWfoId();
 
                 // taxonomicStatus
-                $row[] = 'Accepted';
+                $row["taxonomicStatus"] = 'Accepted';
 
                 // acceptedNameUsageID = synonyms only is accepted taxon WFO ID
-                $row[] = null;
+                $row["acceptedNameUsageID"] = null;
 
             }else{
 
                 // parentNameUsageID = For accepted names of taxa only the parent taxon wfo_ID
-                $row[] = null;
+                $row["parentNameUsageID"] = null;
 
                 // we are a name but are we placed or unplaced.
                 $placement = Taxon::getTaxonForName($name);
 
                 if(!$placement->getId()){
                     // no taxon in database for the name so unplaced
-                    $row[] = 'Unchecked'; // taxonomicStatus
-                    $row[] = null; // acceptedNameUsageID 
+                    $row["taxonomicStatus"] = 'Unchecked'; // taxonomicStatus
+                    $row["acceptedNameUsageID"] = null; // acceptedNameUsageID 
                 }else{
-                    $row[] = 'Synonym'; // taxonomicStatus
-                    $row[] = $placement->getAcceptedName()->getPrescribedWfoId(); // acceptedNameUsageID 
+                    $row["taxonomicStatus"] = 'Synonym'; // taxonomicStatus
+                    $row["acceptedNameUsageID"] = $placement->getAcceptedName()->getPrescribedWfoId(); // acceptedNameUsageID 
                 }
 
             }
 
             // taxonRemarks	= comments from name field
-            $row[] = str_replace("\n", " ", substr($name->getComment(), 0, 254)); // a hack to assure compatibility
+            $row["taxonRemarks"] = str_replace("\n", " ", substr($name->getComment(), 0, 254)); // a hack to assure compatibility
 
             // now any identifiers we can think of
             $identifiers = $name->getIdentifiers();
+
+            foreach($identifiers as $identifier) {
+
+                switch ($identifier->getKind()) {
+                    case 'ipni':
+                        $row['scientificNameID'] = $identifier->getValues()[0];
+                        break;
+                    case 'tropicos':
+                        $row['scientificNameID'] = $identifier->getValues()[0];
+                        break;
+                    case 'ten':
+                        $row['localID'] = $identifier->getValues()[0];
+                        break;
+                    case 'tpl':
+                        $row['tplID'] = $identifier->getValues()[0];
+                        break;
+                }
+
+            }
+
+
+            /*
 
             // references is a deep link into the TEN that supplied the data
             $references = "";
@@ -340,7 +356,7 @@ function process_family($family_wfo, $file_path){
                     $references = $identifier->getValues()[0]; // just take the first
                 }
             }
-            $row[] = $references;
+            $row["references"] = $references;
 
             // the plant list ID if there is one
             $tpl_id = "";
@@ -351,18 +367,20 @@ function process_family($family_wfo, $file_path){
             }
             $row[] = $tpl_id;
 
+            */
+
             // source is a string giving the name of where it came from
             // fixme - this is returning the source as it was passed in the botalista dump
             // in the future we need to work it out from the contributors
-            $row[] = $name->getSource();
+            $row["source"] = $name->getSource();
             
             // created = from name ? or earliest from name/taxon
-            $row[] =  date("Y-m-d", strtotime($name->getCreated()));
+            $row["created"] =  date("Y-m-d", strtotime($name->getCreated()));
             // modified	= from name ? 
-            $row[] = date("Y-m-d", strtotime($name->getModified()));
+            $row["modified"] = date("Y-m-d", strtotime($name->getModified()));
 
             // now we have the extra rows columns
-            // if the name is a synonym we use the
+            // if the name is a synonym we use the accepted name.
             $ancestors = null;
             if($taxon){
                 $ancestors = $taxon->getAncestors();
@@ -406,41 +424,34 @@ function process_family($family_wfo, $file_path){
                     break;
                 }
             }
-            $row[] = $major_group;
+            $row["majorGroup"] = $major_group;
 
-            // then all the other ranks
-            foreach($extra_ranks as $er){
-                $an_name = "";
+            // family and other ranks
 
-                // special case. If there are no ancestors (the name is unplaced)
-                // we include the family we are processing because it is built by family
-                if(!$ancestors && $er == 'family' ) $an_name = $family_name->getNameString();
-
-                // if this is the family entry then it won't have a family in its ancestry so we force it
-                if($name->getRank() == 'family' && $er == 'family') $an_name = $name->getNameString();
-
-                foreach($ancestors as $an){
-                    if($an->getRank() == $er){
-                        $an_name = $an->getAcceptedName()->getNameString();
-                    }
-                }
-                $row[] = $an_name;
+            // special case. If there are no ancestors (the name is unplaced)
+            // we include the family we are processing because it is built by family
+            if(!$ancestors || $name->getRank() == 'family'){
+                $row['family'] = $family_name->getNameString();
             }
-
-            // now add some stuff from botalista dump.
-            /*
-
-                from william 12/05/2022
-
-                1. ScientificNameId/IpniId - It contains the IPNI/Tropicos ID
-                2. localId: - contains the Providers database taxon ID.
-                3. DoNotProcess - indicates if the taxon is excluded.
-                4. DoNotProcessReason - text with reason for exclusion.
-                5. VerbatimTaxonRank/InfraspecificRank - Contains the infraspecific rank.
-                6. deprecated - gives the information about the taxon excluded/deleted. It is similar to donotProcess but deprecated field indicates that taxon is deleted and that the WFO ID is not useful (dummy).
-                7. NameAccordingToId: Contains taxon citation, a reference ID.
-
-            */
+            foreach($ancestors as $an){
+                switch ($an->getAcceptedName()->getRank()) {
+                    case "family":
+                        $row["family"] = $an->getAcceptedName()->getNameString();
+                        break;
+                    case "subfamily":
+                        $row["subfamily"] = $an->getAcceptedName()->getNameString();
+                        break;
+                    case "tribe":
+                        $row["tribe"] = $an->getAcceptedName()->getNameString();
+                        break;
+                    case "subtribe":
+                        $row["subtribe"] = $an->getAcceptedName()->getNameString();
+                        break;
+                    case "subgenus":
+                        $row["subgenus"] = $an->getAcceptedName()->getNameString();
+                        break;
+                }
+            }
 
             // verbatimTaxonRank
             $above_species = true;
@@ -459,27 +470,19 @@ function process_family($family_wfo, $file_path){
                 }
             
             }
-            $row[] = $rank_abbreviation;
-
-            $botalista_data = getBotalistaRow($name->getPrescribedWfoId());
-            if($botalista_data){
-                $row[] = $botalista_data["scientificNameID"];
-                $row[] = $botalista_data["localID"];
-                $row[] = $botalista_data["doNotProcess"];
-                $row[] = $botalista_data["doNotProcess_reason"];
-                $row[] = $botalista_data["deprecated"];
-                $row[] = $botalista_data["nameAccordingToID"];
-            }else{
-                $row[] = "";
-                $row[] = "";
-                $row[] = "";
-                $row[] = "";
-                $row[] = "";
-                $row[] = "";
-            }
+            $row["verbatimTaxonRank"] = $rank_abbreviation;
 
             // write it out to the file
-            fputcsv($out, $row);
+            $csv_row = array();
+            foreach($fields as $field){
+
+                if(isset($row[$field])){
+                    $csv_row[] = $row[$field];
+                }else{
+                    $csv_row[] = null;
+                }
+            }
+            fputcsv($out, $csv_row);
 
         }
 
@@ -546,7 +549,7 @@ function process_family($family_wfo, $file_path){
         }
 
         echo "Removing temp files\n";
-        unlink($file_path . ".csv");
+       // unlink($file_path . ".csv");
         unlink($meta_path);
         //unlink($prov_path);
         unlink($eml_path);

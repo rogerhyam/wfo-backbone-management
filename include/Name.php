@@ -341,7 +341,7 @@ class Name extends WfoDbObject{
             }
 
             // now the actual name
-             if($italics){
+            if($italics){
                 $out .= " <i>{$this->name}</i>";
             }else{
                 $out .= " {$this->name}";

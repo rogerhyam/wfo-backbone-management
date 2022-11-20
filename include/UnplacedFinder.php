@@ -48,7 +48,7 @@ class UnplacedFinder{
 
         global $mysqli;
 
-        $sql = " FROM `names` AS n LEFT JOIN `taxon_names` AS tn ON n.id = tn.name_id WHERE tn.id IS NULL ";
+        $sql = " FROM `names` AS n LEFT JOIN `taxon_names` AS tn ON n.id = tn.name_id LEFT JOIN `gbif_occurrence_count` as g on n.id = g.`name_id` WHERE tn.id IS NULL ";
 
         // add genus 
         if($this->name->getRank() == 'genus'){
@@ -68,15 +68,18 @@ class UnplacedFinder{
         }
 
         // do the count
-        $response = $mysqli->query("SELECT count(*) as num " . $sql);
+        $count_sql = "SELECT count(*) as num " . $sql;
+        $response = $mysqli->query($count_sql);
+        if($mysqli->error) error_log($mysqli->error . "\n". $count_sql);
         $row = $response->fetch_assoc();
         $this->totalUnplacedNames = $row['num'];
         $response->close();
 
         // actually fetch the list - if we have more than 0 in it
         if($this->totalUnplacedNames > 0){
-            $sql = "SELECT n.id as id " . $sql . " ORDER BY name_alpha LIMIT " . preg_replace('/[^0-9]/', '', $this->limit) . " OFFSET " . preg_replace('/[^0-9]/', '', $this->offset);
+            $sql = "SELECT n.id as id " . $sql . " ORDER BY g.`count` DESC, name_alpha LIMIT " . preg_replace('/[^0-9]/', '', $this->limit) . " OFFSET " . preg_replace('/[^0-9]/', '', $this->offset);
             $response = $mysqli->query($sql);
+            if($mysqli->error) error_log($mysqli->error . "\n". $sql);
             while ($row = $response->fetch_assoc()) {
                 $this->unplacedNames[] = Name::getName($row['id']);
             }
@@ -88,7 +91,7 @@ class UnplacedFinder{
        
         global $mysqli;
 
-        $sql = " FROM `names` AS n LEFT JOIN `taxon_names` AS tn ON n.id = tn.name_id JOIN `matching_hints` AS h ON n.id = h.name_id WHERE tn.id IS NULL AND h.hint = '{$this->name->getNameString()}' ";
+        $sql = " FROM `names` AS n LEFT JOIN `taxon_names` AS tn ON n.id = tn.name_id JOIN `matching_hints` AS h ON n.id = h.name_id LEFT JOIN `gbif_occurrence_count` as g on n.id = g.`name_id` WHERE tn.id IS NULL AND h.hint = '{$this->name->getNameString()}' ";
          
         // filter for deprecated
         if(!$this->includeDeprecated){
@@ -96,16 +99,18 @@ class UnplacedFinder{
         }
 
         // do the count
-        // error_log($sql);
-        $response = $mysqli->query("SELECT count(*) as num " . $sql);
+        $count_sql = "SELECT count(*) as num " . $sql;
+        $response = $mysqli->query($count_sql);
+        if($mysqli->error) error_log($mysqli->error . "\n". $count_sql);
         $row = $response->fetch_assoc();
         $this->totalUnplacedNames = $row['num'];
         $response->close();
 
         // actually fetch the list - if we have more than 0 in it
         if($this->totalUnplacedNames > 0){
-            $sql = "SELECT n.id as id " . $sql . " ORDER BY name_alpha LIMIT " . preg_replace('/[^0-9]/', '', $this->limit) . " OFFSET " . preg_replace('/[^0-9]/', '', $this->offset);
+            $sql = "SELECT n.id as id " . $sql . " ORDER BY g.`count` DESC, name_alpha LIMIT " . preg_replace('/[^0-9]/', '', $this->limit) . " OFFSET " . preg_replace('/[^0-9]/', '', $this->offset);
             $response = $mysqli->query($sql);
+            if($mysqli->error) error_log($mysqli->error . "\n". $sql);
             while ($row = $response->fetch_assoc()) {
                 $this->unplacedNames[] = Name::getName($row['id']);
             }

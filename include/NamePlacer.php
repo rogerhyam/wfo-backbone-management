@@ -81,8 +81,6 @@ There are three rules that govern where a name can be placed in the taxonomy
         $this->setCanChangeAccepted();
         $this->setCanBeRemoved();
 
-        error_log($this->action);
-
         switch ($this->action) {
      
             // if we are going to be a accepted by raising or 
@@ -451,6 +449,7 @@ There are three rules that govern where a name can be placed in the taxonomy
             }
 
             $destination_taxon = Taxon::getTaxonForName($destination_name);
+
             if($destination_taxon->getId()){
 
                 $r = new UpdateResponse('UpdatePlacement', true, "Successfully sunk name into synonymy");

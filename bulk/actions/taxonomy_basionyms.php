@@ -17,7 +17,7 @@ if($offset == 0){
     $_SESSION['basionyms_issues'] = array();
 }
 
-$sql = "SELECT `rhakhis_wfo`, `rhakhis_basionym` FROM `rhakhis_bulk`.`wfo_wcvp_fabaceae_2022_2_0_3_export` WHERE length(`rhakhis_basionym`) = 14 AND length(`rhakhis_wfo`) = 14 ORDER BY rhakhis_pk LIMIT $page_size OFFSET $offset;";
+$sql = "SELECT `rhakhis_wfo`, `rhakhis_basionym` FROM `rhakhis_bulk`.`$table` WHERE length(`rhakhis_basionym`) = 14 AND length(`rhakhis_wfo`) = 14 ORDER BY rhakhis_pk LIMIT $page_size OFFSET $offset;";
 //echo $sql;
 
 $response = $mysqli->query($sql);
@@ -49,10 +49,14 @@ if($response->num_rows){
             if($new_basionym->getBasionym()){
                 // we can't chain basionyms
                 $_SESSION['basionyms_issues'][$name->getPrescribedWfoId()] = "Chaining not allowed! 
-                  Trying to set  {$new_basionym->getPrescribedWfoId()} : {$new_basionym->getFullNameString()} as basionym of
-                  as basionym of {$name->getPrescribedWfoId()} : {$name->getFullNameString()} 
-                  but {$new_basionym->getPrescribedWfoId()} : {$new_basionym->getFullNameString()}
-                  has a basionym of its own, namely {$new_basionym->getBasionym()->getPrescribedWfoId()} : {$new_basionym->getBasionym()->getFullNameString()}.";
+                  Trying to set  
+                  {$new_basionym->getPrescribedWfoId()} : {$new_basionym->getFullNameString()} 
+                  as basionym of
+                  {$name->getPrescribedWfoId()} : {$name->getFullNameString()} 
+                  but 
+                  {$new_basionym->getPrescribedWfoId()} : {$new_basionym->getFullNameString()}
+                  has a basionym of its own, namely 
+                  {$new_basionym->getBasionym()->getPrescribedWfoId()} : {$new_basionym->getBasionym()->getFullNameString()}.";
             }else{
                 $name->setBasionym($new_basionym);
                 $name->save();
