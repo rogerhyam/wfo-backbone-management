@@ -4,6 +4,8 @@ require_once("../config.php");
 require_once("../include/WfoDbObject.php");
 require_once("../include/Name.php");
 require_once("../include/Taxon.php");
+require_once("../include/Reference.php");
+require_once("../include/ReferenceUsage.php");
 require_once("../include/UnplacedFinder.php");
 require_once("../include/Identifier.php");
 require_once("../include/User.php");
@@ -51,6 +53,7 @@ while($row = $response->fetch_assoc()){
     // so we don't run out of memory 
     Taxon::resetSingletons();
     Name::resetSingletons();
+    Reference::resetSingletons();
 
     $file_path = $downloads_dir . $row['name'] . '_'. $row['wfo'];
 
@@ -207,10 +210,6 @@ function process_family($family_wfo, $file_path){
             // scientificName = 
             $row["scientificName"] = trim(strip_tags($name->getFullNameString(false,false)));
 
-            // localID
-
- //           ENUM('ipni', 'tpl', 'wfo', 'if', 'ten', 'tropicos', 'uri', 'uri_deprecated')
-
             // rank
             $row["taxonRank"] = $name->getRank();
 
@@ -346,32 +345,18 @@ function process_family($family_wfo, $file_path){
 
             }
 
-
-            /*
-
-            // references is a deep link into the TEN that supplied the data
-            $references = "";
-            foreach ($identifiers as $identifier) {
-                if($identifier->getKind() == 'uri'){
-                    $references = $identifier->getValues()[0]; // just take the first
+            // the reference is the taxonomy database source - if it has one
+            // get the references for the name
+            $refs = $name->getReferences();
+            foreach($refs as $usage){
+                if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'database'){
+                    $row["references"] = $usage->reference->getLinkUri();
+                    break;
                 }
             }
-            $row["references"] = $references;
-
-            // the plant list ID if there is one
-            $tpl_id = "";
-            foreach ($identifiers as $identifier) {
-                if($identifier->getKind() == 'tpl'){
-                    $tpl_id = $identifier->getValues()[0]; // just take the first
-                }
-            }
-            $row[] = $tpl_id;
-
-            */
 
             // source is a string giving the name of where it came from
-            // fixme - this is returning the source as it was passed in the botalista dump
-            // in the future we need to work it out from the contributors
+            //  This will be from the botalista dump originally then defaults to 'rhakhis' for all blank and new names
             $row["source"] = $name->getSource();
             
             // created = from name ? or earliest from name/taxon
@@ -555,15 +540,6 @@ function process_family($family_wfo, $file_path){
         unlink($eml_path);
 }
 
-function getBotalistaRow($taxon_id){
-
-    global $mysqli;
-
-    $result = $mysqli->query("SELECT * from botalista_dump_2 where taxonID = '$taxon_id'");
-    if($result->num_rows) return $result->fetch_assoc();
-    else return array();
-
-}
 
 function check_name_links($item, &$link_index){
 
