@@ -71,8 +71,6 @@ while($row = $response->fetch_assoc()){
     echo "\n*** ". $row['name'] ." ***\n";
     process_family($row['wfo'], $file_path);
     $counter++;
-
-    if($counter > 0) break;
     
 }
 
