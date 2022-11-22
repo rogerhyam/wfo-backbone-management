@@ -153,6 +153,8 @@ function process_family($family_wfo, $file_path){
 
         // now we can write it out to file :)
         $out = fopen($file_path . '.csv', 'w');
+        $out_references = fopen($file_path . '_references.csv', 'w');
+        
 
         $fields = array(
             "taxonID",
@@ -187,6 +189,18 @@ function process_family($family_wfo, $file_path){
         );
 
         fputcsv($out, $fields);
+
+        $fields_references = array(
+            "taxonID",
+            "identifier",
+            "bibliographicCitation",
+            "source",
+            "relation",
+            "doNotProcess",
+            "doNotProcess_reason"
+        );
+
+        fputcsv($out_references, $fields_references);
 
         foreach ($link_index as $wfo => $item) {
             
@@ -354,6 +368,31 @@ function process_family($family_wfo, $file_path){
                     break;
                 }
             }
+            if(!isset($row["references"])) $row["references"] = "";
+
+            // work through the refs a second time and add them all to the
+            // references file
+            foreach($refs as $usage){
+                $ref = array();
+                $ref['taxonID'] = $row["taxonID"];
+                $ref["identifier"] = $usage->id . "-" . $usage->reference->getKind();
+                $ref["bibliographicCitation"] = $usage->reference->getDisplayText(); 
+                $ref["source"] = $row["references"]; // for some reason this is the "references" field in the main table
+                $ref["relation"] =  $usage->reference->getLinkUri();// the actual link to the reference
+                $ref["doNotProcess"] = "0"; // just for compatibility with botalista version
+                $ref["doNotProcess_reason"] = ""; // just for compatibility with botalista version
+
+                // then we write it out in the order specified in the fields array
+                $ref_out = array();
+                foreach($fields_references as $rfield){
+                    if(isset($ref[$rfield])) $ref_out[] = $ref[$rfield];
+                    else $ref_out[] = "";
+                }
+
+                fputcsv($out_references, $ref_out);
+
+            }
+
 
             // source is a string giving the name of where it came from
             //  This will be from the botalista dump originally then defaults to 'rhakhis' for all blank and new names
@@ -472,20 +511,22 @@ function process_family($family_wfo, $file_path){
         }
 
         fclose($out);
+        fclose($out_references);
 
         // we need to make a personalized attribution string for the eml file.
-        // there is default string (applies in most cases)
-        // But if there is a curator for the family we use the URI in their profile.
-        // In future we could navigate up to find the heirarchy of curators and editors.
-        $attribution_text = "This taxonomic group is not currently curated by a WFO TEN (Taxonomic Expert Network).";
 
-        $curators = $family_taxon->getCurators();
-        if(count($curators) >0){
-            $attribution_text = "This taxonomic group is assigned to the WFO TEN (Taxonomic Expert Network): " . $family_name->getNameString();
-            if($curators[0]->getUri()){
-                $attribution_text .= " ({$curators[0]->getUri()}).";
-            }else{
-                ".";
+        // set up the default values
+        $eml_organisation = "World Flora Online (WFO)";
+        $eml_organisation_uri = "http://www.worldfloraonline.org/organisation/" . $family_name->getNameString();
+        $eml_comment = "This taxonomic group is not currently curated by a WFO TEN (Taxonomic Expert Network).  Pending the inclusion of the first classification update from this TEN, nomenclatural and classification data are managed by the WFO Taxonomic Working Group using information derived from various sources. The initial data ingestion into the World Flora Online taxonomic backbone was from The Plant List Version 1.1 (TPL, http://theplantlist.org, September 2013), with the full list of contributing datasets given here: http://theplantlist.org/1.1/about/#collaborators. New taxonomic names have been incorporated into WFO from nomenclators: International Plant Name Index (IPNI, https://www.ipni.org) for vascular plants, and Tropicos (https://www.tropicos.org) for bryophytes. Taxonomic and nomenclatural updates have been incorporated from the World Checklist of Vascular Plants version 2.0 (WCVP, http://wcvp.science.kew.org), facilitated by the Royal Botanic Gardens, Kew.";
+
+        // look for a person taxon reference - they are the organisation we use
+        $refs = $family_name->getReferences();
+        foreach($refs as $usage){
+            if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                $eml_organisation = $usage->reference->getDisplayText();
+                $eml_organisation_uri = $usage->reference->getLinkUri();
+                $eml_comment = $usage->comment;
             }
         }
  
@@ -501,14 +542,6 @@ function process_family($family_wfo, $file_path){
 
         // create personalize versions of the provenance and meta files for inclusion.
 
-        /*
-        $prov_path = $file_path . ".prov.xml";
-        $prov = file_get_contents('darwin_core_prov.xml');
-        $prov = str_replace('{{family}}', $family_name->getNameString(), $prov);
-        $prov = str_replace('{{date}}', $creation_date, $prov);
-        file_put_contents($prov_path, $prov);
-        */
-
         $meta_path = $file_path . ".meta.xml";
         $meta = file_get_contents('darwin_core_meta.xml');
         $meta = str_replace('{{family}}', $family_name->getNameString(), $meta);
@@ -520,12 +553,14 @@ function process_family($family_wfo, $file_path){
         $eml = str_replace('{{family}}', $family_name->getNameString(), $eml);
         $eml = str_replace('{{date}}', $creation_date, $eml);
         $eml = str_replace('{{datestamp}}', $creation_datestamp, $eml);
-        $eml = str_replace('{{attribution}}', $attribution_text, $eml);
+        $eml = str_replace('{{organisation}}', $eml_organisation, $eml);
+        $eml = str_replace('{{organisation_uri}}', $eml_organisation_uri, $eml);
+        $eml = str_replace('{{comment}}', $eml_comment, $eml);
 
         file_put_contents($eml_path, $eml);
 
-        $zip->addFile($file_path . ".csv", "taxonomy.csv");
-        //$zip->addFile($prov_path, "prov.xml");
+        $zip->addFile($file_path . ".csv", "classification.csv");
+        $zip->addFile($file_path . "_references.csv", "references.csv");
         $zip->addFile($eml_path, "eml.xml");
         $zip->addFile($meta_path, "meta.xml");
 
@@ -534,10 +569,10 @@ function process_family($family_wfo, $file_path){
         }
 
         echo "Removing temp files\n";
-       // unlink($file_path . ".csv");
-        unlink($meta_path);
-        //unlink($prov_path);
-        unlink($eml_path);
+        unlink($file_path . ".csv");
+        unlink($file_path . "_references.csv");
+ //       unlink($meta_path);
+//        unlink($eml_path);
 }
 
 
