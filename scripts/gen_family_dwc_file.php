@@ -569,8 +569,8 @@ function process_family($family_wfo, $file_path){
         echo "Removing temp files\n";
         unlink($file_path . ".csv");
         unlink($file_path . "_references.csv");
- //       unlink($meta_path);
-//        unlink($eml_path);
+        unlink($meta_path);
+        unlink($eml_path);
 }
 
 
