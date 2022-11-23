@@ -72,6 +72,7 @@ while($row = $response->fetch_assoc()){
     process_family($row['wfo'], $file_path);
     $counter++;
     
+    if($counter > 20) break;
 }
 
 //process_family($family_wfo);
@@ -363,10 +364,54 @@ function process_family($family_wfo, $file_path){
             foreach($refs as $usage){
                 if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'database'){
                     $row["references"] = $usage->reference->getLinkUri();
-                    break;
+                }
+                if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                    $row["source"] = $usage->reference->getDisplayText();
                 }
             }
             if(!isset($row["references"])) $row["references"] = "";
+
+            // if we haven't got the source from the current name try working 
+            // up through the ancestors to family level
+
+            // if the name is a synonym we use the accepted name.
+            $ancestors = null;
+            if($taxon){
+                $ancestors = $taxon->getAncestors();
+            }else{
+                $t = Taxon::getTaxonForName($name);
+                $ancestors = $t->getAncestors(); // maybe nothing if taxon is empty because this is unplaced name.
+            }
+
+            if(!isset($row["source"])){
+                foreach ($ancestors as $anc) {
+                    if($anc->getAcceptedName()->getRank() == 'family'){
+                        $fam_refs = $anc->getAcceptedName()->getReferences();
+                        foreach ($fam_refs as $usage) {
+                            if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                                $row["source"] = $usage->reference->getDisplayText();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // if we still haven't got the source use the one in the source field - from original botalista dump
+            if(!isset($row["source"])) $row["source"] = $name->getSource();
+
+            // but if it has defaulted to rhakhis we try and overwrite with ipni or tropicos
+            if($row["source"] == 'rhakhis'){
+                foreach($identifiers as $identifier) {
+                    switch ($identifier->getKind()) {
+                        case 'ipni':
+                            $row["source"] = 'ipni';
+                            break 2;
+                        case 'tropicos':
+                            $row["source"] = 'tropicos';
+                            break 2;
+                    }
+                }
+            }
 
             // work through the refs a second time and add them all to the
             // references file
@@ -391,7 +436,6 @@ function process_family($family_wfo, $file_path){
 
             }
 
-
             // source is a string giving the name of where it came from
             //  This will be from the botalista dump originally then defaults to 'rhakhis' for all blank and new names
             $row["source"] = $name->getSource();
@@ -402,14 +446,6 @@ function process_family($family_wfo, $file_path){
             $row["modified"] = date("Y-m-d", strtotime($name->getModified()));
 
             // now we have the extra rows columns
-            // if the name is a synonym we use the accepted name.
-            $ancestors = null;
-            if($taxon){
-                $ancestors = $taxon->getAncestors();
-            }else{
-                $t = Taxon::getTaxonForName($name);
-                $ancestors = $t->getAncestors(); // maybe nothing if taxon is empty because this is unplaced name.
-            }
 
             // add the major group first
             // we can't just use the major group of the family because this may be
@@ -566,6 +602,8 @@ function process_family($family_wfo, $file_path){
             exit("cannot close <$zip_path>\n". $zip->getStatusString());
         }
 
+        unset($zip);
+
         echo "Removing temp files\n";
         unlink($file_path . ".csv");
         unlink($file_path . "_references.csv");
@@ -625,9 +663,7 @@ function check_name_links($item, &$link_index){
 
 }
 
-
-function convert($size)
-{
+function convert($size){
     $unit=array('b','kb','mb','gb','tb','pb');
     return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
 }

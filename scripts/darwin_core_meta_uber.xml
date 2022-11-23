@@ -1,0 +1,77 @@
+<?xml version="1.0" standalone="yes"?>
+<archive xmlns="http://rs.tdwg.org/dwc/text/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd" metadata="eml.xml">
+    <core encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy='"' ignoreHeaderLines="1" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
+        <files>
+            <location>classification.csv</location>
+        </files>
+
+        <!-- record id is guid -->
+        <id index="0" />
+
+        <!-- column mappings -->
+        <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID"/>
+        <field index="1" term="http://rs.tdwg.org/dwc/terms/scientificNameID"/>
+        <field index="2" term="http://worldfloraonline/terms/localID"/>
+        <field index="3" term="http://rs.tdwg.org/dwc/terms/scientificName"/>
+        <field index="4" term="http://rs.tdwg.org/dwc/terms/taxonRank"/>
+        <field index="5" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID"/>
+        <field index="6" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship"/>
+        <field index="7" term="http://rs.tdwg.org/dwc/terms/family"/>
+        <field index="8" term="http://rs.emonocots.org/terms/subfamily"/>
+        <field index="9" term="http://rs.emonocots.org/terms/tribe"/>
+        <field index="10" term="http://rs.emonocots.org/terms/subtribe"/>
+        <field index="11" term="http://rs.tdwg.org/dwc/terms/genus"/>
+        <field index="12" term="http://rs.tdwg.org/dwc/terms/subgenus"/>
+        <field index="13" term="http://rs.tdwg.org/dwc/terms/specificEpithet"/>
+        <field index="14" term="http://rs.tdwg.org/dwc/terms/infraspecificEpithet"/>
+        <field index="15" term="http://rs.tdwg.org/dwc/terms/verbatimTaxonRank"/>
+        <field index="16" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus"/>
+        <field index="17" term="http://rs.tdwg.org/dwc/terms/namePublishedIn"/>
+        <field index="18" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus"/>
+        <field index="19" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID"/>
+        <field index="20" term="http://rs.tdwg.org/dwc/terms/originalNameUsageID"/>
+        <field index="21" term="http://rs.tdwg.org/dwc/terms/nameAccordingToID"/>
+        <field index="22" term="http://rs.tdwg.org/dwc/terms/taxonRemarks"/>
+        <field index="23" term="http://purl.org/dc/terms/created"/>
+        <field index="24" term="http://purl.org/dc/terms/modified"/>
+        <field index="25" term="http://purl.org/dc/terms/references" default="http://www.worldfloraonline.org"/>
+        <field index="26" term="http://purl.org/dc/terms/source"/>
+        <field index="27" term="http://worldfloraonline.org/terms/majorGroup"/>
+        <field index="28" term="http://worldfloraonline.org/terms/tplID"/>
+        <field index="29" term="http://worldfloraonline.org/terms/speciesHybridMarker"/>
+        <field index="30" term="http://worldfloraonline.org/terms/infraspecificRank"/>
+        <field index="31" term="http://worldfloraonline.org/terms/originalID"/>
+        <field index="32" term="http://worldfloraonline.org/terms/old_t1id"/>
+        <field index="33" term="http://worldfloraonline.org/terms/tropicosId"/>
+        <field index="34" term="http://worldfloraonline.org/terms/references1.0"/>
+        <field index="35" term="http://worldfloraonline.org/terms/doNotProcess"/>
+        <field index="36" term="http://worldfloraonline.org/terms/doNotProcess_reason"/>
+        <field index="37" term="http://worldfloraonline.org/terms/OfficialFamily"/>
+        <field index="38" term="http://worldfloraonline.org/terms/comments"/>
+        <field index="39" term="http://worldfloraonline.org/terms/deprecated"/>
+
+        <!-- static values -->
+        <field term="http://rs.tdwg.org/dwc/terms/kingdom" default="Plantae"/>
+        <field term="http://rs.tdwg.org/dwc/terms/nomenclaturalCode" default="ICNAFP"/>
+        <field term="http://purl.org/dc/terms/rightsHolder" default="World Flora Online Consortium"/>
+        <field term="http://purl.org/dc/terms/license" default="https://creativecommons.org/publicdomain/zero/1.0"/>
+        <field term="http://purl.org/dc/terms/rights" default="CC0 1.0 Universal (CC0 1.0)."/>
+
+        <!-- references extension -->
+        <extension encoding="UTF-8" linesTerminatedBy="\n" fieldsTerminatedBy="," fieldsEnclosedBy="" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/Reference">
+            <files>
+                <location>references.csv</location>
+            </files>
+            <coreid index="0" />
+            <field index="1" term="http://purl.org/dc/terms/identifier" />
+            <field index="2" term="http://purl.org/dc/terms/bibliographicCitation" />
+            <field index="3" term="http://purl.org/dc/terms/source" />
+            <field index="4" term="http://purl.org/dc/elements/1.1/relation"/>
+            <field term="http://purl.org/dc/terms/license" default="https://creativecommons.org/publicdomain/zero/1.0"/>
+        </extension>
+
+    </core>
+
+</archive>
