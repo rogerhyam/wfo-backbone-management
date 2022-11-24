@@ -323,10 +323,29 @@ class Reference{
 
         $safe_uri = $mysqli->real_escape_string($uri);
 
-        $result = $mysqli->query("SELECT id FROM `references` WHERE link_uri = '$safe_uri'");
+        // we always look for both versions of the URI
+        if(preg_match('/^http:\/\//', $safe_uri)){
+            $https_version = str_replace('http://', 'https://', $safe_uri);
+            $http_version = $safe_uri;
+        }else{
+            $https_version = $safe_uri;
+            $http_version = str_replace('https://', 'http://', $safe_uri);
+        }
+
+        $result = $mysqli->query("SELECT id FROM `references` WHERE link_uri = '$https_version' OR link_uri = '$http_version'");
         if($result->num_rows > 0){
+            
             $row = $result->fetch_assoc();
-            return Reference::getReference($row['id']);
+            $ref = Reference::getReference($row['id']);
+
+            // if we were asked for the https version but the one received was the http version
+            // then we set the link to the https version so that any subsequent save (e.g. updating the display string) will update it.
+            if($safe_uri == $https_version && $ref->getLinkUri() == $http_version){
+                $ref->setLinkUri($https_version);
+            }
+
+            return $ref;
+
         }else{
             return null;
         }
