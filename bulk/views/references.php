@@ -129,7 +129,8 @@ function run_references($table){
                 // update the comment if there is one
                 if($ref_use->comment != $comment){
                     // update comment
-                    $name->updateReference($ref, $comment, $subject_type);
+                    $placement_related = $subject_type == 'taxon' ? true: false;
+                    $name->updateReference($ref, $comment, $placement_related);
                     $_SESSION['references_updated']++;
                 }
 
@@ -142,7 +143,8 @@ function run_references($table){
         // we didn't find it above so add it in
         if(!$found){
             // reference doesn't belong to name so add it
-            $name->addReference($ref, $comment, $subject_type);
+            $placement_related = $subject_type == 'taxon' ? true: false;
+            $name->addReference($ref, $comment, $placement_related);
             $_SESSION['references_added']++;
         }
 

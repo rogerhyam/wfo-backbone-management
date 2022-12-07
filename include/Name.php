@@ -1025,7 +1025,7 @@ class Name extends WfoDbObject{
         $proposed_name = preg_replace('/\s+/', ' ', $proposed_name);
 
         // no silly characters - letters alone
-        $proposed_name = preg_replace('/[^\sa-zA-Z]/', '', $proposed_name);
+        $proposed_name = Name::sanitizeNameString($proposed_name);
 
         // let's start by parsing out the name into parts.
         $parts = explode(' ', trim($proposed_name));
@@ -1395,5 +1395,32 @@ class Name extends WfoDbObject{
         return true;
 
     }
+
+    // duplicate function again - same as in NameMatcher
+    public static function isRankWord($word){
+
+        global $ranks_table;
+
+        $word = strtolower($word);
+        foreach($ranks_table as $rank => $rankInfo){
+
+            // does it match the rank name
+            if(strtolower($word) == $rank) return $rank;
+
+            // does it match the official abbreviation
+            if($word == strtolower($rankInfo['abbreviation'])) return $rank;
+
+            // does it match one of the known alternatives
+            foreach($rankInfo['aka'] as $aka){
+                if($word == strtolower($aka)) return $rank;
+            }
+
+        }
+
+        // no luck so it isn't a rank word we know of
+        return false;
+
+    }
+
 
 } // name

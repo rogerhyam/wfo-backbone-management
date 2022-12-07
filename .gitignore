@@ -10,3 +10,5 @@ composer.phar
 
 
 data/duplicate_names.csv
+data/.DS_Store
+.DS_Store

@@ -1,0 +1,104 @@
+# single, primary DOI for the dataset
+# doi: 10.15468/2zjeva -- fixme - zenodo ?
+
+# Full dataset title
+title: World Flora Online Plant List {{version}}
+
+# Short, hopefully unique name for the dataset
+alias: WFO Plant List {{version}}
+
+# Multi paragraph description / abstract of the dataset
+description: >
+   The consensus taxonomy of plants used as a backbone for the World Flora Online portal
+   in support of Target 1 of the Global Strategy for Plant Conservation.
+   New versions of this checklist are released every six months in June and December. This is release {{version}}.
+   The initial data ingestion into the World Flora Online taxonomic backbone was from 
+   The Plant List Version 1.1 (TPL, http://theplantlist.org, September 2013), with the full list of contributing datasets given here: http://theplantlist.org/1.1/about/#collaborators. 
+   New taxonomic names have been incorporated into WFO from nomenclators International Plant Name Index (IPNI, https://www.ipni.org) 
+   for vascular plants, and Tropicos (https://www.tropicos.org) for bryophytes. 
+   Taxonomic and nomenclatural updates have been incorporated from the WFO's Taxonomic Expert Networks
+   and the World Checklist of Vascular Plants version 2.0 (WCVP, http://wcvp.science.kew.org), facilitated by the Royal Botanic Gardens, Kew.
+
+
+# Keywords list. Added in v1.1
+keyword: 
+  - Global Strategy for Plant Conservation
+  - Plants
+  - Bryophytes
+  - Taxonomic backbone
+
+# Official release date of this version in ISO YYYY-MM-DD. Will be part of the default citation!
+issued: {{date}}      
+
+# Version name of this copy
+version: {{version}} {{release}}
+
+# Single point of contact for questions
+contact: 
+  given: Alan
+  family: Elliott
+  email: taxwg@worldfloraonline.org
+  orcid: 0000-0002-8677-5688
+
+
+# Creators of the dataset. Will be treated as authors in the default citation!
+# For available fields see Agent type at the top
+# Please provide an ORCID if you can so it can be included in DOI metadata
+creator:
+  - organisation: World Flora Online
+    #rorid: FIXME - we've applied for one
+    url: http://www.worldfloraonline.org
+    email: taxwg@worldfloraonline.org
+
+
+# Editors of the dataset. Will be part of the default citation!
+editor:
+{{editors}}
+
+# Single publishing organisation. Will be part of the default citation!
+publisher:         
+  - organisation: World Flora Online
+    #rorid: FIXME - we've applied for one
+    url: http://www.worldfloraonline.org
+    email: taxwg@worldfloraonline.org
+
+# Agent contributing to the dataset in any other way, but who is not considered an author of the dataset
+# Use the optional note field to specify the kind of contribution
+contributor:
+{{contributors}}
+
+# Description of the geographical scope of the dataset
+geographicScope: global
+
+# Taxonomic scope of the dataset
+taxonomicScope: Plantae, Bryophyta, Marchantiophyta, Anthocerotophyta, 
+
+# Taxonomic scope of the dataset given as English vernacular name(s)
+taxonomicScopeInEnglish: Plants, Mosses, Liverworts, Horworts
+
+# Temporal scope of the dataset
+temporalScope: Consensus taxonomy as of {{date}}
+
+# Integer between 1-5 with 5 expressing highest confidence in quality of the data
+confidence: 5
+
+# 0-100 to express the completeness of the dataset in regards to the defined scope
+completeness: 95
+
+# Any commons license (CC0, CC-BY, CC-BY-NC, CC-BY-SA, CC-BY-ND, CC-BY-NC-SA, CC-BY-NC-ND)
+# Must be CC0 or CC-BY to be used by COL !!!
+license: CC0
+
+# Link to a website for the dataset
+url: https://wfoplantlist.org
+
+# URL to large logo image
+logo: https://list.worldfloraonline.org/rhakhis/ui/logo1024.png 
+
+notes: >
+   Note on persistence of IDs. Identifiers for NAMES remain constant and of the form wfo-0000000000. 
+   Identifiers for TAXA are of the form wfo-0000000000-YY-MM and change with each release to show that they belong to a different taxonomic treatment and may not be directly comparable.
+   There are associated HTTP URIs with these short identifiers of the form https://list.worldfloraonline.org/<name or taxon identifier>.
+   These HTTP URIs support an API that enables navigation between different versions of the taxonomy. See  https://list.worldfloraonline.org/ for details.
+
+

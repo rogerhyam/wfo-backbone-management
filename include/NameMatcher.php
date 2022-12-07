@@ -51,7 +51,7 @@ class NameMatcher{
         $nameParts = explode(' ', $nameString);
         $newNameParts = array();
         foreach($nameParts as $part){
-            if($this->isRankWord($part)){
+            if(Name::isRankWord($part)){
                 // if we find a part that looks like a rank word
                 // we don't add it to the new version of the name
                 // but if we don't have a rank designation we use it for that.
@@ -66,7 +66,7 @@ class NameMatcher{
         $authorsString = trim($authorsString);
 
         // normalize the rank if we can.
-        $rankString = $this->isRankWord($part);
+        $rankString = Name::isRankWord($part);
 
         // clean the family - not much to do here
         $familyString = preg_replace('/[^A-Za-z]/', '', $familyString);
@@ -181,7 +181,7 @@ class NameMatcher{
 
             // if we haven't found a rank yet and this is one
             // then we take that as being the rank
-            $rank = $this->isRankWord($word);
+            $rank = Name::isRankWord($word);
             if($rank){
                 $this->rank = $rank;
                 continue;

@@ -44,14 +44,16 @@
         $name_id_prefix = $_GET['name_id_prefix'];
 
         $sql = "SELECT * FROM `rhakhis_bulk`.`$table`
+            WHERE `rhakhis_skip` != 1 || `rhakhis_skip` is null 
             LIMIT $page_size
             OFFSET $offset";
 
         $response = $mysqli->query($sql);
-        $rows = $response->fetch_all(MYSQLI_ASSOC);
+        $table_rows = $response->fetch_all(MYSQLI_ASSOC);
+        $table_fields = $response->fetch_fields();
         
         // if we have more than 0 rows we may need to render the next page
-        if(count($rows) > 0){
+        if(count($table_rows) > 0){
             $params = $_GET;
             $params['page'] = ($page + 1);
             $uri = "index.php?" . http_build_query($params);
@@ -60,22 +62,63 @@
             $auto_render_next_page = "<p>Reached end of table</p>";
         }
 
-        foreach($rows as $row){
+        foreach($table_rows as $table_row){
 
-            $name_id_value = $mysqli->real_escape_string($name_id_prefix . $row[$name_id_col]);
+            $name_id_value = $mysqli->real_escape_string($name_id_prefix . $table_row[$name_id_col]);
             $sql = "SELECT * FROM `identifiers` WHERE `kind` = '$name_id_type' AND `value` = '$name_id_value'";
             $response = $mysqli->query($sql);
-            $rows = $response->fetch_all(MYSQLI_ASSOC);
+            $identifier_rows = $response->fetch_all(MYSQLI_ASSOC);
             $response->close();
-            if(count($rows) > 0){
+            if(count($identifier_rows) > 0){
                 // found it so bind it
-                $name = Name::getName($rows[0]['name_id']);
+                $name = Name::getName($identifier_rows[0]['name_id']);
                 $wfo = $name->getPrescribedWfoId();
-                $sql = "UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_wfo` = '$wfo' WHERE `rhakhis_pk` = {$row['rhakhis_pk']};";
+                $sql = "UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_wfo` = '$wfo' WHERE `rhakhis_pk` = {$table_row['rhakhis_pk']};";
                 $mysqli->query($sql);
-                echo "<p><strong>$name_id_value</strong> Found! $wfo for " . $name->getFullNameString() . " added to table.</p>"; 
+                //echo "<p><strong>$name_id_value</strong> Found! $wfo for " . $name->getFullNameString() . " added to table.</p>"; 
             }else{
-                echo "<p><strong>$name_id_value</strong> Not found!</p>"; 
+
+                // we haven't found it 
+                if($name_id_type == 'wfo' && preg_match('/^wfo-[0-9]{10}$/', $name_id_value)){
+
+                    // it looks like a new wfo id
+
+                    $params = $_GET;
+                    $params['action'] = 'add_wfo';
+                    $params['wfo'] = $name_id_value;
+                    $params['rhakhis_pk'] = $table_row['rhakhis_pk'];
+                    $params['table'] = $table;
+                    unset($params['create']);
+                    unset($params['skip']);
+                    
+                    // This is a wfo id that we don't know about. Perhaps we should add it?
+                    echo "<form action=\"index.php\" method=\"GET\" >";
+                    foreach ($params as $key => $value) {
+                        echo "<input type=\"hidden\" name=\"$key\" value=\"$value\" />";
+                    }
+                    echo "<hr/>";
+                    echo "<p>The WFO ID <strong>$name_id_value</strong> does not exist in Rhakhis. Add it?&nbsp;</p>";
+                    echo "<p><input type=\"submit\" value=\"YES, create name with $name_id_value based on:\" name=\"create\" /></p>";
+                    echo "<p><select name=\"proposed_name\" />";
+                    foreach($table_fields as $field){
+                        if($field->name == $name_id_col) continue; // skip the wfo we are using
+                        if(!$table_row[$field->name]) continue;
+                        $selected = @$_GET['name_column'] == $field->name ? 'selected' : '';
+                        echo "<option value=\"{$table_row[$field->name]}\" >{$field->name}: {$table_row[$field->name]}</option>";
+                    }
+                    echo "<hr/>";
+                    echo "</select><br/>(Pick the column with the names string in it.)</p>";
+                    echo "<hr/>";
+                    echo "<p><input type=\"submit\" value=\"NO, skip row.\" name=\"skip\" /></p>";
+                    echo "</form>";
+                    echo "<hr/>";
+                    exit;
+
+                }else{
+                    // not matching on wfo id so no chance of creating a missing on.
+                    echo "<p><strong>$name_id_value</strong> Not found!</p>"; 
+                }
+
             }
 
             flush();
@@ -406,7 +449,7 @@
                                 
                             // we need to have a good rank to create the name at
                             $proposed_rank = $row[$_GET['rank_col']];
-                            $good_rank = isRankWord($proposed_rank);
+                            $good_rank = Name::isRankWord($proposed_rank);
 
                             // need to check that the rank agrees with the number of name parts
                             $rank_matches_name = false;
@@ -782,7 +825,7 @@ function get_name_parts($nameString){
     $newNameParts = array();
     foreach($nameParts as $part){
         // strip out the rank parts.
-        if(!isRankWord($part)){
+        if(!Name::isRankWord($part)){
             $newNameParts[] = $part;
         }
     }

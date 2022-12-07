@@ -117,7 +117,7 @@ echo "<tr><th>Data Value</th><th>Number</th><th>Percent</th><th>Maps to..</th><t
 foreach($rows as $row){
 
     // is the value a rank?
-    $rank = isRankWord( strtolower(trim($row['val'])) );
+    $rank = Name::isRankWord( strtolower(trim($row['val'])) );
 
     if($rank) echo '<tr>';
     else echo '<tr style="background-color: pink">';

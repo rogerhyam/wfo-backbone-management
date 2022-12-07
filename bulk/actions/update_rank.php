@@ -47,7 +47,7 @@ if(count($rows) > 0){
 
 foreach($rows as $row){
 
-    $good_rank = isRankWord($row['rank']);
+    $good_rank = Name::isRankWord($row['rank']);
 
     // not got a good rank do we have a map for it.
     if(!$good_rank && isset($unknown_ranks_mapped[$row['rank']])){
