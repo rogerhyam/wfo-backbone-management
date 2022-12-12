@@ -3,6 +3,8 @@
 // this will generate a COLDP suitable for import into
 // ChecklistBank
 
+// php -d memory_limit=2G gen_coldp.php
+
 require_once("../config.php");
 require_once("../include/WfoDbObject.php");
 require_once("../include/Name.php");
@@ -127,7 +129,7 @@ while(true){
     // debug
     // if($offset > 20000) break;
 
-    $response = $mysqli->query("SELECT * from `names` ORDER BY id LIMIT 10000 OFFSET $offset");
+    $response = $mysqli->query("SELECT * from `names` WHERE `status` != 'deprecated' ORDER BY id LIMIT 10000 OFFSET $offset");
     
     // if we get nothing back then we have finished
     if($response->num_rows == 0) break;
@@ -382,7 +384,7 @@ while(true){
                     }
 
                     // do we have a curator yet?
-                    $curators = $taxon->getCurators();
+                    $curators = $anc->getCurators();
                     if($curators){
                         // we just take the first as there can only be one
                         $scrutinizer = $curators[0]->getName();

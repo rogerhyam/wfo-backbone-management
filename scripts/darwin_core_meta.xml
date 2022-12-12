@@ -2,7 +2,7 @@
 <archive xmlns="http://rs.tdwg.org/dwc/text/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd" metadata="eml.xml">
-    <core encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy='"' ignoreHeaderLines="1" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
+    <core encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy="&quot;" ignoreHeaderLines="1" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
         <files>
             <location>classification.csv</location>
         </files>
@@ -50,20 +50,21 @@
         <field term="http://purl.org/dc/terms/license" default="https://creativecommons.org/publicdomain/zero/1.0" />
         <field term="http://purl.org/dc/terms/rights" default="CC0 1.0 Universal (CC0 1.0)." />
 
-
-        <!-- references extension -->
-        <extension encoding="UTF-8" linesTerminatedBy="\n" fieldsTerminatedBy="," fieldsEnclosedBy="" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/Reference">
-            <files>
-                <location>references.csv</location>
-            </files>
-            <coreid index="0" />
-            <field index="1" term="http://purl.org/dc/terms/identifier" />
-            <field index="2" term="http://purl.org/dc/terms/bibliographicCitation" />
-            <field index="3" term="http://purl.org/dc/terms/source" />
-            <field index="4" term="http://purl.org/dc/elements/1.1/relation"/>
-            <field term="http://purl.org/dc/terms/license" default="https://creativecommons.org/publicdomain/zero/1.0"/>
-        </extension>
-
     </core>
+
+    <!-- references extension -->
+    <extension encoding="UTF-8" linesTerminatedBy="\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/Reference">
+        <files>
+            <location>references.csv</location>
+        </files>
+        <coreid index="0" />
+        <field index="1" term="http://purl.org/dc/terms/identifier" />
+        <field index="2" term="http://purl.org/dc/terms/bibliographicCitation" />
+        <field index="3" term="http://purl.org/dc/terms/source" />
+        <field index="4" term="http://purl.org/dc/elements/1.1/relation"/>
+        <field term="http://purl.org/dc/terms/license" default="https://creativecommons.org/publicdomain/zero/1.0"/>
+    </extension>
+
+
 
 </archive>

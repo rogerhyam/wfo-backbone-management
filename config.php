@@ -231,6 +231,13 @@ $ranks_table = array(
     "abbreviation" => "subf.", // official abbreviation
     "plural" => "Subforms",
     "aka" => array("subforma") // alternative representations for import
+  ),
+
+  "unranked" => array(
+    "children" => array(), // permissible ranks for child taxa = none
+    "abbreviation" => "unr.", // official abbreviation
+    "plural" => "Unranked",
+    "aka" => array() // alternative representations for import
   )
 
 );
