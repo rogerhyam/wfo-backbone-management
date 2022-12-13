@@ -120,7 +120,7 @@ $offset = 1; // offset is one because the first one is the root
 // we have to page because we are doing calls to the identifiers table
 // and can't use use-results 
 while(true){
-    
+
     // try and free some memory between pages.
     Taxon::resetSingletons();
     Name::resetSingletons();
@@ -545,7 +545,7 @@ fclose($synonyms_out);
 echo "\nWriting References\n";
 
 // we export the people and databases who are associated with taxa
-$response = $mysqli->query("SELECT r.* FROM `references` AS r JOIN `name_references` AS nr ON r.id = nr.reference_id WHERE r.kind in ('person', 'database') AND nr.placement_related = 1;");
+$response = $mysqli->query("SELECT DISTINCT r.* FROM `references` AS r JOIN `name_references` AS nr ON r.id = nr.reference_id WHERE r.kind in ('person', 'database') AND nr.placement_related = 1;");
 while($row = $response->fetch_assoc()){
     
     $ref = array();
@@ -597,7 +597,6 @@ while($row = $response->fetch_assoc()){
 }
 
 fclose($refs_out);
-
 
 // type material is just exported as a separate job
 
@@ -721,6 +720,8 @@ else $release = "";
 $meta = str_replace('{{release}}',$release, $meta);
 
 file_put_contents($yaml_file_path, $meta);
+
+echo "\nZipping Up\n";
 
 // wrap them in a zip file
 $zip = new ZipArchive();
