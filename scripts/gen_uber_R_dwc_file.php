@@ -28,7 +28,7 @@ $fields_to_drop = array(
 
 $uber_zip_path = "../www/downloads/dwc/_uber.zip";
 $uber_R_csv_path = "../www/downloads/dwc/_uber_R.csv";
-$uber_R_zip_path = "../www/downloads/dwc/_uber_R.zip";
+$uber_R_zip_path = "../www/downloads/dwc/_DwC_backbone_R.zip";
 
 // get a handle on the file
 $uber_zip = new ZipArchive();

@@ -155,6 +155,12 @@ function process_name($name, $version_name){
 
     }
 
+    // basionym!
+    $basionym = $name->getBasionym();
+    if($basionym){
+        $out['basionym_id_s'] = $basionym->getPrescribedWfoId()  . '-' . $version_name;
+    }
+
     // author team stuff
     $authorTeam = new AuthorTeam($name->getAuthorsString());
     $out['authors_string_s'] = $name->getAuthorsString();

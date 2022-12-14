@@ -3,7 +3,7 @@
 // this will generate a COLDP suitable for import into
 // ChecklistBank
 
-// php -d memory_limit=2G gen_coldp.php
+// php -d memory_limit=3G gen_coldp.php
 
 require_once("../config.php");
 require_once("../include/WfoDbObject.php");
