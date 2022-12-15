@@ -5,7 +5,7 @@
     into SOLR as an instance of the WFO Plant List.
     Basically it is a flattened dump of the entire dataset
 
-    // php -d memory_limit=2G gen_plant_list.php
+    // php -d memory_limit=3G gen_plant_list.php
 
     import the output into solr
     curl -X POST -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo2/update?commit=true' --data-binary @plant_list_2022-12.json  --user wfo:****
@@ -130,6 +130,8 @@ function process_name($name, $version_name){
     $out["rank_s"] = $name->getRank();
     $out["citation_micro_s"] = $name->getCitationMicro();
     $out["citation_micro_t"] = $name->getCitationMicro();
+    $out["comment_t"] = $name->getComment();
+    
 
     // identifiers
     $out['identifiers_other_kind_ss'] = array();

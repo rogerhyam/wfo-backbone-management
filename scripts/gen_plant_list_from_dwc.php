@@ -15,9 +15,10 @@
 
 require_once("../config.php");
 
-$dwc_file_path = "../data/versions/dwc_2022-06.txt.csv";
-$json_file_path = "../data/versions/plant_list_2022-06.json";
-$version = "2022-06";
+$version = "2018-07";
+
+$dwc_file_path = "../data/versions/dwc_{$version}.txt.csv";
+$json_file_path = "../data/versions/plant_list_{$version}.json";
 
 // we don't want to accidentally create fields other than these
 $pl_fields = array(
@@ -119,7 +120,8 @@ $rank_map = array(
     "subvariety" => "subvariety",
     "form" => "form",
     "forma" => "form",
-    "subform" => "subform"
+    "subform" => "subform",
+    "unranked" => "unranked"
 );
 
 $in = fopen($dwc_file_path, 'r');
@@ -129,14 +131,17 @@ fwrite($out, "[\n"); // wrap it in an array
 // read the header
 $header = fgetcsv($in, 0, "\t");
 
-print_r($header);
-
 $counter = 0;
 while($row = fgetcsv($in, 0, "\t")){
 
+    if(count($header) != count($row)){
+        echo "\nColumn count mismatch\n";
+        continue;
+    } 
+
     // make the row into an object as it is much easier to deal with
     $dwc = array();
-    for ($i=0; $i < count($header); $i++) $dwc[$header[$i]] = $row[$i];
+    for ($i=0; $i < count($header); $i++) $dwc[$header[$i]] = isset($row[$i]) ? $row[$i] : "";
     $dwc = (object)$dwc;
 
     // a destination object
@@ -149,6 +154,17 @@ while($row = fgetcsv($in, 0, "\t")){
 
     // wfo_id_s
     $pl->wfo_id_s= $dwc->taxonID;
+
+    // classification_id_s
+    $pl->classification_id_s= $version;
+    $parts = explode('-', $version);
+    // classification_year_i
+    $pl->classification_year_i= $parts[0];
+    // classification_month_i
+    $pl->classification_month_i= $parts[1];
+
+    // solr_import_dt
+    $pl->solr_import_dt  = date('Y-m-d\Th:i:s\Z');
 
     // parse that name out
     
@@ -242,7 +258,7 @@ while($row = fgetcsv($in, 0, "\t")){
             $pl->name_string_s = array_pop($parts); // last element avoiding ssp. or var. etc
             
             // species_string_s
-            $pl->species_string_s = $parts[1];
+            $pl->species_string_s = isset($parts[1]) ? $parts[1] : null;
 
             // get an official abbreviation
             $rank_abbreviation = $ranks_table[$rank]['abbreviation'];
@@ -393,19 +409,21 @@ while($row = fgetcsv($in, 0, "\t")){
     } 
 
     // localID
-    if(trim($dwc->localID)){
+    if(isset($dwc->localID)){
         $pl->identifiers_other_kind_ss[] = 'ten';
         $pl->identifiers_other_value_ss[] = trim($dwc->localID);
     }
 
     // tplId
-    if(trim($dwc->tplId)){
+    if(isset($dwc->tplId)){
         $pl->identifiers_other_kind_ss[] = 'tpl';
         $pl->identifiers_other_value_ss[] = trim($dwc->tplId);
     }
 
-    // basionym time!!
-
+    // basionym time
+    if(isset($dwc->originalNameUsageID)){
+        $pl->basionym_id_s = trim($dwc->originalNameUsageID);
+    }
     
     // reference_kinds_ss - no references handled before 2022-12
     // reference_uris_ss - no references handled before 2022-12
@@ -414,31 +432,108 @@ while($row = fgetcsv($in, 0, "\t")){
     // reference_comments_ss - no references handled before 2022-12
     // reference_contexts_ss - no references handled before 2022-12
 
-    // role_s
-    // classification_id_s
-    // classification_year_i
-    // classification_month_i
+    // taxonomy time!
 
-    // solr_import_dt
-    // parent_id_s
-    // placed_in_genus_s
-    // placed_in_family_s
-    // placed_in_order_s
+    if(isset($dwc->parentNameUsageID) && $dwc->parentNameUsageID){
+        // role_s
+        $pl->role_s = 'accepted';
+
+        // parent_id_s
+        $pl->parent_id_s = trim($dwc->parentNameUsageID) . '-' . $version;
+
+
+    }elseif(isset($dwc->acceptedNameUsageID) && $dwc->acceptedNameUsageID){
+        
+        // role_s
+        $pl->role_s = 'synonym';
+
+        // accepted_id_s
+        $pl->accepted_id_s = trim($dwc->acceptedNameUsageID) . '-' . $version;
+
+    }else{
+        // role_s
+        $pl->role_s = 'unplaced';
+
+    }
+
+    // taxonomy up the way
+    
     // placed_in_phylum_s
-    // placed_in_code_s
+    if(isset($dwc->majorGroup)){
+        switch ($dwc->majorGroup) {
+            case 'A':
+                $pl->placed_in_phylum_s = 'Angiosperms';
+                break;
+            case 'B':
+                $pl->placed_in_phylum_s = 'Bryophytes';
+                break;
+            case 'G':
+                $pl->placed_in_phylum_s = 'Gymnosperms';
+                break;
+            case 'P':
+                $pl->placed_in_phylum_s = 'Pteridophytes';
+                break;        
+            default:
+                $pl->placed_in_phylum_s = null;
+                break;
+        }
+    }
+
+    
+    // placed_in_family_s
+    if(isset($dwc->family)) $pl->placed_in_family_s = trim($dwc->family);
+
+    // placed_in_subfamily_s
+    if(isset($dwc->subfamily)) $pl->placed_in_subfamily_s = trim($dwc->subfamily);
+    
+    // placed_in_tribe_s
+    if(isset($dwc->tribe)) $pl->placed_in_tribe_s = trim($dwc->tribe);
+
+    // placed_in_subtribe_s
+    if(isset($dwc->subtribe)) $pl->placed_in_subtribe_s = trim($dwc->subtribe);
+
+    // placed_in_subgenus_s
+    if(isset($dwc->subgenus)) $pl->placed_in_subgenus_s = trim($dwc->subgenus);
+
+    // placed_in_genus_s
+    if($pl->rank_s == 'genus'){
+        $pl->placed_in_genus_s = $pl->name_string_s;
+    }elseif($pl->genus_string_s){
+        $pl->placed_in_genus_s = $pl->genus_string_s;
+    }else{
+        $pl->placed_in_genus_s = null;
+    }
+
+    // placed_in_species_s
+    if($pl->rank_s == 'species'){
+        $pl->placed_in_species_s = $pl->name_string_s;
+    }elseif($pl->species_string_s){
+        $pl->placed_in_species_s = $pl->species_string_s;
+    }else{
+        $pl->species_in_genus_s = null;
+    }
+ 
+    if(trim($dwc->family)) $pl->placed_in_family_s = trim($dwc->family);
+    
+    if(isset($dwc->taxonRemarks)) $pl->comment_t = trim($dwc->taxonRemarks);
+
+    // FOLLOWING NOT SUPPORTED PRIOR TO 2022-12
+
     // name_descendent_path
     // name_ancestor_path
     // name_path_s
     // editors_name_ss
     // editors_orcid_ss
-    // ten_name_s
-    // ten_uri_s
-    // ten_comment_s
-    // placed_in_species_s
-    // accepted_id_s
+    // ten_name_s - not supported prior to 2022-12
+    // ten_uri_s - not supported prior to 2022-12
+    // ten_comment_s - not supported prior to 2022-12
     // accepted_full_name_string_html_s
     // accepted_full_name_string_plain_s
     // accepted_child_count_is
+    // placed_in_species_s
+    // placed_in_genus_s
+    // placed_in_order_s
+    // placed_in_code_s
     // placed_in_subspecies_s
     // placed_in_subfamily_s
     // placed_in_variety_s
@@ -447,8 +542,6 @@ while($row = fgetcsv($in, 0, "\t")){
     // placed_in_class_s
     // placed_in_form_s
     // placed_in_section_s
-    // placed_in_subgenus_s
-    // placed_in_tribe_s
     // placed_in_series_s
     // placed_in_prole_s
     // placed_in_subsection_s
@@ -460,47 +553,14 @@ while($row = fgetcsv($in, 0, "\t")){
     fwrite($out, json_encode($pl));
      
     $counter++;
-    if($counter > 10000) break;
+    
+    //if($counter > 10000) break;
+
+    if($counter % 10000 == 0) echo "\n" . number_format($counter, 0);
+
 }
 
 fclose($in);
 fwrite($out, "\n]\n"); // wrap it in an array
 fclose($out);
 
-
-/*
-
-Typical DwC header
-
-    [0] => taxonID
-    [1] => scientificNameID 
-    [2] => localID
-    [3] => scientificName 
-    [4] => taxonRank
-[5] => parentNameUsageID
-    [6] => scientificNameAuthorship
-[7] => family
-[8] => subfamily
-[9] => tribe
-[10] => subtribe
-[11] => genus
-[12] => subgenus
-    [13] => specificEpithet
-    [14] => infraspecificEpithet
-    [15] => verbatimTaxonRank
-    [16] => nomenclaturalStatus
-    [17] => namePublishedIn
-    [18] => taxonomicStatus - ignored?
-[19] => acceptedNameUsageID
-[20] => originalNameUsageID
-    [21] => nameAccordingToID - we don't have a linking mechanism at this point to ignore
-[22] => taxonRemarks
-    [23] => created - ignored
-    [24] => modified - ignored
-    [25] => references -ignored - misleading and links to URI we will turn off shortly
-    [26] => source -ignored - misleading - meaningless outside Portal
-[27] => majorGroup
-    [28] => tplId
-
-
-*/
