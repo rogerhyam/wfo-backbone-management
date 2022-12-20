@@ -100,5 +100,6 @@ notes: >
    Identifiers for TAXA are of the form wfo-0000000000-YY-MM and change with each release to show that they belong to a different taxonomic treatment and may not be directly comparable.
    There are associated HTTP URIs with these short identifiers of the form https://list.worldfloraonline.org/<name or taxon identifier>.
    These HTTP URIs support an API that enables navigation between different versions of the taxonomy. See  https://list.worldfloraonline.org/ for details.
+   For humans, using a web browser, the associated HTTP URIs will redirect to the WFO Portal. For machines they will provide data.
 
 

@@ -1055,6 +1055,8 @@ class Taxon extends WfoDbObject{
 
         global $mysqli;
 
+        $name = $this->getAcceptedName();
+
         // we should have no children
         if(count($this->getChildren()) > 0){
             throw new ErrorException("Trying to delete a taxon that has children. name_id {$name->id} and taxon_id {$this->id}.");
