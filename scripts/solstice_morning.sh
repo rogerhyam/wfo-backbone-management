@@ -33,7 +33,7 @@ rm ../www/downloads/dwc/*.zip
 php -d memory_limit=5G gen_uber_dwc_file.php
 
 # R Package file from uber file 10 mins
-php gen_uber_dwc_file.php
+php gen_uber_R_dwc_file.php
 
 # family files - creates 20 families each time
 php -d memory_limit=2048M gen_family_dwc_file.php
