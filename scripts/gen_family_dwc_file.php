@@ -486,11 +486,26 @@ function process_family($family_wfo, $file_path){
 
             // family and other ranks
 
-            // special case. If there are no ancestors (the name is unplaced)
-            // we include the family we are processing because it is built by family
-            if(!$ancestors || $name->getRank() == 'family'){
-                $row['family'] = $family_name->getNameString();
+            
+            if($name->getRank() == 'family'){
+                // if it is a family then it is in that family
+                // this will be overwritten if it is a family but a synonym of another taxon
+                $row['family'] = $name->getNameString();
             }
+
+            if(!$ancestors){
+
+                // We don't have a placement so how do we work out what family to 
+                // put it in?
+
+                // try and guess
+                $row['family'] = guesstimate_family($name);
+
+                // if we still don't have anything use the family we are working on now
+                if(!$row['family']) $row['family'] = $family_name->getNameString();
+            
+            }
+
             foreach($ancestors as $an){
                 switch ($an->getAcceptedName()->getRank()) {
                     case "family":
@@ -662,6 +677,82 @@ function check_name_links($item, &$link_index){
     }
 
 }
+
+/**
+ * Try and provided a consistent family 
+ * for unplaced names
+ * 
+ */
+function guesstimate_family($name){
+
+    global $mysqli;
+
+    // If name is unplaced but it has a genus name see if the genus name is placed - if it is use that family.
+    if($name->getGenusString()){
+
+        $response = $mysqli->query("SELECT id FROM `names` WHERE `name` = '{$name->getGenusString()}' AND `rank` = 'genus' ORDER BY id;");
+        $rows = $response->fetch_all(MYSQLI_ASSOC);
+        $response->close();
+        
+        // we take the first genus name that is placed in the taxonomy if there are multiples
+        foreach($rows as $row){
+            $genus_name = Name::getName($row['id']);
+            $genus_taxon = Taxon::getTaxonForName($genus_name);
+            $family_name = get_family_name_for_taxon($genus_taxon);
+            if($family_name) return $family_name;
+        }
+
+    }
+
+    // If the genus name isn't placed does it have a basionym?
+    $basionym= $name->getBasionym();
+    if($basionym){
+        $basionym_taxon = Taxon::getTaxonForName($basionym);
+        $family_name = get_family_name_for_taxon($basionym_taxon);
+        if($family_name) return $family_name;
+    }
+
+    // If that doesn't work is it the basionym of something else?
+    $response = $mysqli->query("SELECT id FROM `names` WHERE `basionym_id` = {$name->getId()} ORDER BY id;");
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    $response->close();
+
+    foreach($rows as $row){
+        $homotypic_name = Name::getName($row['id']);
+        $homotypic_taxon = Taxon::getTaxonForName($homotypic_name);
+        $family_name = get_family_name_for_taxon($homotypic_taxon);
+        if($family_name) return $family_name;
+    }
+
+
+    // If none of those work look at the hints.
+    $hints = $name->getHints();
+    asort($hints);
+    foreach ($hints as $hint) {
+        if(preg_match('/aceae$/', $hint)){
+            return $hint;
+        }
+    }
+
+}
+
+function get_family_name_for_taxon($taxon){
+
+    if(!$taxon->getId()) return null;
+
+    // genus is placed in the taxonomy
+    $ancestors = $taxon->getAncestors();
+    foreach($ancestors as $anc) {
+        if($anc->getAcceptedName()->getRank() == 'family'){
+            return $anc->getAcceptedName()->getNameString();
+        }
+    }
+
+    return null;
+
+}
+
+
 
 function convert($size){
     $unit=array('b','kb','mb','gb','tb','pb');
