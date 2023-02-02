@@ -35,7 +35,9 @@ FROM identifiers as ipni
 JOIN `names` as n on n.id = ipni.name_id
 JOIN identifiers as wfo on n.prescribed_id = wfo.id 
 WHERE ipni.kind = 'ipni'
-AND wfo.kind = 'wfo';";
+AND wfo.kind = 'wfo'
+AND n.`status` != 'deprecated'
+ORDER BY ipni.`value`;";
 
 // don't store the result because this is a big one
 $response = $mysqli->query($sql, MYSQLI_USE_RESULT);
@@ -50,7 +52,11 @@ if($mysqli->error){
 
 // work through the dataset and write it to the csv file
 $row_count = 1;
+$last_ipni = null;
 while($row = $response->fetch_assoc()){
+    if($row['ipni_id'] == $last_ipni) continue; // no doubles
+    if(!preg_match('/^urn\:lsid\:ipni\.org\:names\:[0-9]+-[0-9]+$/', $row['ipni_id'])) continue; //no blanks
+    $last_ipni = $row['ipni_id'];
     fputcsv($out, $row);
     $row_count++;
 }
