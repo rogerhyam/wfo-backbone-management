@@ -30,7 +30,7 @@ fputcsv($out, $header);
 
 // add a row at the top that is the family
 $family_row = array_fill_keys($header, null);
-$family_row['plant_name_id'] = 0;
+$family_row['plant_name_id'] = 9999999;
 $family_row['taxon_name'] = $family;
 $family_row['taxon_rank'] = 'family';
 
@@ -65,7 +65,7 @@ while($row = $response->fetch_assoc()){
     // if this is a genus then attach it to the family
     // but only if it isn't synonymized
     if(strtolower($row['taxon_rank']) == 'genus' && !$out_row['accepted_plant_name_id']){
-        $out_row['parent_plant_name_id'] = 0;
+        $out_row['parent_plant_name_id'] = 9999999;
     }
 
     fputcsv($out, $out_row);
