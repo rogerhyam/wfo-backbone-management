@@ -1,6 +1,7 @@
 # Rhakhis Manual
 
-This is the top level documentation for the World Flora Online taxonomy management system. It is an overview of how the data is modelled rather than a step by step guide to using the graphical interface, API or data downloads.  
+This is the top level documentation for the World Flora Online taxonomy management system. It is an overview of how the data is modelled rather than a step by step guide to using the graphical interface, API or data downloads.
+
 
 ## Separation of Names and Taxa
 
@@ -9,8 +10,6 @@ The core principle that informed the design of Rhakhis was the separation of nom
 **Analogy #1:** Each name is written on an index card. The card contains all the information of when and where that name was published and what the type specimen is. There are around 1.5 million of these index cards stored alphabetically. To build a taxonomy the name cards are taken and placed into a hierarchical set of folders, one folder for each taxon. Each folder has a key card which is the accepted name for that taxon. The other cards in the folder are the synonyms. Placing the cards in the folders does not affect what is written on them but what is written on them may govern which folders they can be placed in. e.g. If the genus part of the name does not match the genus folder in which it is placed as an accepted name.
 
 **Analogy #2:** Each name is a Christmas tree decoration in a big box waiting to be hung on the tree. The taxonomy is the Christmas tree. We are all collaborating in decorating the tree!
-
-
 
 
 ### Side box: Taxon Concept Model
@@ -82,11 +81,11 @@ Unfortunately we don't know whether a name has been validly published or not bef
 1.	__Publication String:__ The string of character representing the place of publication. May follow standards but is just a correctable string here. 
 1.	__Name Record:__ A row in the database representing a name. Each row has a single prescribed WFO-ID. (It may also have deduplicated WFO-IDs, issued in error in the past, that resolve to it but only one that should be used going forward.)
 1.	__WFO-ID:__ An identifier used to represent the Name Record in the wider world.
-1.	__Homonyms:__ Two or more names that have the same Name Parts – ignoring rank, authors string and publication string for our purposes. For our purposes Isonyms are a subset of Homonyms although this is not the strict definition in the code. See not below.
-1.	__Duplicates:__ Two or more Rank Records that have the same Name Parts, Authors String and Rank.
+1.	__Homonyms:__ Two or more names that have the same Name Parts – ignoring rank, authors string and publication string for our purposes. For our purposes Isonyms are a subset of Homonyms although this is not the strict definition in the code. See note below.
+1.	__Duplicates:__ Two or more Name Records that have the same Name Parts, Authors String and Rank.
 
 
-#### Homonyms and Isonyms
+#### Homonyms, Isonyms and "ex"
 
 The code has the following note under point 6.3
 
@@ -104,7 +103,30 @@ To distinguish between homonyms and isonyms we need to know the types of both na
 
 > A name spelled exactly like another name published for a taxon at the same rank, unless the name is a subdivision of genus or a species in which case the rank isn't taken into account.
 
- Unfortunately we don't have a word in the code for this class of names. Homonyms are far more common than isonyms (although putting a figure on that is hard without finding them all). Many isonyms are created by the author publishing the name again, perhaps in a paper and in a flora or catalogue, and so have the same Authors String and are unlikely to warrant a Name Record in Rhakhis or indeed cause any taxonomic confusion beyond correctly quoting the original place of publication. Indeed isonyms are the "same name" according to the code which implies they should only have one Name Record in Rhakhis. We therefore use the term homonym in this looser sense within Rhakhis to apply to names that have the same spelling, are probably homonyms _sensu stricto_ but might be isonyms. If they turn out to be isonyms their records will probably be merged unless there is a compelling reason to keep them.
+ Unfortunately we don't have a word in the code for this class of names. 
+ 
+ ### Isonyms in the WFO Plant List
+ 
+Isonyms are the "same name" according to the code so they should only have one Name Record in the list. The majority of isonyms are created by the author publishing the name again (perhaps in a paper and in a flora or catalogue) and so have the same Authors String. There is no scope for taxonomic confusion and the only scope for nomenclatural confusion caused by isonyms is citing the wrong reference as a place of original publication.
+
+1. Isonyms pairs are represented by a single record and WFO ID in the list unless they have different authors and so different author strings.
+1. The micro citation used is of the original publication.
+1. Multiple annotated nomenclatural references are used to link to the place of original publication and any additional places of publication. This ensures no data is lost in choosing not to have multiple records.
+1. If data isn't available to make the nomenclatural references then the subsequent references are added to the notes section until they can be formally linked.
+1. If Isonym pairs already have separate records in the list then they will be combined through deduplication and the WFO ID of the original publication name will become the prescribed ID for the name. The other WFO ID will resolve to the same record but not be recommended for use.
+
+### "ex" in Author Strings
+ 
+Names with "ex" in the Authors String are analogous to isonyms. In the case of ex names the original publication by the author before the ex was not valid but a subsequent publication by the author coming after the ex was valid and is the true place of publication. With isonyms it is the other way around. The first publication is the valid one and the subsequent publication is superfluous. Neither case warrants multiple name records in the list and can be handled in the same way with annotated links to the literature.
+
+ ### Homonyms in the WFO Plant List
+ 
+ Homonyms are far more common than isonyms (although putting a figure on that is hard without finding them all). We therefore use the term homonym in this looser sense to apply to names that have the same spelling, are probably homonyms _sensu stricto_ (having different types) but might be isonyms or indeed "ex" names with corrupted Authors Strings (one of the parts missing)
+
+ 1. Homonyms always have their own records and WFO ID.
+ 1. Homonyms must have unique author strings. In very rare occasions where a name has the same spelling and author string but is of a different type and place of publication the author string will be "tweaked" so as to differentiate the two names (see below). [Example?]
+ 1. If homonyms are subsequently discovered to be isonyms or "ex" names.
+
 
  ## Aspiration: Unique Full Name String
 
