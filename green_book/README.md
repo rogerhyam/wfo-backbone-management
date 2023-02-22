@@ -20,7 +20,7 @@ If you are familiar with the Taxon Concept models that were proposed at the turn
 1. Names may have multiple __deduplication WFO IDs__. When it is determined that two records represent the same real world name they are combined. One ID is chosen as the prescribed ID for the name and the other becomes a deduplication ID. Deduplication IDs should not used other than for the purpose of resolving to the prescribed ID.
 
 ## WFO IDs and Taxa
-
+FIXME
 
 ## Name Parts
 
@@ -56,7 +56,7 @@ Names can have a nomenclatural status. This is separate from their taxonomic sta
 1. unknown - not recommended for placement in taxonomy
 
 
-### More on Deprecation
+## More on Deprecation
 
 The nomenclatural status of __deprecated__ is introduced primarily as an internal device. This is not a nomenclatural status according to the botanical code. It is meant in the modern sense of the word particularly with regard to software:
 
@@ -66,7 +66,7 @@ We use it for names that we believe have been created in error and that we can't
 
 The status deprecated is introduced to quell the plague of zombie names. These are names that may have occurred in the literature or a database just once and have subsequently been propagated from one list to the next without ever dying a natural death, just soaking up time and resources. Zombie names are particularly problematic in the age of big data. This is where they find peace.
 
-### More on Names
+## More on Names
 
 The code's definition of a name includes the word "name" includes "name". 
 
@@ -85,7 +85,7 @@ Unfortunately we don't know whether a name has been validly published or not bef
 1.	__Duplicates:__ Two or more Name Records that have the same Name Parts, Authors String and Rank.
 
 
-#### Homonyms, Isonyms and "ex"
+## Homonyms, Isonyms and ex Authorship
 
 The code has the following note under point 6.3
 
@@ -115,9 +115,17 @@ Isonyms are the "same name" according to the code so they should only have one N
 1. If data isn't available to make the nomenclatural references then the subsequent references are added to the notes section until they can be formally linked.
 1. If Isonym pairs already have separate records in the list then they will be combined through deduplication and the WFO ID of the original publication name will become the prescribed ID for the name. The other WFO ID will resolve to the same record but not be recommended for use.
 
-### "ex" in Author Strings
- 
-Names with "ex" in the Authors String are analogous to isonyms. In the case of ex names the original publication by the author before the ex was not valid but a subsequent publication by the author coming after the ex was valid and is the true place of publication. With isonyms it is the other way around. The first publication is the valid one and the subsequent publication is superfluous. Neither case warrants multiple name records in the list and can be handled in the same way with annotated links to the literature.
+### ex Authorship
+
+The code allows the author who validly publishes a name to acknowledge a previous author who published name but not validly:
+
+>A name of a new taxon is attributed to the author(s) of the publication in which it appears when the name was ascribed to a different author or different authors but the validating description or diagnosis was neither ascribed to nor unequivocally associated with that author or those authors. A new combination, name at new rank, or replacement name is attributed to the author(s) of the publication in which it appears, although it was ascribed to a different author or different authors, when no separate statement was made that one or more of those authors contributed in some way to that publication. However, in both cases authorship as ascribed, followed by “ex”, **may** be inserted before the name(s) of the publishing author(s). (Article 46.5)
+
+>When a name has been ascribed by its author to a pre-starting-point author, the latter **may** be included in the author citation, followed by “ex”. For groups with a starting-point later than 1753, when a taxon of a pre-starting-point author was changed in rank or taxonomic position upon valid publication of its name, that pre-starting-point author may be cited in parentheses, followed by “ex”. (Article 46.7)
+
+Inclusion of the earlier author(s) - before the ex - when citing the name is optional (emphasis added here) and this is illustrated by examples in the code.
+
+Within the list names with "ex" in the Authors String are analogous to isonyms. In the case of ex names the original publication by the author before the ex was not valid but a subsequent publication by the author coming after the ex was valid and is the true place of publication. With isonyms it is the other way around. The first publication is the valid one and the subsequent publication is superfluous. Neither case warrants multiple name records in the list and can be handled in the same way with annotated links to the literature for all occurrences.
 
  ### Homonyms in the WFO Plant List
  
