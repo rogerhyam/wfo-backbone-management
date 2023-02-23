@@ -64,7 +64,7 @@ while($row = $response->fetch_assoc()){
 
     // if this is a genus then attach it to the family
     // but only if it isn't synonymized
-    if(strtolower($row['taxon_rank']) == 'genus' && !$out_row['accepted_plant_name_id']){
+    if(strtolower($row['taxon_rank']) == 'genus' && strtolower($row['taxon_status']) == 'accepted'){
         $out_row['parent_plant_name_id'] = 9999999;
     }
 

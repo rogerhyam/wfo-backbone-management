@@ -117,7 +117,7 @@ Isonyms are the "same name" according to the code so they should only have one N
 
 ### ex Authorship
 
-The code allows the author who validly publishes a name to acknowledge a previous author who published name but not validly:
+The code allows the author(s) who validly publishes a name to acknowledge a previous author(s) who published the name but not validly:
 
 >A name of a new taxon is attributed to the author(s) of the publication in which it appears when the name was ascribed to a different author or different authors but the validating description or diagnosis was neither ascribed to nor unequivocally associated with that author or those authors. A new combination, name at new rank, or replacement name is attributed to the author(s) of the publication in which it appears, although it was ascribed to a different author or different authors, when no separate statement was made that one or more of those authors contributed in some way to that publication. However, in both cases authorship as ascribed, followed by “ex”, **may** be inserted before the name(s) of the publishing author(s). (Article 46.5)
 
@@ -127,13 +127,16 @@ Inclusion of the earlier author(s) - before the ex - when citing the name is opt
 
 Within the list names with "ex" in the Authors String are analogous to isonyms. In the case of ex names the original publication by the author before the ex was not valid but a subsequent publication by the author coming after the ex was valid and is the true place of publication. With isonyms it is the other way around. The first publication is the valid one and the subsequent publication is superfluous. Neither case warrants multiple name records in the list and can be handled in the same way with annotated links to the literature for all occurrences.
 
+Name matching can be an issue with ex Authors. The default is to include the ex Authors in Authors String in the list if the valid publication authors mention them as the code suggests but as the code does not require them to be included everywhere someone might want to match a list of names lacking ex Authors with the list data.
+There is also the chance that the list doesn't yet include the ex Authors 
+
  ### Homonyms in the WFO Plant List
  
  Homonyms are far more common than isonyms (although putting a figure on that is hard without finding them all). We therefore use the term homonym in this looser sense to apply to names that have the same spelling, are probably homonyms _sensu stricto_ (having different types) but might be isonyms or indeed "ex" names with corrupted Authors Strings (one of the parts missing)
 
  1. Homonyms always have their own records and WFO ID.
  1. Homonyms must have unique author strings. In very rare occasions where a name has the same spelling and author string but is of a different type and place of publication the author string will be "tweaked" so as to differentiate the two names (see below). [Example?]
- 1. If homonyms are subsequently discovered to be isonyms or "ex" names.
+ 1. If homonyms are subsequently discovered to be isonyms or "ex" names they will be treated as outlined above.
 
 
  ## Aspiration: Unique Full Name String

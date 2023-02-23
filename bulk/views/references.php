@@ -2,6 +2,8 @@
 <div style="width: 1000px">
 <h2>References</h2>
 
+<p style="color: red;">Changes data in Rhakhis.</p>
+
 <?php
     $table = @$_SESSION['selected_table'];
     if(!$table){
@@ -142,10 +144,35 @@ function run_references($table){
         
         // we didn't find it above so add it in
         if(!$found){
+            
             // reference doesn't belong to name so add it
+
+            /*
+                There is a special case for taxon reference on import.
+                Each taxon should only have one reference - it is the authority for why
+                this taxon is accepted (or not)
+                So for each reference type we can only have one instance
+            */
+
+            if($subject_type == 'taxon'){
+
+                // look through the current references again
+                $ref_usages = $name->getReferences();
+                foreach($ref_usages as $ref_use){
+                    if($ref_use->subjectType == 'taxon' && $ref_use->reference->getKind() == $ref->getKind()){
+                        // found a taxon reference of the same kind as the one we adding
+                        // so remove it
+                        $name->removeReference($ref_use->reference, true);
+                    }
+                }
+
+            }
+
+            // finally add the new reference to the name
             $placement_related = $subject_type == 'taxon' ? true: false;
             $name->addReference($ref, $comment, $placement_related);
             $_SESSION['references_added']++;
+        
         }
 
     }
@@ -159,7 +186,10 @@ function render_form($table){
     global $mysqli;
 ?>
 
-<p>This tool enables the import of references from a table that has at least three columns: WFO ID, Label and URI. If the reference already exists (based on the URI) it will not be created or changed.<p>
+<p>
+    This tool enables the import of references from a table that has at least three columns: WFO ID, Label and URI. 
+    If the reference already exists (based on the URI) it will not be created or changed but the comment might be updated.    
+<p>
 
 <form>
     <input type="hidden" name="action" value="view" />
@@ -246,11 +276,16 @@ function render_form($table){
             <td>What does the reference point to?</td>
         </tr>
         <tr>
-            <th>Is Taxonomic Reference</th>
+            <th>Is&nbsp;Taxonomic&nbsp;Reference</th>
             <td>
                 <input type="checkbox" name="taxonomic" />
             </td>
-            <td>The default is to presume reference is about nomenclature (gray box). Check this box if the reference is about placement of the name in the taxonomy (yellow box).</td>
+            <td>The default is to presume reference is about nomenclature (gray box). 
+                Check this box if the reference is about placement of the name in the taxonomy (yellow box).
+                <strong>Placement references replace existing placement references of the same kind.</strong>
+                The placement reference is the authoritative reason for accepting the taxon so there can only be 
+                one of them, typically one literature, one database and one 'person' (a TEN).
+            </td>
         </tr>
         <tr>
             <th>URI Filter</th>
