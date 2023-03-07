@@ -62,6 +62,17 @@ while($row = $response->fetch_assoc()){
         $out_row['accepted_plant_name_id'] = null;
     }
 
+    // remove parent_plant_name_id if they are certain taxon_status
+    $certain_taxon_status = array('Unplaced','Local Biotype','Artificial Hybrid');
+    if( in_array($row['taxon_status'], $certain_taxon_status) ){
+        $out_row['parent_plant_name_id'] = null;
+    }
+
+    // remove accepted_plant_name_id if they are 'Misapplied'
+    if($row['taxon_status'] == 'Misapplied'){
+        $out_row['accepted_plant_name_id'] = null;
+    }
+
     // if this is a genus then attach it to the family
     // but only if it isn't synonymized
     if(strtolower($row['taxon_rank']) == 'genus' && strtolower($row['taxon_status']) == 'accepted'){
