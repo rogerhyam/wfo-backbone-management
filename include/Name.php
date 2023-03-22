@@ -1423,4 +1423,41 @@ class Name extends WfoDbObject{
     }
 
 
+    /**
+     * Get a list of the names that have been changed
+     * in descending order
+     */
+    public static function recentlyChanged($limit = 0, $offset = 30, $user_id = null){
+
+        global $mysqli;
+
+        $names = array();
+
+        // little bit of extra safety - check the values are ints
+        if(!is_int($limit) || !is_int($offset)){
+            throw new ErrorException("Attempt to get list of recent change with non int limit or offset value");
+        }
+
+        // what users are we interested in?
+        if($user_id != null){
+            if(!is_int($user_id)) throw new ErrorException("Attempt to get list of recent change with non int user id");
+            $where = " WHERE user_id = $user_id"; // only this user
+        }else{
+            $where = " WHERE user_id != 1"; // all users who aren't the scripts
+        }
+
+        $query = "SELECT id FROM `names` $where ORDER BY `modified` DESC LIMIT $limit OFFSET $offset";
+
+        $response = $mysqli->query($query);
+
+        echo $mysqli->error;
+
+        while($row = $response->fetch_assoc()){
+            $names[] = Name::getName($row['id']);
+        }
+
+        return $names;
+    }
+
+
 } // name

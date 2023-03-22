@@ -70,6 +70,10 @@ class WfoDbObject{
         return $this->user_id;
     }
 
+    public function getUser(){
+        return User::loadUserForDbId($this->getUserId());
+    }
+
     public function getCreated(){
         return $this->created;
     }

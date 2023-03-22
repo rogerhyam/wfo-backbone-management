@@ -276,6 +276,34 @@ $schema = new Schema([
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return Reference::getReferenceByUri($args['uri']);
                 }
+            ],
+            'getRecentChanges' => [
+                'type' => Type::listOf(TypeRegister::nameType()),
+                'description' => "Return a list of the recently changed names in descending order",
+                'args' => [
+                    'limit' => [
+                        'type' => Type::int(),
+                        'description' => "Maximum number of names to return.",
+                        'required' => false,
+                        'defaultValue' => '30'
+                    ],
+                    'offset' => [
+                        'type' => Type::int(),
+                        'description' => "Offset into results set.",
+                        'required' => false,
+                        'defaultValue' => '0'
+                    ],
+                    'userId' => [
+                        'type' => Type::int(),
+                        'description' => "Restrict to only those changed by this user.",
+                        'required' => false,
+                        'defaultValue' => null
+                    ]
+
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return Name::recentlyChanged((int)$args['limit'], (int)$args['offset'], (int)$args['userId']);
+                }
             ]
 
         ]// fields

@@ -212,6 +212,24 @@ class NameGqlType extends ObjectType
                         }
                     ],
 
+                    'lastEditor' => [
+                        'type' => TypeRegister::userType(),
+                        'description' => "The last user to have edited this name (including placed it somewhere)",
+                        'resolve' => function($name) {
+                            return $name->getUser();
+                        }
+                    ],
+
+                    'lastModified' => [
+                        'type' => Type::int(),
+                        'description' => "The date and time of the last modification as a unix timestamp",
+                        'resolve' => function($name) {
+                            $m = new DateTime($name->getModified());
+                            return  $m->getTimeStamp();
+                        }
+                    ],
+
+
                     'curators' => [
                         'type' => Type::listOf(TypeRegister::userType()),
                         'description' => "The list of users who are a curators of the taxon. A subset of editors. An empty list is returned for unplaced names because any editor can edit these.",
