@@ -18,7 +18,7 @@ function render_deduplication_form($duplicate){
     global $mysqli;
 
     $duplicate_sql = trim($mysqli->real_escape_string($duplicate));
-    $sql = "SELECT id FROM `names` WHERE `deduplication` = '$duplicate_sql';";
+    $sql = "SELECT id FROM `names` WHERE `deduplication` LIKE '$duplicate_sql';";
     $response = $mysqli->query($sql);
 
     echo "<h3>Merging Form</h3>";
@@ -58,18 +58,42 @@ function render_deduplication_form($duplicate){
 function render_duplicates_list(){
 
     global $mysqli;
+    global $ranks_table;
 
-      echo "<h3>Duplicates List</h3>";
+    $rank = @$_GET['rank'];
+
+    echo "<h3>Duplicates List</h3>";
+
+    echo "<p><form method=\"GET\" action=\"index.php\">";
+    echo "<input type=\"hidden\" name=\"action\" value=\"view\" />";
+    echo "<input type=\"hidden\" name=\"phase\" value=\"deduplication\" />";
+    echo "Filter: ";
+    echo "<select name=\"rank\" onchange=\"this.form.submit();\">";
+    echo "<option value=\"\">~ Any Rank ~</option>";
+    foreach ($ranks_table as $rank_name => $rank_vals) {
+        
+        if($rank == $rank_name) $selected = 'selected';
+        else $selected = '';
+
+        echo "<option $selected value=\"$rank_name\">$rank_name</option>";
+
+    }
+    echo "<select>";
+    echo "</form></p>";
 
     echo "<table>";
     echo   "<tr><th>Name Parts</th> <th>Rank</th><th>Authors</th><th># copies</th></tr>";
+
+    if($rank) $where = "WHERE `rank` = '$rank'";
+    else $where = '';
 
     $offset = @$_GET['offset'];
     if(!$offset) $offset = 0;
 
     $sql = "SELECT deduplication, count(*) as n
 	    from `names` 
-        group by deduplication 
+        $where
+        group by deduplication
         having count(*) > 1 
 	    order by count(*) desc, deduplication
         limit 1000 OFFSET $offset";
@@ -80,11 +104,17 @@ function render_duplicates_list(){
 
         $parts = explode('~', $row['deduplication']);
 
+
         echo "<tr>";
         $dupe = urlencode($row['deduplication']);
         echo "<td><a href=\"?action=view&phase=deduplication&duplicate=$dupe&offset=$offset\">{$parts[0]}</a></td>";
         echo "<td>{$parts[1]}</td>";
-        echo "<td>{$parts[2]}</td>";
+        if(isset($parts[2])){
+            echo "<td>{$parts[2]}</td>";
+        }else{
+            echo "<td>&nbsp;</td>";
+        }
+        
         echo "<td>{$row['n']}</td>";
         echo "</tr>";
     }
@@ -97,7 +127,7 @@ function render_duplicates_list(){
     if($offset >= 1000){
         $new_offset = $offset - 1000;
         if($new_offset < 0) $new_offset = 0;
-        echo "<a href=\"?action=view&phase=deduplication&offset=$new_offset\">&lt; PREVIOUS</a>";
+        echo "<a href=\"?action=view&phase=deduplication&rank=$rank&offset=$new_offset\">&lt; PREVIOUS</a>";
     }else{
         echo "&lt; PREVIOUS";
     }
@@ -106,7 +136,7 @@ function render_duplicates_list(){
 
     if($response->num_rows == 1000){
         $new_offset = $offset + 1000;
-        echo "<a href=\"?action=view&phase=deduplication&offset=$new_offset\">NEXT &gt;</a>";
+        echo "<a href=\"?action=view&phase=deduplication&rank=$rank&offset=$new_offset\">NEXT &gt;</a>";
     }else{
         echo "NEXT &gt;";
     }
