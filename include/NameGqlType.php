@@ -229,6 +229,13 @@ class NameGqlType extends ObjectType
                         }
                     ],
 
+                    'lastChangeMessage'  => [
+                        'type' => Type::string(),
+                        'description' => "The log message from the last time this name was changed.",
+                        'resolve' => function($name) {
+                            return  $name->getChangeLog();
+                        }
+                    ],
 
                     'curators' => [
                         'type' => Type::listOf(TypeRegister::userType()),
