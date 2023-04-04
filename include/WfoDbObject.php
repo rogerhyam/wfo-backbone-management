@@ -86,7 +86,12 @@ class WfoDbObject{
      * Write this core values of this Object to database safely
     */
     public function save(){
+
         global $mysqli;
+
+        // we should always be saving as the current user
+        $user = unserialize( @$_SESSION['user']);
+        $this->setUserId($user->getId()); 
 
         /* Start transaction */
         $mysqli->begin_transaction();

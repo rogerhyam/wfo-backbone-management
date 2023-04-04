@@ -948,33 +948,39 @@ class Name extends WfoDbObject{
         $this->setGenusString($args['genusString']);
         $this->setSpeciesString($args['speciesString']);
         $this->setRank($args['rankString']);
+        $this->setChangeLog("Name parts updated");
         return $this->save();
 
     }
 
     public function updateStatus($new_status, $response = null){
         $this->setStatus($new_status);
+        $this->setChangeLog("Status changed to '{$new_status}'.");
         return $this->save();
     }
 
     public function updateAuthorsString($new_authors, $response = null){
         $this->setAuthorsString($new_authors);
+        $this->setChangeLog("Authors string updated to '{$new_authors}'.");
         return $this->save();
     }
 
     public function updatePublication($new_citation_micro, $year, $response = null){
         $this->setCitationMicro($new_citation_micro);
         $this->setYear($year);
+        $this->setChangeLog("Citation/year updated.");
         return $this->save();
     }
 
     public function updateComment($new_comment, $response = null){
         $this->setComment($new_comment);
+        $this->setChangeLog("Comment updated.");
         return $this->save();
     }
 
     public function updateBasionym($new_basionym, $response = null){
         $this->setBasionym($new_basionym);
+        $this->setChangeLog("Basionym updated");
         return $this->save();
     }
 
@@ -1171,8 +1177,9 @@ class Name extends WfoDbObject{
             throw new ErrorException("Failed to add reference ({$ref->getId()}) to name - {$mysqli->error}");
             return false;
         }
-        if($mysqli->error) echo $mysqli->error;
+        //if($mysqli->error) echo $mysqli->error;
 
+        $this->updateChangeLog("Added reference: {$ref_id}");
     }
 
     public function updateReference(Reference $ref, $comment, $placement_related = false){
@@ -1192,9 +1199,9 @@ class Name extends WfoDbObject{
         $c = $mysqli->real_escape_string($comment);
         $sql = "UPDATE `name_references` SET `comment` = '$c' WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND placement_related = $placement";
 
-        error_log($sql);
         $result = $mysqli->query($sql);
-        if($mysqli->error) error_log($mysqli->error);
+
+        $this->updateChangeLog("Updated reference: {$ref->getId()}");
 
     }
 
