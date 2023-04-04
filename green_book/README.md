@@ -1,11 +1,20 @@
-# Rhakhis Manual
+# WFO Plant List - Concepts 
 
-This is the top level documentation for the World Flora Online taxonomy management system. It is an overview of how the data is modelled rather than a step by step guide to using the graphical interface, API or data downloads.
+This is the top level documentation for the World Flora Online Plant List system. It is an overview of how the data is modelled and the rules of the nomenclatural code are implemented.
+
+It isn't a step by step guide to using the graphical interface, API or data downloads.
+
+## Parts of the system
+
+1. __Rhakhis__ is the editing system that keeps the top copy of data we are working on. There is a graphical user interface so that editors can view and change the data. There is also an administrative interface that is used for bulk imports of data.
+1. __WFO Plant List API__ is the publishing system for data in Rhakhis. Every six months (on the solstices) a copy of the data in Rhakhis is transferred to the Plant List API for publication. Copies are also placed in ChecklistBank and Zenodo.
+
+Here we discuss the data model used in Rhakhis. When the data is published to other into other formats (e.g. Darwin Core or the Catalogue of Life Data Package) then the concepts here are mapped to those used in the transfer format which may be slightly different. 
 
 
 ## Separation of Names and Taxa
 
-The core principle that informed the design of Rhakhis was the separation of nomenclature from taxonomy. This is a  consequence of applying the rules of the __International Code of Nomenclature for algae, fungi, and plants__. Names are created via nomenclatural events (being validly published either for the first time or in a new combination) and bound to a type specimen (possibly via lectotypification). Taxa are created by authors using combinations of descriptions (characters) and example specimens. Names are bound to taxa via the rule of priority, the first published name who's type specimen falls within the taxon is the accepted name of that taxon (barring special instances of conservation).
+The core principle that informed the design of Rhakhis was the separation of nomenclature from taxonomy. This is a  consequence of applying the rules of the __International Code of Nomenclature for algae, fungi, and plants (ICNafp)__. Names are created via nomenclatural events (being validly published either for the first time or in a new combination) and bound to a type specimen (possibly via lectotypification). Taxa are created by authors using combinations of descriptions (characters) and example specimens. Names are bound to taxa via the rule of priority, the first published name who's type specimen falls within the taxon is the accepted name of that taxon (barring special instances of conservation).
 
 **Analogy #1:** Each name is written on an index card. The card contains all the information of when and where that name was published and what the type specimen is. There are around 1.5 million of these index cards stored alphabetically. To build a taxonomy the name cards are taken and placed into a hierarchical set of folders, one folder for each taxon. Each folder has a key card which is the accepted name for that taxon. The other cards in the folder are the synonyms. Placing the cards in the folders does not affect what is written on them but what is written on them may govern which folders they can be placed in. e.g. If the genus part of the name does not match the genus folder in which it is placed as an accepted name.
 
@@ -13,14 +22,44 @@ The core principle that informed the design of Rhakhis was the separation of nom
 
 
 ### Side box: Taxon Concept Model
-If you are familiar with the Taxon Concept models that were proposed at the turn of the century and the subsequent Taxon Concept Schema TDWG standard this approach will be familiar to you. From one perspective Rhakhis is NOT a taxon concept based approach as only a single classification is currently modelled and no attempt is made to delimit the taxa, either by listing specimens or with descriptions. From another perspective it IS a taxon concept based approach because their is an implied delimitation of the taxa based on the types of the names placed in them as well as those descriptions indexed as WFO content and the periodic, versioned data dumps provide identifiers for taxa in those dumps and relate them to each other. The concept based approach can either be embraced or ignored and it makes no difference to building a shared taxonomic backbone. 
+If you are familiar with the Taxon Concept models that were proposed at the turn of the century and the subsequent Taxon Concept Schema TDWG standard this approach will be familiar to you. From one perspective Rhakhis is __not__ a taxon concept based approach as only a single classification is currently modelled and no attempt is made to delimit the taxa, either by listing specimens or with descriptions. From another perspective it __is__ a taxon concept based approach because their is an implied delimitation of the taxa based on the types of the names placed in them as well as the taxonomic references provided. The Plant List API takes more of a concept based approach because it stores each copy of the taxonomy that is published and maps between them, on the basis of their names, using "replaces" and "isReplacedBy" assertions. The concept based approach can either be embraced or ignored and it makes no difference to building a shared taxonomic backbone. 
+
+## What is a name?
+
+The common meaning of the word "name" (Oxford English definition)
+
+> a word or set of words by which a person or thing is known, addressed, or referred to.
+
+The ICNafp rather unhelpfully uses the word "name" in the definition of the word "name", From the glossary:
+
+> __name__. A name that has been validly published, whether it is legitimate or illegitimate (Art. 6.3) (see also designation).
+
+> 6.3. In this Code, unless otherwise indicated, the word “name” means a name that has been validly published, whether it is legitimate or illegitimate (see Art. 12; but see Art. 14.9 and 14.14).
+
+> designation. [Not defined] – the term used for what appears to be a name but that (1) has not been validly published and hence is not a name in the sense of the Code (Art. 6.3) or (2) is not to be regarded as a name (Art. 20.4 and 23.6) (see also type designation).
+
+This can lead to apparently paradoxical uses of "name" in our community. A word or words that are used to refer to a plant are a name-in-common-parlance but may not be a name-in-the-sense-of-the-code. They may be a designation under the code. More confusing still the code does not say what to call things that we don't know the nomenclatural status of. Like Schrödinger's cat, until we know whether a thing is validly published it is neither a name-in-the-sense-of-the-code nor a designation.
+
+In modelling a global checklist we need to keep track of the name/designation things whether or not they turn out to be names-in-the-sense-of-the-code or cease to be names-in-the-sense-of-the-code. We can't research a thing to find out what it is until it is in the database. Rhakhis therefore takes a practical working definition of what it means by a name within the system:
+
+> A name is a object represented by a record in the names table. It has a unique internal ID, a prescribed external ID (the WFO ID) and between one and three name part words (see below).
+
+Whether a name record is created for a name/designation found in literature is a judgement call made by the data editors. If two name records are judged to represent the same name/designation then they may be merged but the WFO IDs are never deleted.
+
 
 ## WFO IDs and Names
-1. Each name has a single, __prescribed WFO ID__. This is the ID that is used to refer to that name whether it occurs as the accepted name of a taxon, a synonym or remains unplaced.
+1. Each name has a single, __prescribed WFO ID__. This is the ID that is used to refer to that name whether it occurs as the accepted name of a taxon, a synonym or remains unplaced. The WFO ID is of the form wfo-0000615907. The lowercase letters "wfo" followed by a hyphen followed by ten digits. A regular expression similar to '/^wfo-[0-9]{10}$/' will match a WFO ID (depending on your precise regex implementation). These are referred to as ten digit WFO IDs.
 1. Names may have multiple __deduplication WFO IDs__. When it is determined that two records represent the same real world name they are combined. One ID is chosen as the prescribed ID for the name and the other becomes a deduplication ID. Deduplication IDs should not used other than for the purpose of resolving to the prescribed ID.
 
 ## WFO IDs and Taxa
-FIXME
+
+With each data release a new set of IDs are created that are of the form wfo-0000615907-2022-12. For each name the year and month of the data release are appended. A regular expression similar to '/^wfo-[0-9]{10}-[0-9]{10}-[4]{2}$/' will match a versioned WFO ID (depending on your precise regex implementation). These are referred to as sixteen digit WFO IDs.
+
+Ten digit IDs strictly refer to the name but will often be used to refer to the current usage of that name. At one time the name may be the accepted name of a taxon at another point the taxonomy may change and it may be a synonym.
+
+Sixteen digit IDs refer to the usage of a name within a particular taxonomy, be that as a synonym or an accepted name. To refer specifically to a taxon it is therefore necessary to cite the sixteen digit ID of the accepted name of that taxon.
+
+Whether you cite the ten or sixteen digit ID it should still be possible to track how the usage of that name has changed through time. Most people will bind their data to the ten digit IDs.
 
 ## Name Parts
 
@@ -28,11 +67,11 @@ There are never more than three words in a name in botanical nomenclature. More 
 
 All names have a "Name String" part. This is the word that is minted when the name is published. For a Family it is the family name. For a genus it is the genus name. For a species it is the specific epithet. For a subspecies it is the subspecific epithet.
 
-Names below the rank of genus have a "Genus Part" or "Genus String" to their names. This indicates the genus they were placed in when published or the combination made. (FIXME: Mention homotypic genera?)
+Names below the rank of genus have a "Genus Part" or "Genus String" to their names. This indicates the genus they were placed in when published or the combination made.
 
 Names below the rank of species have a "Species Part" or "Species String" to their name indicating the combination they were published in.
 
-From the point of view of nomenclature subsubspecies and subvarieties are direct "children" of the species. There are no polynomials in botany. This is because they could be placed in any subspecies or variety within that species  without changing their name. The rank isn't part of the name. The same rule applies for divisions of the genus. See Article 53.3 of the code https://www.iapt-taxon.org/nomen/pages/main/art_53.html#Art53.3 
+From the point of view of nomenclature, subsubspecies and subvarieties are direct "children" of the species. There are no polynomials in botany. This is because they could be placed in any subspecies or variety within that species  without changing their name. The rank isn't part of the name. The same rule applies for divisions of the genus. See [Article 53.3](https://www.iapt-taxon.org/nomen/pages/main/art_53.html#Art53.3). (In some output formats full polynomials may be rendered based on the taxonomy but that is not how the names are modelled internally.) 
 
 Where it doesn't cause confusion the three parts may be referred to simply as Name, Genus and Species but care must be taken. Better to say the Name String of a name than the Name of a name!
 
@@ -55,37 +94,53 @@ Names can have a nomenclatural status. This is separate from their taxonomic sta
 1. deprecated - can't be used as accepted name in taxonomy at all.
 1. unknown - not recommended for placement in taxonomy
 
+## Taxonomic status = role
 
-## More on Deprecation
+Systems have often confused taxonomic and nomenclatural statuses. In Rhakhis we have simplified this down to a name playing one of four possible roles within the classification at any one time.
+
+1. __Accepted__. The name is placed in the taxonomy as the correct name for a taxon. A taxon can only have one of these and they have to agree with the rules regarding placement. The nomenclatural status of the name must be valid, conserved or sanctioned.
+1. __Synonym__ The name is placed in the taxonomy as a synonym within a taxon. A taxon can have many of these. They can be of any nomenclatural status apart from deprecated. (Note that whether synonyms are homotypic or heterotypic are tracked separately and discoverable through basionym links - see below)
+1. __Unplaced__ A name that isn't associated with any taxon as an accepted name or synonym. A taxonomist hasn't expressed an opinion on its placement yet. Unplaced names can have any nomenclatural status but if they have the nomenclatural status deprecated they are considered to play another role. 
+1. __Deprecated__ A name that is unplaced and also has its nomenclatural status set to deprecated plays the deprecated role. It can't be placed in the classification and won't be displayed as part of the classification.
+
+When names first enter Rhakhis they are unplaced. They are then assessed and either deprecated or placed on the taxonomic tree as accepted names of taxa or synonyms.
+
+## More on deprecation
 
 The nomenclatural status of __deprecated__ is introduced primarily as an internal device. This is not a nomenclatural status according to the botanical code. It is meant in the modern sense of the word particularly with regard to software:
 
 > to withdraw official support for or discourage the use of
 
-We use it for names that we believe have been created in error and that we can't attribute clear meaning to. __It is recommended that these names are not used in future for any purpose.__ They are maintained in the database for name matching purposes and so they can be resurrected in the future without creating new WFO IDs if more information is discovered.
+We use deprecated for names we choose not to place in our taxonomy either as accepted names of taxa or synonyms. There are two main reasons for deprecation:
 
-The status deprecated is introduced to quell the plague of zombie names. These are names that may have occurred in the literature or a database just once and have subsequently been propagated from one list to the next without ever dying a natural death, just soaking up time and resources. Zombie names are particularly problematic in the age of big data. This is where they find peace.
+1. We believe the name has been created in error and we can't attribute clear meaning to it. Perhaps we can't find an original publication (did it ever exist?) or the type or common usage and therefore can't make a judgement as to where to place the name in our taxonomy and don't believe we ever will be able to. This kind of deprecated name will occur mainly at the species and lower level.
+1. We don't recognize a taxon at that rank in our hierarchy and therefore can't synonymize it. An example is [*Rhododendron* subsect. *Albiflora* Batta](https://list.worldfloraonline.org/wfo-3000001713). We don't have a subsectional level in our *Rhododendron* classification and so this name cannot be equated to any particular accepted taxon. It may be a valid name in another classification but as the hierarchy of type taxa may not be recognized by us either (that would need researching) it is better we do not even assert a nomenclatural status for it. In other words the actual nomenclatural status is null for us but might be something else for other users of the name. This type of deprecated name occurs above the species level.
 
-## More on Names
+Where possible the reason for deprecation will be recorded in the comments section of the name.
 
-The code's definition of a name includes the word "name" includes "name". 
+The status deprecated was introduced to quell the plague of zombie names. These are names that may have occurred in the literature or a database just once and have subsequently been propagated from one list to the next without ever dying a natural death, just soaking up time and resources. Zombie names are particularly problematic in the age of big data. If we delete them they will keep coming back again from different data sources like bad pennies.
 
-> 6.3. In this Code, unless otherwise indicated, the word “name” means a name that has been validly published, whether it is legitimate or illegitimate (see Art. 12; but see Art. 14.9 and 14.14).
+## More on synonyms
 
-Unfortunately we don't know whether a name has been validly published or not before we have to start tracking it within Rhakhis. Even if we discover a name is not validly published but is in common usage (people reasonably assume it has been validly published or it is causing some confusion) then we need to take account of it. For clarity here are some of the terms we use when discussing names:
+All synonyms are handled in the same generic way within the data model. A taxonomic editor asserts that a name should be treated as a synonym within a taxon by making a placement of that name. There are, however, at least three different kinds of synonyms and these are still accounted for:
 
-1.	__Name String:__  A string of characters that looks like it is an effective/validly published botanical name. Something in a database or publication.
-1.	__Name parts:__ One, two or three words only. See above. Edge case is that hyphens are allowed in some of the words but two hyphenated words count as a word for our purposes.
-1.	__Rank:__ A rank word from our controlled vocabulary of ranks. The controlled vocabulary keeps track of abbreviations and acts as a gate keeper for arbitrary ranks.
-1.	__Authors String:__ The string of characters representing the author(s) of the name. This may follow standard author abbreviations but for our purposes here it is just a correctable string.
-1.	__Publication String:__ The string of character representing the place of publication. May follow standards but is just a correctable string here. 
-1.	__Name Record:__ A row in the database representing a name. Each row has a single prescribed WFO-ID. (It may also have deduplicated WFO-IDs, issued in error in the past, that resolve to it but only one that should be used going forward.)
-1.	__WFO-ID:__ An identifier used to represent the Name Record in the wider world.
-1.	__Homonyms:__ Two or more names that have the same Name Parts – ignoring rank, authors string and publication string for our purposes. For our purposes Isonyms are a subset of Homonyms although this is not the strict definition in the code. See note below.
-1.	__Duplicates:__ Two or more Name Records that have the same Name Parts, Authors String and Rank.
+### Homotypic synonyms
 
+If a name has the same type specimen as the accepted name of a taxon then it should become a synonym within that taxon automatically - because name placement is governed by specimen placement. Rhakhis tracks basionym relationships in the names table but doesn't enforce them in the synonym because many of them are not yet known about. As the data improves we will introduce tools to encourage and enforce correct homotypic synonymy. On export it is already possible to list homotypic synonyms separately from other synonyms where the basionym relationships have been entered.
 
-## Homonyms, Isonyms and ex Authorship
+### Heterotypic synonyms
+
+If the name has a different type specimen to the accepted name but the type specimen is judged to belong within the circumscription of the taxon then the synonym is declared by placement in the normal way. To be a true heterotypic synonym the name needs to be validly published and have a type. On export heterotypic synonyms can be listed separately because they are the synonyms that are valid names but not homotypic with the accepted name.
+
+### Automatic synonyms
+
+If a heterotypic synonym is created and that name has a basionym relationship with another name then that other name should also, automatically, become a synonym within the taxon. If it is already placed somewhere else in the classification then a data validity error needs to be raised. This functionality will be added as control of homotypic synonyms is introduced. On export automatic synonyms can be treated in the same way as heterotypic synonyms.
+
+### Informal synonyms
+
+It is common for taxonomic experts to want to express the relationship between a name that is invalid or illegitimate in some way and an accepted taxon. This might be because it is commonly used for this taxon or because the available description would place it within this taxon. Typically the name may be listed as a note in a flora or monograph if it isn't included as a regular synonym. In Rhakhis the name is simply flagged with the appropriate nomenclatural status and placed as a synonym. On export these synonyms can be listed separately from homotypic and heterotypic synonyms based on their nomenclatural status.
+
+## Homonyms, isonyms and ex authorship
 
 The code has the following note under point 6.3
 
@@ -103,9 +158,9 @@ To distinguish between homonyms and isonyms we need to know the types of both na
 
 > A name spelled exactly like another name published for a taxon at the same rank, unless the name is a subdivision of genus or a species in which case the rank isn't taken into account.
 
- Unfortunately we don't have a word in the code for this class of names. 
+ Unfortunately, like with names/designations, we don't have a word in the code for this class of names. 
  
- ### Isonyms in the WFO Plant List
+### Isonyms
  
 Isonyms are the "same name" according to the code so they should only have one Name Record in the list. The majority of isonyms are created by the author publishing the name again (perhaps in a paper and in a flora or catalogue) and so have the same Authors String. There is no scope for taxonomic confusion and the only scope for nomenclatural confusion caused by isonyms is citing the wrong reference as a place of original publication.
 
@@ -130,7 +185,7 @@ Within the list names with "ex" in the Authors String are analogous to isonyms. 
 Name matching can be an issue with ex Authors. The default is to include the ex Authors in Authors String in the list if the valid publication authors mention them as the code suggests but as the code does not require them to be included everywhere someone might want to match a list of names lacking ex Authors with the list data.
 There is also the chance that the list doesn't yet include the ex Authors 
 
- ### Homonyms in the WFO Plant List
+ ### Homonyms
  
  Homonyms are far more common than isonyms (although putting a figure on that is hard without finding them all). We therefore use the term homonym in this looser sense to apply to names that have the same spelling, are probably homonyms _sensu stricto_ (having different types) but might be isonyms or indeed "ex" names with corrupted Authors Strings (one of the parts missing)
 
@@ -139,9 +194,11 @@ There is also the chance that the list doesn't yet include the ex Authors
  1. If homonyms are subsequently discovered to be isonyms or "ex" names they will be treated as outlined above.
 
 
- ## Aspiration: Unique Full Name String
+ ## Duplicates and deduplication
 
-> Rhakhis should not have records that have identical name-parts, rank and author string. If such records exist it is an error. If two records exist in this state we should merge one into the other or differentiate them by correcting one of them. We should prevent such records from being created.
+ The following is not true of the data currently but is an aspiration: 
+
+> Rhakhis should not have name records that have identical name-parts, rank and author string. If such records exist it is an error. If two records exist in this state we should merge one into the other or differentiate them by correcting one of them. We should prevent such records from being created.
 
  FIXME: Aspiration for each WFO to equate to a unique full name string of Does not make WFO-ID redundant as a WFO-ID only applies to one record and therefore one normative name string. A name string could be matched to multiple WFO-IDs based on approximation.
 
@@ -156,13 +213,6 @@ There is also the chance that the list doesn't yet include the ex Authors
 a.	The flora account will typically have different authors and therefore a different authors string so it can have a different record and be synonymised.
 b.	If the paper and flora account have exactly the same author and it is imperative to have two records then the superfluous record can be bastardised with and “in Flora Bulgaria” to differentiate it. (I struggle a bit with why we would want to include two records here. If the second publication of a name isn’t a nomenclatural act but merely a use of the name that people mistakenly believe was the initial publication then we aren’t talking about two names at all but a correction of the place of publication of one name. We wouldn’t track all errors in places of publication with new records! If it is a nomenclatural act then we would have an “ex” in the author string and so the rule applies and the earlier name would not be valid. See Koch ex Kock.)
  
-
-## Taxonomic status of Names
-
-A name can only have a single __taxonomic__ status (that is play one role) in the system.
-1. __Accepted Name__. A taxon can only have one of these and they have to agree with the rules regarding placement. The nomenclatural status of the name must be valid, conserved or sanctioned.
-1. __Synonym__ A taxon can have many of these. They can be of any nomenclatural status apart from deprecated. (Note that whether synonyms are homotypic or heterotypic are tracked separately and discoverable through basionym links)
-1. __Unplaced__ A name that isn't associated with any taxon as an accepted name or synonym. This may be because the name hasn't been researched yet (it is __unknown__) or because the name is __illegitimate__ under the code in some way (_nom. illeg._ or _nom. superfl._) or because there will probably never be sufficient information to place it anywhere, nomenclatural status deprecated. All unplaced names (apart from deprecated names) are available for placement in the taxonomy as synonyms. 
 
 ## Placement of Names
 
@@ -187,12 +237,6 @@ There are three rules that govern where a name can be placed in the taxonomy
 1. __Congruent Ranks__ The rank of a child taxon must be one of the accepted ranks of the parent according to the ranks table. e.g. a subspecies can't be a direct child of a genus or family.
 1. __Congruent Name Parts__ The name parts of the parent taxon must agree with the genus string and species string part of the name. e.g. a species can only be in a genus which has a name-string that matches its genus-string and a subspecies can only be in a species that has the name-string and genus-string that agrees with its own species-string and genus-string.
  
-
-
-## Taxon Status
-
-All taxa are of the same status. If they occur in the taxonomy then they are accepted taxa. Taxa can't be synonyms. Synonyms are names (from the Greek "with name"). Synonymy indicates the placement of Type specimens only. 
-
 
 ## Names are only alphabetical characters without diacritics 
 
@@ -258,9 +302,6 @@ We force the adoption of a rank. You can't have unranked names beyond a comment.
 
 35.3. A new name or combination published before 1 January 1953 without a clear indication of its rank is validly published provided that all other requirements for valid publication are fulfilled; it is, however, inoperative in questions of priority except for homonymy (see Art. 53.4). If it is a new name, it may serve as a basionym for subsequent combinations or a replaced synonym for nomina nova in definite ranks.
 
-
-
-## Overloading Basionym
 
 
 ## Authentication
