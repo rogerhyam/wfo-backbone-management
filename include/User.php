@@ -200,6 +200,19 @@ class User{
 
     }
 
+    public static function getAllUsers(){
+
+        global $mysqli;
+
+        $out = array();
+        $response = $mysqli->query("SELECT * FROM `users` order by `name`");
+        while ($row = $response->fetch_assoc()) {
+            $out[] = new User($row);
+        }
+        return $out;
+
+    }
+
     public function isAnonymous(){
         if($this->name == 'web-ui') return true;
         else return false;
