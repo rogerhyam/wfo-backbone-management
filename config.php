@@ -59,9 +59,16 @@ $ranks_table = array(
   ),
 
   "kingdom" => array(
-    "children" => array("phylum"), // permissible ranks for child taxa
+    "children" => array("subkingdom", "phylum"), // permissible ranks for child taxa
     "abbreviation" => "K.", // official abbreviation
     "plural" => "Kingdoms",
+    "aka" => array() // alternative representations for import
+  ),
+
+  "subkingdom" => array(
+    "children" => array("phylum", "class", "order","family", "superorder"), // permissible ranks for child taxa
+    "abbreviation" => "subK.", // official abbreviation
+    "plural" => "Subkingdoms",
     "aka" => array() // alternative representations for import
   ),
 
