@@ -73,7 +73,9 @@
             <a href="index.php?action=view&phase=taxonomy">Taxonomy<a>
             |
             <a href="index.php?action=view&phase=deduplication">Deduplication<a>
-            
+            |
+            <a href="index.php?action=view&phase=switch_user">su<a>
+            &nbsp;
             <span style="border: solid 1px black; padding: 0.2em">
             <?php
                 echo @$_SESSION['selected_table'] ? "Active Table: " . $_SESSION['selected_table'] : "No Table Selected";
