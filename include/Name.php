@@ -27,6 +27,7 @@ class Name extends WfoDbObject{
     private Array $status_enumeration = array(); // list of possible status values
     private Array $rank_enumeration = array(); // list of all possible ranks
 
+    private ?string $change_log = null;
 
     /**
      * Create an instance of a Name
