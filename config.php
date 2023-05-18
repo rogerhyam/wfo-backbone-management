@@ -47,8 +47,7 @@ define("WFO_RANK_REBALANCE", 8); // the ranks at this point are out of balance a
 // it is used everywhere.
 // -- READ -- THIS --
 // this should be kept in syn with the enumeration values in the db
-// and also the wfo_mint table to generate
-// CLI HAS ITS OWN COPY TO KEEP IN SYNC!!!
+// ALSO IN THE WFO-PLANT-LIST repository
 $ranks_table = array(
 
   "code" => array(
@@ -209,7 +208,7 @@ $ranks_table = array(
     "children" => array(), // permissible ranks for child taxa
     "abbreviation" => "prol.", // official abbreviation
     "plural" => "Proles",
-    "aka" => array("race") // alternative representations for import
+    "aka" => array("race", "proles") // alternative representations for import
   ),
 
   "variety" => array(
