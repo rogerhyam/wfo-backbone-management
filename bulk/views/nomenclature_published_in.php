@@ -31,7 +31,7 @@
 function process_row($row, $table){
 
     global $mysqli;
-    
+
     // get out of here is we are skipping
     if($row['rhakhis_skip']) return false;
     if(!$row['rhakhis_wfo']) return false;
@@ -131,6 +131,7 @@ function process_row($row, $table){
                     // no year so update that but keep published in the same
                     if(!$rhakhis_year && $data_year) $name->setYear($data_year);    
                 }
+
                 $name->save();
 
                 // we've reconciled the name so flag the row as skip

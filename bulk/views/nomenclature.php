@@ -36,7 +36,7 @@ function process_page($table){
     $page = (int)$_GET['page'];
     $page_size = (int)$_GET['page_size'];
     $offset = $page_size * $page;
-
+    
     /*
     $sql = "SELECT count(*) as total_rows, count(`rhakhis_skip`) as total_skips FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` is not null;";
     $response = $mysqli->query($sql);
@@ -51,7 +51,7 @@ function process_page($table){
     
     */
     
-    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` is not null LIMIT $page_size OFFSET $offset";
+    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` is not null AND length(`rhakhis_wfo`) > 0 ORDER BY `rhakhis_pk` LIMIT $page_size OFFSET $offset";
 
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);

@@ -26,7 +26,7 @@ echo "<p>From $offset to $end</p>";
 
 // load the rows
 
-$sql = "SELECT * FROM `rhakhis_bulk`.`$table` LIMIT $page_size OFFSET $offset";
+$sql = "SELECT * FROM `rhakhis_bulk`.`$table` ORDER BY `rhakhis_pk`  LIMIT $page_size OFFSET $offset";
 $response = $mysqli->query($sql);
 $rows = $response->fetch_all(MYSQLI_ASSOC);
 $response->close();

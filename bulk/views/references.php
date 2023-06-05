@@ -46,7 +46,7 @@ function run_references($table){
 
     $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `$wfo_column` IS NOT NULL";
     if($uri_filter) $sql .= " AND `$uri_column` LIKE 'uri_filter%'";
-    $sql .= " LIMIT $page_size OFFSET $offset";
+    $sql .= " ORDER BY `rhakhis_pk` LIMIT $page_size OFFSET $offset";
 
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);

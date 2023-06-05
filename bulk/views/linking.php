@@ -25,7 +25,7 @@ function run_linking($table){
     $id_kind = $_GET['identifer_kind'];
     $id_prefix = trim($_GET['identifer_prefix']);
 
-    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` IS NOT NULL LIMIT $page_size OFFSET $offset";
+    $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `rhakhis_wfo` IS NOT NULL ORDER BY `rhakhis_pk` LIMIT $page_size OFFSET $offset";
 
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);
