@@ -693,6 +693,16 @@ foreach($users as $orcid => $user){
 
 }
 
+// manually generated YAML rather than just use JSON in a YAML file that doesn't seem to work
+// this syntax is based on the successful yaml downloaded from the last release
+$editors_yaml = "";
+foreach ($editors as $editor) {
+    $editors_yaml .= "\n -";
+    foreach($editor as $key => $val){
+        $editors_yaml .= "\n  $key: $val";
+    }
+}
+
 // get a list of all the TENs to add to the metadata file.
 $sql = "SELECT link_uri as `url`, display_text as `organisation`
 FROM `references` AS r
@@ -701,16 +711,19 @@ WHERE r.kind = 'person'
 group by link_uri, display_text";
 
 $response = $mysqli->query($sql);
-$contributors = array();
+$contributors_yaml = "";
 while($row = $response->fetch_assoc()){
     $contributors[] = $row;
+    $contributors_yaml .= "\n -";
+    $contributors_yaml .= "\n  url: {$row['url']}";
+    $contributors_yaml .= "\n  organisation: {$row['organisation']}";
 }
 
 // write the metadata.yaml file
 $yaml_file_path = $downloads_dir . 'metadata.yaml';
 $meta = file_get_contents('coldp.yaml');
-$meta = str_replace('{{editors}}', json_encode($editors, JSON_PRETTY_PRINT), $meta);
-$meta = str_replace('{{contributors}}', json_encode($contributors, JSON_PRETTY_PRINT), $meta);
+$meta = str_replace('{{editors}}', $editors_yaml, $meta);
+$meta = str_replace('{{contributors}}', $contributors_yaml, $meta);
 $meta = str_replace('{{date}}',$pub_date, $meta);
 $meta = str_replace('{{version}}',$version, $meta);
 
