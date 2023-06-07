@@ -407,8 +407,9 @@ $schema = new Schema([
                         $response->success = false;
                         $response->message = "Couldn't find name for WFO ID '{$args['wfo']}'"; 
                     }else{
-                        $name->updateAuthorsString($args['authorsString'],$response);
+                       $response = $name->updateAuthorsString($args['authorsString'],$response);
                     }
+                    $response->consolidateSuccess();
                     return $response;
                 }
             ], // updateAuthorsString

@@ -298,7 +298,6 @@ class Name extends WfoDbObject{
 
         global $ranks_table;
 
-
         $out = '<span class="wfo-name-full" ><span class="wfo-name">';
 
         $my_level = array_search($this->rank, array_keys($ranks_table));
@@ -645,7 +644,16 @@ class Name extends WfoDbObject{
             $out->children[] = new UpdateResponse('status', false, "Unrecognised nomenclatural status '{$this->status}'. Possible values are: $possibles");
         }
 
-        //  Does the basionym have a basionym
+
+        // we should not have ? in the author 
+        $authors = $this->getAuthorsString();
+        if(strpos($authors, "?") !== false){
+            $out->status = WFO_INTEGRITY_FAIL;
+            $out->success = false;
+            $out->children[] = new UpdateResponse('authors', false, "The author string can't contain a '?'.");
+        }
+    
+        //  Does the basionym have a basionym - is this working?
         $basionym = $this->getBasionym();
         if($basionym && $basionym->getBasionym()){
             $out->status = WFO_INTEGRITY_FAIL;
@@ -721,7 +729,7 @@ class Name extends WfoDbObject{
             $updateResponse->success = false;
             return $updateResponse;
         } 
-
+ 
         // before we do anything we need to check we have a WFO-ID and the db id of it.
 
         // if we don't have a wfo_id we create one

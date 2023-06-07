@@ -38,7 +38,7 @@ function process_row($row, $table){
 
     // what's the incoming value
     $new_authors = trim($row[$_GET['authors_column']]);
-    
+
     // get out of here if there is no new value
     if(!$new_authors){
         $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_skip` = 1 WHERE `rhakhis_pk` = {$row['rhakhis_pk']};");
@@ -93,7 +93,12 @@ function process_row($row, $table){
                     // we are only inserting if missing
                     if(!$rhakhis_authors) $name->setAuthorsString($new_authors);
                 }
-                $name->save();
+                $response = $name->save();
+                $response->consolidateSuccess();
+                if(!$response->success){
+                    echo "<p style=\"color: red;\">Failed to save '$new_authors' for {$name->getPrescribedWfoId()} : {$response->message}</p>";
+                    return true; // stop
+                }
 
                 // we've reconciled the name so flag the row as skip
                 $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_skip` = 1 WHERE `rhakhis_pk` = {$row['rhakhis_pk']};");
@@ -135,6 +140,11 @@ function process_row($row, $table){
             }else{
                 // actually do the inserting
                 $response = $name->updateAuthorsString($new_authors, null);
+                $response->consolidateSuccess();
+                if(!$response->success){
+                    echo "<p style=\"color: red;\">Failed to save '$new_authors' for {$name->getPrescribedWfoId()} : {$response->message}</p>";
+                    return true; // stop
+                }
                 $mysqli->query("UPDATE `rhakhis_bulk`.`$table` SET `rhakhis_skip` = 1 WHERE `rhakhis_pk` = {$row['rhakhis_pk']};");
                 return false;
             }

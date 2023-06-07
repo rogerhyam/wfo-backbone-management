@@ -238,8 +238,12 @@ class Taxon extends WfoDbObject{
             $fns = str_replace($this->name->getRank(), "notho" . $this->name->getRank(), $fns);
             $fns = str_replace($ranks_table[$this->name->getRank()]["abbreviation"], "notho" . $ranks_table[$this->name->getRank()]["abbreviation"], $fns);
 
-        } 
+        }
 
+        // a side effect of using preg_quote above is that 
+        // it will escape "-" when it occurs in species epithets (yoyoyoy do they allow that!)
+        // so here we remove that if it occurs
+        $fns = str_replace('\\', '', $fns); // never have a back slash in a name.
 
         // if we are a child of a subspecific name (e.g. a var of a subsp)
         $ancestor = $this;

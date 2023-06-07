@@ -30,6 +30,7 @@ class UpdateResponse{
             $kid->consolidateSuccess();
             if(!$kid->success){
                 $this->success = false;
+                $this->message = $kid->message; 
                 break;
             } 
         }

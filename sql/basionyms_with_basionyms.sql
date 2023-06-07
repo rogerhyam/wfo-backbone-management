@@ -8,7 +8,8 @@ SELECT
     basionyms.name_alpha as basionym_name, 
     basionyms.authors as basionym_authors,
     cbi.`value` as "chained_basionym_id",
-    chained_basionyms.name_alpha as "chained_basionym_name"
+    chained_basionyms.name_alpha as "chained_basionym_name",
+    chained_basionyms.authors as "chained_basionym_authors"
 FROM `names` as com_novs 
 JOIN `names` as basionyms on com_novs.basionym_id = basionyms.id
 JOIN `names` AS chained_basionyms on basionyms.basionym_id = chained_basionyms.id
