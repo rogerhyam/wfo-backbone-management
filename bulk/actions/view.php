@@ -38,12 +38,20 @@
 </head>
 <body>
 
-<?php
-    // display sandbox warning text
+<?php    // display sandbox warning text 
     if( @$_SERVER['SERVER_NAME'] == 'rhakhis.rbge.info'){
 ?>
+
 <p style="background-color: yellow; padding: 0.3em; border: solid 1px orange; margin: 0px;">🏖️ <strong style="color: red;">This is the sandbox server.</strong> Data will be overwritten nightly.</p>
 <hr/>
+
+<?php
+    }elseif(@$_SERVER['SERVER_NAME'] == 'list-api-mo.rbge.info'){
+?>
+
+<p style="background-color: lightgray; padding: 0.3em; border: solid 1px black; margin: 0px;">🇺🇸 <strong style="color: black;">This is the Missouri server.</strong> Data will be overwritten nightly till we switch.</p>
+<hr/>
+
 <?php
     } // end sandbox test
 ?>

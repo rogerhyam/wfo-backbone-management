@@ -179,21 +179,21 @@ class Name extends WfoDbObject{
     }
 
     public function setNameString($name){
-        $this->name = trim($name);
+        $this->name = Name::sanitizeNameString(trim($name));
     }
     public function getNameString(){
         return $this->name;
     }
 
     public function setGenusString($genus){
-        $this->genus = ucfirst(mb_strtolower(trim($genus)));
+        $this->genus = ucfirst(mb_strtolower( Name::sanitizeNameString(trim($genus))) );
     }
     public function getGenusString(){
         return $this->genus;
     }
 
     public function setSpeciesString($species){
-        $this->species = mb_strtolower(trim($species));
+        $this->species = mb_strtolower( Name::sanitizeNameString(trim($species)) );
     }
     public function getSpeciesString(){
         return $this->species;
@@ -652,6 +652,9 @@ class Name extends WfoDbObject{
             $out->success = false;
             $out->children[] = new UpdateResponse('authors', false, "The author string can't contain a '?'.");
         }
+
+        // name parts should only contain letters and hyphens
+
     
         //  Does the basionym have a basionym - is this working?
         $basionym = $this->getBasionym();

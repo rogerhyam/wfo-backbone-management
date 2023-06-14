@@ -11,6 +11,7 @@ require_once("../include/Identifier.php");
 require_once("../include/User.php");
 
 // php -d memory_limit=10G gen_family_dwc_file.php
+// php -d memory_limit=10G gen_family_dwc_file.php wfo-7000000041
 
 // is the memory thing because we are doing multiples. Should we call it in batches?
 
@@ -45,37 +46,45 @@ order by n.name_alpha
 // add new families if they are added plus update all of 
 // them within a finite time
 
-$counter = 0;
+if(isset($argv[1]) && preg_match('/wfo-[0-9]{10}/', $argv[1])){
 
-while($row = $response->fetch_assoc()){
+    $name = Name::getName($argv[1]);
+    $file_path = $downloads_dir . $name->getNameString() . '_'. $argv[1];
+    process_family($argv[1], $file_path);
 
-    // before we start a family we clear the links to old taxa 
-    // so we don't run out of memory 
-    Taxon::resetSingletons();
-    Name::resetSingletons();
-    Reference::resetSingletons();
+}else{
 
-    $file_path = $downloads_dir . $row['name'] . '_'. $row['wfo'];
+    $counter = 0;
 
-    // if the file is less than a day old then skip it
-    if(
-        file_exists($file_path . ".zip")
-        &&
-        filemtime($file_path . ".zip") > time() - (3 * 24 * 60 * 60)
-    ){
-        continue;
+    while($row = $response->fetch_assoc()){
+
+        // before we start a family we clear the links to old taxa 
+        // so we don't run out of memory 
+        Taxon::resetSingletons();
+        Name::resetSingletons();
+        Reference::resetSingletons();
+
+        $file_path = $downloads_dir . $row['name'] . '_'. $row['wfo'];
+
+        // if the file is less than a day old then skip it
+        if(
+            file_exists($file_path . ".zip")
+            &&
+            filemtime($file_path . ".zip") > time() - (3 * 24 * 60 * 60)
+        ){
+            continue;
+        }
+
+        // file is more than a day old or doesn't exist so lets create it
+
+        echo "\n*** ". $row['name'] ." ***\n";
+        process_family($row['wfo'], $file_path);
+        $counter++;
+        
+        if($counter > 20) break;
     }
 
-    // file is more than a day old or doesn't exist so lets create it
-
-    echo "\n*** ". $row['name'] ." ***\n";
-    process_family($row['wfo'], $file_path);
-    $counter++;
-    
-    if($counter > 20) break;
 }
-
-//process_family($family_wfo);
 
 function process_family($family_wfo, $file_path){
 
@@ -111,6 +120,7 @@ function process_family($family_wfo, $file_path){
 
         echo "\nUnplaced names from taxa";
         foreach ($descendants as $taxon) {
+
             // put it in the link index for later
             $link_index[$taxon->getAcceptedName()->getPrescribedWfoId()] = $taxon;
 
@@ -130,9 +140,10 @@ function process_family($family_wfo, $file_path){
             $unplaced_names = array_merge($unplaced_names, $finder->unplacedNames);
         }
 
-        // add all the unplaced names to the link_index as well
+        // add the unplaced names that are in this family to the link_index as well
         foreach ($unplaced_names as $name) {
-            $link_index[$name->getPrescribedWfoId()] = $name;
+            if($family_name->getNameString() == guesstimate_family($name))
+                $link_index[$name->getPrescribedWfoId()] = $name;
         }
 
         echo "\n";
@@ -202,6 +213,8 @@ function process_family($family_wfo, $file_path){
         fputcsv($out_references, $fields_references);
 
         foreach ($link_index as $wfo => $item) {
+
+            if(!$wfo) continue;// strangely we get this from time to time?
             
             $row = array();
 
@@ -485,18 +498,30 @@ function process_family($family_wfo, $file_path){
             $row["majorGroup"] = $major_group;
 
             // family and other ranks
-
             
             if($name->getRank() == 'family'){
-                // if it is a family then it is in that family
-                // this will be overwritten if it is a family but a synonym of another taxon
-                $row['family'] = $name->getNameString();
+
+                $t = Taxon::getTaxonForName($name);
+
+                // if this is a family and a synonym of another family
+                // then the ancestors will be above accepted-family 
+                // so we need to do something special
+                if($t && $t->getAcceptedName() != $name && $t->getAcceptedName()->getRank() == 'family'){
+                    $row['family'] = $t->getAcceptedName()->getNameString();
+                }else{
+                    // it is a family but not a synonym of a family
+                    // this will be overwritten if it is a family but a synonym of another taxon below family
+                    $row['family'] = $name->getNameString();
+                }
+
             }
+
+
 
             if(!$ancestors){
 
                 // We don't have a placement so how do we work out what family to 
-                // put it in?
+                // put it in?   
 
                 // try and guess
                 $row['family'] = guesstimate_family($name);
@@ -642,8 +667,8 @@ function check_name_links($item, &$link_index){
         // if the basionym isn't in the list add it
         // and check it's links are in the db
         if(!isset($link_index[$basionym->getPrescribedWfoId()])){
-            //echo "\n\t" . $name->getFullNameString(false) . " " . $name->getPrescribedWfoId();
-            //echo "\n\t\t" . $basionym->getFullNameString(false);
+            echo "\nBasionym of: " . strip_tags($name->getFullNameString(false)) . " " . $name->getPrescribedWfoId() . " is missing from file.";
+            echo "\n\tBasionym is: " . strip_tags($basionym->getFullNameString(false)) . " " . $basionym->getPrescribedWfoId();
             
             $link_index[$basionym->getPrescribedWfoId()] = $basionym;
 
@@ -657,13 +682,13 @@ function check_name_links($item, &$link_index){
                 // the accepted name might have a basionym
                 if($basionym_taxon->getAcceptedName()->getBasionym()){
                     $link_index[$basionym_taxon->getAcceptedName()->getBasionym()->getPrescribedWfoId()] = $basionym_taxon->getAcceptedName()->getBasionym(); 
-                    //echo "\n\t\t\t" . $basionym_taxon->getAcceptedName()->getBasionym()->getFullNameString(false);
+                    echo "\n\tAccepted Name has Basionym: " . strip_tags($basionym_taxon->getAcceptedName()->getBasionym()->getFullNameString(false)) . " " . $basionym_taxon->getAcceptedName()->getBasionym()->getPrescribedWfoId();
                 }
 
                 // add  all its parents up to family
                 $ancestors = $basionym_taxon->getAncestors();
                 foreach ($ancestors as $ans) {
-                    //echo "\n\t\t\t" . $ans->getAcceptedName()->getFullNameString(false);
+                    echo "\n\tAncestor of basionym: " . strip_tags($ans->getAcceptedName()->getFullNameString(false)) ." " . $ans->getAcceptedName()->getPrescribedWfoId();
                     $link_index[$ans->getAcceptedName()->getPrescribedWfoId()] = $ans;
                     check_name_links($ans, $link_index);
                     if($ans->getAcceptedName()->getRank() == 'family') break;

@@ -29,10 +29,10 @@
 
             echo "\nProcessing: $zip_path";
 
-            $in = fopen('zip://' . $zip_path . '#taxonomy.csv' , 'r');
+            $in = fopen('zip://' . $zip_path . '#classification.csv' , 'r');
 
             if(!$in){
-                echo "\nFailed to read taxonomy.csv in zip file\n";
+                echo "\nFailed to read classification.csv in zip file\n";
                 exit;
             }
 
@@ -54,7 +54,7 @@
 
             // go back to the beginning of the file.
             fclose($in);
-            $in = fopen('zip://' . $zip_path . '#taxonomy.csv' , 'r');
+            $in = fopen('zip://' . $zip_path . '#classification.csv' , 'r');
 
             // discard the header again
             $header = fgetcsv($in);
