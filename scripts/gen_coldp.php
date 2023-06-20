@@ -127,7 +127,7 @@ while(true){
     Reference::resetSingletons();
 
     // debug
-    // if($offset > 20000) break;
+    // if($offset > 2000) break;
 
     $response = $mysqli->query("SELECT * from `names` WHERE `status` != 'deprecated' ORDER BY id LIMIT 10000 OFFSET $offset");
     
@@ -650,19 +650,18 @@ order by u.orcid_id";
 $response = $mysqli->query($sql);
 $users = array();
 while($row = $response->fetch_assoc()){
+
     if(isset($users[$row['orcid']])){
         $users[$row['orcid']]['taxa'][] = $row['taxon_name'];
     }else{
-        $given = '';
-        $family = '';
+
         $parts = explode(' ', $row['user_name']);
-        if(count($parts) > 1){
-            $given =  $parts[0];
-            unset($parts[0]);
-        }
-        $family = implode(' ', $parts);
+        $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
+        $given =  mb_ucfirst(mb_strtolower(implode(' ', $parts)));
 
         $users[$row['orcid']] = array(
+            'sort_name' => $family . ' ' . $given,
+            'orcid' => $row['orcid'],
             'given' => $given,
             'family' => $family,
             'taxa' => array($row['taxon_name'])
@@ -670,14 +669,17 @@ while($row = $response->fetch_assoc()){
     }
 }
 
+// sort them alphabetically - this destroys the orcids as keys
+usort($users, function ($a, $b) {
+  return strcmp(strtolower($a['sort_name']), strtolower($b['sort_name']));
+} );
+
 // now we have a list of users write them out in yaml style
 $editors = array();
-
-$editors = array();
-foreach($users as $orcid => $user){
+foreach($users as $user){
 
     $editor = $user;
-    $editor['orcid'] = $orcid;
+    unset($editor['sort_name']);
 
     sort($user['taxa']);
     $last = array_pop($user['taxa']);
@@ -770,4 +772,10 @@ unlink($downloads_dir . 'metadata.yaml');
 function convert($size){
     $unit=array('b','kb','mb','gb','tb','pb');
     return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+}
+
+// needed to handle multibyte chars and upper casing the first
+function mb_ucfirst($str) {
+    $fc = mb_strtoupper(mb_substr($str, 0, 1));
+    return $fc.mb_substr($str, 1);
 }
