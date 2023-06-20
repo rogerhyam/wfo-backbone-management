@@ -34,8 +34,11 @@ $parts = explode('-', $version_name);
 $version_year = $parts[0];
 $version_month = $parts[1];
 
-$json_file_path = "../data/versions/plant_list_$version_name.json";
-$fields_file_path = "../data/versions/plant_list_{$version_name}_fields.json";
+$json_file_name = "plant_list_$version_name.json";
+$json_file_path = "../data/versions/$json_file_name";
+
+$fields_file_name = "plant_list_{$version_name}_fields.json";
+$fields_file_path = "../data/versions/$fields_file_name";
 
 // open the file to dump it to
 $out = fopen($json_file_path, "w");
@@ -109,6 +112,24 @@ while(true){
 
 fwrite($out, "\n]");
 fclose($out);
+
+echo "\nCreating zip\n";
+$zip = new ZipArchive();
+$zip_path = $json_file_path . ".zip";
+
+if ($zip->open($zip_path, ZIPARCHIVE::CREATE)!==TRUE) {
+    exit("cannot open <$zip_path>\n");
+}
+
+$zip->addFile($json_file_path, $json_file_name);
+$zip->addFile($fields_file_path, $fields_file_name);
+
+if ($zip->close()!==TRUE) {
+    exit("cannot close <$zip_path>\n". $zip->getStatusString());
+}
+
+unlink($json_file_path);
+unlink($fields_file_path);
 
 // write the fields out so we have a record
 file_put_contents($fields_file_path, json_encode($fields, JSON_PRETTY_PRINT));

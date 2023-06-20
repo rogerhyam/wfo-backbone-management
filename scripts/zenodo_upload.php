@@ -3,12 +3,12 @@
 require_once('../config.php');
 
 $local_files = array(
-    // "wfo_plantlist_2022-12.zip"     => "../data/versions/wfo_plantlist_2022-12.zip",
-    "plant_list_2022-12.json.zip"   => "../data/versions/plant_list_2022-12.json.zip",
-    "ipni_to_wfo.csv.gz"            => "../www/downloads/lookup/015_ipni_to_wfo.csv.zip"
-   // "families_dwc.tar.gz"           => "../www/downloads/dwc/families_dwc.tar.gz",
-   // "_uber.zip"                     => "../www/downloads/dwc/_uber.zip",
-   //"families_dwc.tar.gz"           => "../www/downloads/dwc/_DwC_backbone_R.zip"
+    "plant_list_2023-06.json.zip"   => "../data/versions/plant_list_2023-06.json.zip", // generated with php -d memory_limit=3G gen_plant_list.php
+    "wfo_plantlist_2023-06.zip"     => "../www/downloads/coldp/wfo_plantlist_2023-06.zip", // generated with php -d memory_limit=3G gen_coldp.php
+    "ipni_to_wfo.csv.gz"            => "../www/downloads/lookup/015_ipni_to_wfo.csv.zip", // generated with php gen_ipni_to_wfo.php
+    "families_dwc.tar.gz"           => "../www/downloads/dwc/families_dwc.tar.gz", // php -d memory_limit=5G gen_family_dwc_file.php - for each file - ./gen_families_combined_tar.sh for single tar file
+    "_uber.zip"                     => "../www/downloads/dwc/_uber.zip", // php -d memory_limit=5G gen_uber_dwc_file.php
+    "_DwC_backbone_R.zip"           => "../www/downloads/dwc/_DwC_backbone_R.zip" // php gen_uber_dwc_file.php
 );
 
 
@@ -48,7 +48,7 @@ $response = curl_exec($curl);
 curl_close($curl);
 $version = json_decode($response, true);
 
-print_r($version);
+//print_r($version);
 
 // delete files on server that aren't in list or who's checksums don't match
 $files_to_upload = array_keys($local_files);
@@ -96,7 +96,7 @@ foreach($files_to_upload as $filename){
     fclose($in);
     curl_close($curl);
 
-    print_r($response);
+    //print_r($response);
 
 }
 
@@ -115,7 +115,7 @@ curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($curl);
 curl_close($curl);
 
-print_r(json_decode($response));
+//print_r(json_decode($response));
 
 echo "\n--------------------------\n";
 echo "The draft is here: " . $version['links']['latest_draft_html'];

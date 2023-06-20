@@ -33,21 +33,28 @@ $contributors = array();
 */
 
 
-// get all the users 
+// get all the users as contributors and calculate their names.
 $users = User::getPossibleEditors();
+$contributors = array();
 foreach($users as $user){
     if($user->isEditor() && $user->getOrcidId() && $user->getTaxaCurated()){
         $meta = array();
         $meta['type'] = "DataCurator";
         $meta['orcid'] = $user->getOrcidId();
-
         $parts = explode(' ', $user->getName());
-        $family = array_pop($parts);
-        $given = implode(' ', $parts);
-        $meta['name'] = "$family, $given";
-
-        $metadata->contributors[] = $meta;
+        $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
+        $given =  mb_ucfirst(mb_strtolower(implode(' ', $parts)));
+        $meta['name'] =   "$family, $given";
+        $contributors[$meta['name']] = $meta;
     }
+}
+
+// sort them by family
+ksort($contributors);
+
+// add them in in the correct order
+foreach($contributors as $name => $meta){
+    $metadata->contributors[] = $meta;
 }
 
 // now for the TENs
@@ -69,4 +76,13 @@ while($row = $response->fetch_assoc()){
 
 
 // write it out
-file_put_contents("../data/versions/zenodo_metadata.json", json_encode($metadata, JSON_PRETTY_PRINT));
+$destination = "../data/versions/zenodo_metadata.json";
+file_put_contents($destination, json_encode($metadata, JSON_PRETTY_PRINT));
+echo "\nWritten: $destination\n";
+
+
+// needed to handle multibyte chars and upper casing the first
+function mb_ucfirst($str) {
+    $fc = mb_strtoupper(mb_substr($str, 0, 1));
+    return $fc.mb_substr($str, 1);
+}

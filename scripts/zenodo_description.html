@@ -1,46 +1,61 @@
-<div>
-    <p>The consensus classification of plants used as the taxonomic backbone for the World Flora Online portal
-        (<a href="https://www.worldfloraonline.org">https://www.worldfloraonline.org</a>) in support of Target 1 of the
-        Global Strategy for Plant Conservation.</p>
+<p>A global consensus classification of vascular plants and bryophytes used as the taxonomic backbone for the World
+    Flora Online (WFO) portal (<a href="http://www.worldfloraonline.org/">http://www.worldfloraonline.org</a>) and the
+    WFO Plant List (<a href="https://wfoplantlist.org">https://wfoplantlist.org</a>).</p>
 
-    <ul>
-        <li><strong>wfo_plantlist_2022-12.zip</strong> The Catalogue of Life Data Package of the WFO Plant List. This is
-            the most expressive standards based form of the list.</li>
-        <li><strong>plant_list_2022-12.json.zip</strong> JSON formatted version of the WFO Plant List. This has been
-            designed for direct import into a schemaless instance of a SOLR index and is used to drive the WFO Plant
-            List API (<a href="https://list.worldfloraonline.org">https://list.worldfloraonline.org</a>)
-            which in turn drives the WFO Plant List in the portal. This is recommended if you want a local, read only
-            version of the list rather than use the API.</li>
-        <li><strong>plant_list_2022-12.sql.gz</strong> This is the complete production database (minus logging data
-            and API keys) as a MySQL backup file. It can be restored directly to a MySQL 5.7 or later instance if you
-            require the list in SQL format.</li>
-        <li><strong>ipni_to_wfo.csv.gz</strong> A file mapping all the IPNI IDs we track to their associated WFO IDs.
-        </li>
-        <li><strong>families_dwc.tar.gz</strong> Individual Darwin Core Archive files for each of 172 recognized
-            families. If you want a single family in DwC but can't load the whole list download and expand this file.
-            Family and genus files are also available for download through the portal.</li>
-        <li><strong>_DwC_backbone_R.zip</strong> A single Darwin Core Archive file containing non deprecated names and
-            taxa for use in the existing R package.</li>
-        <li><strong>_uber.zip</strong> A single Darwin Core Archive file containing all names and taxa even those that
-            are deprecated along with some extra columns</li>
-    </ul>
+<p>Initiated in 2012, WFO has developed to represent a comprehensive knowledge base on the world&rsquo;s plant
+    species.&nbsp; Comprising over 50 botanical institutions and organisations worldwide, the WFO Consortium recognizes
+    the need for the synthesis of botanical knowledge that has been generated through more than 260 years of botanical
+    exploration, taxonomic and, more recently, phylogenetic research throughout the world. Endorsed by the Convention on
+    Biological Diversity, WFO supports the Global Strategy for Plant Conservation (<a
+        href="https://www.plants2020.net">https://www.plants2020.net</a>) and the <a
+        href="https://www.cbd.int/doc/c/e6d3/cd1d/daf663719a03902a9b116c34/cop-15-l-25-en.pdf">Montreal-Kunming Global
+        Biodiversity Framework</a>.</p>
 
-    <p>New versions of this consensus classification are released every six months, in June and December, and used to
-        publish the WFO Plant List (<a href="https://www.wfoplantlist.org">https://www.wfoplantlist.org</a>).</p>
+<p>WFO has become a first-ever global source of information on the world&rsquo;s plant diversity supported by the
+    international taxonomic community. At the heart of the WFO is a checklist which aims to provide the most up to date
+    source of scientific plant names and their synonyms compiled. The WFO checklist is curated, moderated and updated by
+    an expert and specialist-based global community (Taxonomic Expert Networks ,TENs) covering a taxonomic group.</p>
 
-    <p>The initial data ingestion into the World Flora Online taxonomic
-        backbone was from The Plant List Version 1.1 (TPL, <a
-            href="http://theplantlist.org">http://theplantlist.org</a>, September 2013), with the full list
-        of
-        contributing datasets given here: <a
-            href="http://theplantlist.org/1.1/about/#collaborators">http://theplantlist.org/1.1/about/#collaborators</a>.
-    </p>
-    <p>New taxonomic names have been incorporated into WFO from nomenclators International Plant Name Index (IPNI,
-        <a href="https://www.ipni.org">https://www.ipni.org</a>) for vascular
-        plants, and Tropicos (<a href="https://www.tropicos.org">https://www.tropicos.org</a>) for bryophytes.
-    </p>
-    <p>Taxonomic and nomenclatural updates have been incorporated from the WFO's Taxonomic Expert Networks and the
-        World Checklist of Vascular Plants version 2.0 (WCVP, <a
-            href="https://wcvp.science.kew.org"></a>https://wcvp.science.kew.org</a>), facilitated by the Royal
-        Botanic Gardens, Kew.</p>
-</div>
+<p>The initial data ingestion into the WFO checklist was undertaken in 2015 using data from The Plant List Version 1.1
+    (TPL,&nbsp;September 2013). The list of datasets contributing to TPL is given here:&nbsp;<a
+        href="https://about.worldfloraonline.org/the-plantlist-data-contributors">https://about.worldfloraonline.org/the-plantlist-data-contributors</a>.
+</p>
+
+<p>New taxonomic names and data updates are regularly incorporated into WFO from nomenclators: International Plant Name
+    Index (IPNI,&nbsp;<a href="https://www.ipni.org/">https://www.ipni.org</a>) for vascular plants, and Tropicos (<a
+        href="https://www.tropicos.org/">https://www.tropicos.org</a>) for bryophytes.</p>
+
+<p>Classification and nomenclatural updates have been incorporated from WFO TENs, and classification data for taxonomic
+    groups not yet covered by a TEN have been incorporated from the World Checklist of Vascular Plants (WCVP,
+    <a href=" https://wcvp.science.kew.org">https://wcvp.science.kew.org</a>), facilitated by the Royal Botanic Gardens,
+    Kew.
+</p>
+
+<p>New versions of this global consensus classification are released every six months, in June and December. Detail of
+    the changes since December 2022, incorporated this June 2023 release, are given here: <a
+        href="https://about.worldfloraonline.org/june-2023-release">https://about.worldfloraonline.org/june-2023-release</a>.
+</p>
+
+<p>This data repository includes the following files:</p>
+
+<ul>
+    <li><strong>wfo_plantlist_2023-06.zip</strong> The Catalogue of Life Data Package of the WFO Plant List. This is the
+        most expressive standards based form of the list.</li>
+    <li><strong>plant_list_2023-06.json.zip</strong> JSON formatted version of the WFO Plant List. This has been
+        designed for direct import into a schemaless instance of a SOLR index and is used to drive the WFO Plant List
+        API (<a href="https://list.worldfloraonline.org">https://list.worldfloraonline.org</a>) which in turn drives the
+        WFO Plant List in the portal. This is recommended if you want a local, read only version of the list rather than
+        use the API.</li>
+    <li><strong>plant_list_2023-06.sql.gz</strong> This is the complete production database (minus logging data and API
+        keys) as a MySQL backup file. It can be restored directly to a MySQL 5.7 or later instance if you require the
+        list in SQL format.</li>
+    <li><strong>ipni_to_wfo.csv.gz</strong> A file mapping all the IPNI IDs we track to their associated WFO IDs.</li>
+    <li><strong>families_dwc.tar.gz</strong> Individual Darwin Core Archive files for each of 718 recognized families.
+        If you want a single family in DwC but can&#39;t load the whole list download and expand this file. Family and
+        genus files are also available for download through the portal.</li>
+    <li><strong>_DwC_backbone_R.zip</strong> A single Darwin Core Archive file containing non deprecated names and taxa
+        for use in the existing R package.</li>
+    <li><strong>_uber.zip</strong> A single Darwin Core Archive file containing all names and taxa even those that are
+        deprecated along with some extra columns<br />
+        &nbsp;</li>
+</ul>

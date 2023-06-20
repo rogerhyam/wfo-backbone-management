@@ -147,8 +147,8 @@ function render_form($table){
             <td>
                 <input type="text" name="identifer_prefix" />
             </td>
-            <td>If the local identifier is making no attempt to be globally unique (e.g. it is just a integer) then you should add a prefix to restrict it to the TEN. Recommendation is to use the LSID URN schema. 
-                    The prefix would be "urn:lsid:institute.org:name:". (I can't believe I just recommended LSID!). This assumes the supplier has a domain name associated with them.
+            <td>If the local identifier is making no attempt to be globally unique (e.g. it is just a integer) then you should add a prefix to restrict it to the TEN.
+                    Recommendation is to use the domain name of the supplier followed by a :. This assumes the supplier has a domain name associated with them.
                     <strong>Obviously one has to keep a note of the prefix for future matching!</strong></td>
         </tr>
         <tr>
