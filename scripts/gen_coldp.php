@@ -21,7 +21,7 @@ $start = time();
 
 // date of dump
 $year = date('Y');
-$june_solstice = mktime(0,0,0,6,21,date('Y'));
+$june_solstice = mktime(0,0,0,6,22,date('Y')); // one day after it for the comparison...
 $december_solstice = mktime(0,0,0,12,21,date('Y'));
 
 if($start < $june_solstice || $start > $december_solstice){
@@ -31,6 +31,10 @@ if($start < $june_solstice || $start > $december_solstice){
     $pub_date = "$year-12-21";
     $version = "$year-12";
 }
+
+// fix it for now
+$pub_date = "2023-06-21";
+$version = "2023-06";
 
 $downloads_dir = '../www/downloads/coldp/';
 if(!file_exists($downloads_dir)) mkdir($downloads_dir, 0755, true);
@@ -333,10 +337,8 @@ while(true){
                 
             } // end working up ancestors to build refs
             
-            
 
-            if($taxon->getAcceptedName() == $name){
-
+            if($taxon->getAcceptedName()->getId() == $name->getId()){
 
                 // we are an accepted name - 
                 $taxon_row['ID'] = $name->getPrescribedWfoId() . $qualifier;

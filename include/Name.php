@@ -65,6 +65,7 @@ class Name extends WfoDbObject{
         $row = $result->fetch_assoc();
 
         if(!$row){
+            error_log("failed to load name");
             error_log($sql);
         }else{
 

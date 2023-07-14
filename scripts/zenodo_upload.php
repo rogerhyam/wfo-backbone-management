@@ -5,10 +5,11 @@ require_once('../config.php');
 $local_files = array(
     "plant_list_2023-06.json.zip"   => "../data/versions/plant_list_2023-06.json.zip", // generated with php -d memory_limit=3G gen_plant_list.php
     "wfo_plantlist_2023-06.zip"     => "../www/downloads/coldp/wfo_plantlist_2023-06.zip", // generated with php -d memory_limit=3G gen_coldp.php
-    "ipni_to_wfo.csv.gz"            => "../www/downloads/lookup/015_ipni_to_wfo.csv.zip", // generated with php gen_ipni_to_wfo.php
+    "ipni_to_wfo.csv.gz"            => "../www/downloads/lookup/015_ipni_to_wfo.csv.gz", // generated with php gen_ipni_to_wfo.php
     "families_dwc.tar.gz"           => "../www/downloads/dwc/families_dwc.tar.gz", // php -d memory_limit=5G gen_family_dwc_file.php - for each file - ./gen_families_combined_tar.sh for single tar file
     "_uber.zip"                     => "../www/downloads/dwc/_uber.zip", // php -d memory_limit=5G gen_uber_dwc_file.php
-    "_DwC_backbone_R.zip"           => "../www/downloads/dwc/_DwC_backbone_R.zip" // php gen_uber_dwc_file.php
+    "_DwC_backbone_R.zip"           => "../www/downloads/dwc/_DwC_backbone_R.zip", // php gen_uber_dwc_file.php
+    "plant_list_2023-06.sql.gz"     => "../data/versions/plant_list_2023-06.sql.gz"
 );
 
 
