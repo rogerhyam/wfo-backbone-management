@@ -113,16 +113,17 @@ class Reference{
                 $this->id
             );
             if(!$stmt->execute()){
-                echo $mysqli->error;
+                //echo $mysqli->error;
                 $updateResponse->message = $mysqli->error;
                 $updateResponse->success = false;
                 return $updateResponse; // let them know we failed
             }
+            
+            $updateResponse->message = "Reference saved.";
+            $updateResponse->success = true;
+            return $updateResponse;
 
         }else{
-
-            //error_log("\t creating");
-            //error_log($this->userId);
             
             // we have no id so this is an insert call
             $stmt = $mysqli->prepare("INSERT 
@@ -147,6 +148,10 @@ class Reference{
 
             // we now become a singleton so we don't have to be loaded again
             self::$loaded[$this->id] = $this;
+
+            $updateResponse->message = "Reference created.";
+            $updateResponse->success = true;
+            return $updateResponse;
 
         }
 
