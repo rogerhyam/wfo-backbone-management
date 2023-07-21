@@ -37,6 +37,8 @@ while(true){
             FROM kew.ipni_doi as doi
             JOIN identifiers as i on i.`value` = doi.id and i.kind = 'ipni'
             WHERE length(doi.apa_citation) > 0
+            AND (doi.apa_citation LIKE '<%' OR doi.apa_citation LIKE '{%')
+            AND doi.response_code = 200
             ORDER BY doi.doi
             LIMIT 1000
             OFFSET $offset";
@@ -61,10 +63,10 @@ while(true){
         $display = $ref_row['apa_citation'];
 
         // no json
-        if(preg_match('/^{/', $display)) continue;
+        if(preg_match('/^{/', $display)) $display = $ref_row['doi'];
 
         // no HTML
-        if(preg_match('/<html/', $display)) continue;
+        if(preg_match('/<html/', $display)) $display = $ref_row['doi'];
 
         // max length
         if(strlen($display) > 1000) $display = substr($ref_row['apa_citation'], 0, 995) . " ...";
