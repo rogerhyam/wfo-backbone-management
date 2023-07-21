@@ -82,11 +82,11 @@ while(true){
         if(!$ref){
             // no ref so create it
 
-            $display = fetch_citation($uri);
+            $display = fetch_citation($uri, $ref_row['doi']);
 
             if(!$display){
                 echo "\n\tNo citation retrieved.";
-                $display = $ref_row['doi'];
+                continue;
             }
 
             echo "\n$display";
@@ -138,7 +138,7 @@ while(true){
 
 echo "\nComplete\n";
 
-function fetch_citation($uri){
+function fetch_citation($uri, $doi){
 
     // curl -LH "Accept: text/x-bibliography; style=apa" https://doi.org/10.9735/0976-9889.5.1.35-38
     $ch = curl_init($uri);
@@ -154,21 +154,27 @@ function fetch_citation($uri){
 
     //curl_setopt($ch, CURLOPT_HEADER, 1);
     $citation = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 
     // filter out things that don't look good    
     if(!$citation) return null;
+    if($code == 200){
 
-    // no json
-    if(preg_match('/^{/', $citation)) return null;
+        // they send json we use the doi
+        if(preg_match('/^{/', $citation)) return $doi;
 
-    // no HTML
-    if(preg_match('/<html/', $citation)) return null;
+        // they send HTML we use the doi
+        if(preg_match('/<html/', $citation)) return $doi;
 
-    // max length
-    if(strlen($citation) > 1000) $citation = substr($citation, 0, 995) . " ...";
+        // max length
+        if(strlen($citation) > 1000) $citation = substr($citation, 0, 995) . " ...";
+        
+        // OK we have a string that looks good return that
+        return $citation;
     
-    // OK we have a string that looks good return that
-    return $citation;
+    }else{
+        return null;
+    }
 
 
 }
