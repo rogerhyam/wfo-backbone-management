@@ -11,7 +11,6 @@
 
 */
 
-
 require_once('../config.php');
 require_once('../include/WfoDbObject.php');
 require_once('../include/Name.php');
@@ -22,7 +21,17 @@ require_once('../include/ReferenceUsage.php');
 require_once('../include/AuthorTeam.php');
 require_once('../include/SPARQLQueryDispatcher.php');
 
-echo "\nIPNI DOI reference importer - periodic\n";
+// we can pass in the number of days to go back in time
+if(count($argv) > 1){
+    $since_days = $argv[1];
+}else{
+    $since_days = 60;
+}
+
+
+echo "\nIPNI DOI reference importer - periodic";
+echo "\n\tFinding DOIs in names added in the last $since_days days;";
+echo "\n\t(You can pass the number of days to the script if needed)\n";
 
 // we need to have a mock session  
 $_SESSION['user'] = serialize(User::loadUserForDbId(1));
@@ -36,11 +45,16 @@ while(true){
     Name::resetSingletons();
     Reference::resetSingletons();
 
-    $sql = "SELECT i.name_id as wfo_name_id, doi.doi, doi.apa_citation 
-            FROM kew.ipni_doi as doi
-            JOIN identifiers as i on i.`value` = doi.id and i.kind = 'ipni'
-            WHERE length(doi.apa_citation) > 0
-            ORDER BY doi.doi
+    // fetch the dois in the recently added names
+    $sql = "SELECT 
+            i.name_id as wfo_name_id,
+            REGEXP_SUBSTR(remarks_s_lower, 'doi:10\.[0-9]{4,9}/[^ ]*') as doi,
+            date_created_date
+            FROM kew.ipni as ipni
+            JOIN identifiers as i on i.`value` = ipni.id AND i.`kind` = 'ipni'   
+            where remarks_s_lower like '%doi:%'
+            AND date_created_date > now() - INTERVAL $since_days DAY
+            order by date_created_date DESC
             LIMIT 1000
             OFFSET $offset";
     
@@ -61,22 +75,22 @@ while(true){
         echo "\n{$ref_row['doi']}";
 
         $uri = preg_replace('/^doi:/', 'https://doi.org/', $ref_row['doi'] );
-        $display = $ref_row['apa_citation'];
-
-        // no json
-        if(preg_match('/^{/', $display)) continue;
-
-        // no HTML
-        if(preg_match('/^<html/', $display)) continue;
-
-        // max length
-        if(strlen($display) > 1000) $display = substr($ref_row['apa_citation'], 0, 995) . " ...";
-        
+     
         // do we have a reference for this uri?
         $ref = Reference::getReferenceByUri($uri);
 
         if(!$ref){
             // no ref so create it
+
+            $display = fetch_citation($uri);
+
+            if(!$display){
+                echo "\n\tNo citation retrieved.";
+                $display = $ref_row['doi'];
+            }
+
+            echo "\n$display";
+
             $ref = Reference::getReference(null);
             $ref->setKind('literature');
             $ref->setLinkUri($uri);
@@ -118,9 +132,44 @@ while(true){
     
     $offset += 1000;
 
-    echo "\n------- $offset -------";
+    echo "\n------- $offset -------\n";
 
 }
 
 echo "\nComplete\n";
+
+function fetch_citation($uri){
+
+    // curl -LH "Accept: text/x-bibliography; style=apa" https://doi.org/10.9735/0976-9889.5.1.35-38
+    $ch = curl_init($uri);
+
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); 
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300); //timeout in seconds
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Accept: text/x-bibliography; style=apa"
+    ));
+
+    //curl_setopt($ch, CURLOPT_HEADER, 1);
+    $citation = curl_exec($ch);
+
+    // filter out things that don't look good    
+    if(!$citation) return null;
+
+    // no json
+    if(preg_match('/^{/', $citation)) return null;
+
+    // no HTML
+    if(preg_match('/<html/', $citation)) return null;
+
+    // max length
+    if(strlen($citation) > 1000) $citation = substr($citation, 0, 995) . " ...";
+    
+    // OK we have a string that looks good return that
+    return $citation;
+
+
+}
 
