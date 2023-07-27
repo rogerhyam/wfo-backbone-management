@@ -4,6 +4,8 @@
 
     This is a run once script to create historic dois
 
+    2023-07-25 - adapted to import just the Kew Bull DOIs.
+
     php -d memory_limit=1G import_ipni_doi_historic.php
 
 */
@@ -33,13 +35,10 @@ while(true){
     Name::resetSingletons();
     Reference::resetSingletons();
 
-    $sql = "SELECT i.name_id as wfo_name_id, doi.doi, doi.apa_citation 
-            FROM kew.ipni_doi as doi
-            JOIN identifiers as i on i.`value` = doi.id and i.kind = 'ipni'
-            WHERE length(doi.apa_citation) > 0
-            AND (doi.apa_citation LIKE '<%' OR doi.apa_citation LIKE '{%')
-            AND doi.response_code = 200
-            ORDER BY doi.doi
+    $sql = "SELECT value as wfo_name_id, doi, citation_full as apa_citation 
+            FROM kew.kew_bull_doi
+            WHERE length(citation_full) > 0
+            ORDER BY doi
             LIMIT 1000
             OFFSET $offset";
     
@@ -59,7 +58,7 @@ while(true){
 
         echo "\n{$ref_row['doi']}";
 
-        $uri = preg_replace('/^doi:/', 'https://doi.org/', $ref_row['doi'] );
+        $uri = 'https://doi.org/' . $ref_row['doi'];
         $display = $ref_row['apa_citation'];
 
         // no json
@@ -107,7 +106,7 @@ while(true){
 
         // do we need to attach it to the name?
         if(!$already_there){
-            $name->addReference($ref, "DOI link generated from IPNI data.", false);
+            $name->addReference($ref, "DOI link extracted from micro citation.", false);
             echo "\n\tAdded";
         }else{
             echo "\n\tAlready present";
