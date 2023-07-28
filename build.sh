@@ -1,4 +1,5 @@
-
+# this was used for building at the start of the project
+# but is defunct with move to staging server
 destination="/Users/rogerhyam/rhakhis-deploy/rhakhis";
 
 # move the ui
