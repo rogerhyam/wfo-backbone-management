@@ -34,7 +34,16 @@ $schema = new Schema([
         'description' => 
             "This is the WFO Taxonomic Backbone management API",
         'fields' => [
+            'getSystemMessage' => [
+                'description' => "Get the current system-wide message. e.g. scheduled outage.",
+                'type' => Type::string(),
+                'resolve' => function() {
+                    global $system_message;
+                    return $system_message;
+                }
+            ],            
             'getUser' => [
+                'description' => "Return the current user as an object.",
                 'type' => TypeRegister::userType(),
                 'resolve' => function() {
                     return unserialize($_SESSION['user']);
