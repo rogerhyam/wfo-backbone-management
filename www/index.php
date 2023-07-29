@@ -35,6 +35,7 @@ function get_rhakhis_uri($wfo){
 
     // the name created an link to view it in new tab.
     // this is a bit hacky on which server we are on
+    // FIXME
     switch ($_SERVER['SERVER_NAME']) {
 
         // in dev
@@ -50,6 +51,11 @@ function get_rhakhis_uri($wfo){
         // live
         case 'list.worldfloraonline.org':
             $uri = 'https://list.worldfloraonline.org/rhakhis/ui/#' . $wfo;
+            break;
+        
+        // staging
+        case 'list-api-wfo-staging.rbge.info':
+            $uri = 'https://list-api-wfo-staging.rbge.info/rhakhis/ui/#' . $wfo;
             break;
         
         // unknown

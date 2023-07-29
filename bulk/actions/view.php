@@ -9,17 +9,6 @@
     $page = @$_GET['page'];
     if(!$page) $page = 0;
 
-    /*
-
-    $sql = "SELECT count(*) FROM pragma_table_info('$table') where `name` = 'rhakhis_skip'";
-    $response = $pdo->query($sql);
-    if($response->fetchColumn() < 1){
-        $pdo->exec("ALTER TABLE $table ADD COLUMN `rhakhis_skip` INTEGER");
-        echo "<p>Added rhakhis_skip column to $table</p>";
-    }
-    
-    */
-
 ?>
 <html>
 <head>
@@ -37,23 +26,11 @@
     </style>
 </head>
 <body>
-
-<?php    // display sandbox warning text 
-    if( @$_SERVER['SERVER_NAME'] == 'rhakhis.rbge.info'){
-?>
-
-<p style="background-color: yellow; padding: 0.3em; border: solid 1px orange; margin: 0px;">🏖️ <strong style="color: red;">This is the sandbox server.</strong> Data will be overwritten nightly.</p>
-<hr/>
-
 <?php
-    }elseif(@$_SERVER['SERVER_NAME'] == 'list-api-mo.rbge.info'){
-?>
-
-<p style="background-color: lightgray; padding: 0.3em; border: solid 1px black; margin: 0px;">🇺🇸 <strong style="color: black;">This is the Missouri server.</strong> Data will be overwritten nightly till we switch.</p>
-<hr/>
-
-<?php
-    } // end sandbox test
+    if($system_message){
+        echo "<p style=\"background-color: black; color:white; padding: 0.3em; border: solid 1px gray; margin: 0px;\"><strong>&nbsp;⚠️&nbsp;System Message:&nbsp;</strong>$system_message</p>";
+        echo "<hr/>";
+    }
 ?>
 
 <form style="display: 'inline'">
