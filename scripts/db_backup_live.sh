@@ -8,8 +8,10 @@ echo $filename
 #sed -i .bak 's/utf8mb4_0900_ai_ci/utf8mb4_general_ci/g' $filename
 #rm "${filename}.bak"
 gzip $filename
-rm "../data/db_dumps/latest.sql.gz"
-ln -s "${filename}.gz" "../data/db_dumps/latest.sql.gz"
+
+# no longer create a symbolic link - we don't use it.
+#rm "../data/db_dumps/latest.sql.gz"
+# ln -s "${filename}.gz" "../data/db_dumps/latest.sql.gz"
 
 # move it to the hidden place so the sandbox can pick it up
 dir_name=$(php db_hidden_dir.php)
