@@ -7,7 +7,7 @@ mkdir -p /var/wfo-list/rhakhis/api
 cd /var/wfo-list/rhakhis/api
 git stash
 git pull
-mkdir -p /var/wfo-list/rhakhis/api/data/db_dumps
+mkdir -p /var/wfo-list/rhakhis/api/data/db_dumps # on first install data dir needs to be chown'd to allow www-data write access
 mkdir -p /var/wfo-list/rhakhis/api/www/downloads
 mkdir -p /var/wfo-list/rhakhis/api/bulk/csv # on first install this needs to be chown'd to allow www-data write access
 

@@ -13,8 +13,8 @@ mkdir -p /var/wfo-list/rhakhis/api/data/db_bulk_dumps
 echo "Backing up bulk db"
 start=$(date +"%H:%M:%S")
 echo "This may take a while. Starting at $start"
-rm $filename
-mysqldump $databasename > $filename
+rm "{$filename}.gz"
+mysqldump -u root rhakhis_bulk > $filename
 gzip $filename
 
 rsync -Pav -e "ssh -i ~/.ssh/wfo-aws-03.pem" --delete /var/wfo-list/rhakhis/api/data/db_bulk_dumps wfo@wfo-staging.rbge.info:/var/wfo-list/rhakhis/api/data/
