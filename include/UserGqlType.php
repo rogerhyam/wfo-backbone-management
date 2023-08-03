@@ -83,7 +83,15 @@ class UserGqlType extends ObjectType
                         'resolve' => function($user){
                             return $user->getTaxaCurated();
                         }
+                    ],
+                    'activityCount' => [
+                        'type' => Type::int(),
+                        'description' => "The count set as part of the query that fetched this user.",
+                        'resolve' => function($user){
+                            return $user->getActivityCount();
+                        }
                     ]
+
                     
                 ];
             }

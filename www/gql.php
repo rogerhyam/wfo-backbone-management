@@ -311,7 +311,35 @@ $schema = new Schema([
 
                 ],
                 'resolve' => function($rootValue, $args, $context, $info) {
-                    return Name::recentlyChanged((int)$args['limit'], (int)$args['offset'], (int)$args['userId']);
+                    return Name::getRecentlyChanged((int)$args['limit'], (int)$args['offset'], (int)$args['userId']);
+                }
+            ],
+            'getMostActiveUsers' => [
+                'type' => Type::listOf(TypeRegister::userType()),
+                'description' => "Return a list of users by there activity level.",
+                'args' => [
+                    'limit' => [
+                        'type' => Type::int(),
+                        'description' => "Maximum number of users to return.",
+                        'required' => false,
+                        'defaultValue' => '30'
+                    ],
+                    'offset' => [
+                        'type' => Type::int(),
+                        'description' => "Offset into results set.",
+                        'required' => false,
+                        'defaultValue' => '0'
+                    ],
+                    'days' => [
+                        'type' => Type::int(),
+                        'description' => "Days back from present time.",
+                        'required' => false,
+                        'defaultValue' => null
+                    ]
+
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return Name::getMostActiveUsers((int)$args['limit'], (int)$args['offset'], (int)$args['days']);
                 }
             ]
 

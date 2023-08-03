@@ -1447,7 +1447,7 @@ class Name extends WfoDbObject{
      * Get a list of the names that have been changed
      * in descending order
      */
-    public static function recentlyChanged($limit = 0, $offset = 30, $user_id = null){
+    public static function getRecentlyChanged($limit = 0, $offset = 30, $user_id = null){
 
         global $mysqli;
 
@@ -1470,13 +1470,56 @@ class Name extends WfoDbObject{
 
         $response = $mysqli->query($query);
 
-        echo $mysqli->error;
+     //   echo $mysqli->error;
 
         while($row = $response->fetch_assoc()){
             $names[] = Name::getName($row['id']);
         }
 
         return $names;
+    }
+
+    /**
+     * Get a list of most active users in a time period of x days
+     * in descending order
+     */
+    public static function getMostActiveUsers($limit = 0, $offset = 30, $days = null){
+
+        global $mysqli;
+
+        $users = array();
+
+        // little bit of extra safety - check the values are ints
+        if(!is_int($limit) || !is_int($offset)){
+            throw new ErrorException("Attempt to get list of most active users with non int limit or offset value");
+        }
+
+        // what users are we interested in?
+        if($days != null){
+            if(!is_int($days)) throw new ErrorException("Attempt to get list of most active users with non int days");
+            $and = "AND n.modified > now() - interval $days day";
+        }else{
+            $and = "";
+        }
+
+        $query = "SELECT user_id, count(*) as name_count from `names` as n 
+                JOIN users as u on n.user_id = u.id AND u.role != 'god' 
+                WHERE user_id != 1 AND user_id != 2
+                $and
+                GROUP BY user_id order by name_count desc
+                LIMIT $limit OFFSET $offset;";
+
+        $response = $mysqli->query($query);
+
+       // echo $mysqli->error;
+
+        while($row = $response->fetch_assoc()){
+            $active_user = User::loadUserForDbId($row['user_id']);
+            $active_user->setActivityCount((int)$row['name_count']);
+            $users[] = $active_user;
+        }
+
+        return $users;
     }
 
 

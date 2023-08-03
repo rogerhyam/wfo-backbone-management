@@ -13,6 +13,7 @@ class User{
     private ?string $orcidExpiresIn = null;
     private ?string $orcidRaw = null;
     private ?string $role = null;
+    private ?int $activityCount = null;
 
     private array $roles = array('anonymous', 'nobody', 'editor', 'god');
 
@@ -458,4 +459,21 @@ class User{
 
         return $this;
     }
+
+    /**
+     * 
+     */
+    public function setActivityCount(int $activity_count){
+        $this->activityCount = $activity_count;
+    }
+
+    /**
+     * Will return the activity count that has
+     * been set externally. The user object doesn't
+     * work this out for itself.
+     */
+    public function getActivityCount(){
+        return $this->activityCount;
+    }
+
 }// class

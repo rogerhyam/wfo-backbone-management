@@ -13,7 +13,7 @@ mkdir -p /var/wfo-list/rhakhis/api/data/db_bulk_dumps
 echo "Backing up bulk db"
 start=$(date +"%H:%M:%S")
 echo "This may take a while. Starting at $start"
-rm "{$filename}.gz"
+rm $filename.gz
 mysqldump -u root rhakhis_bulk > $filename
 gzip $filename
 
