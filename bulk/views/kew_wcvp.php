@@ -112,18 +112,22 @@
     <th>Has IPNI</th>
     <th>Accepted</th>
     <th>Synonyms</th>
+    <th style="text-align:center">Changed</th>
     </tr>
 
 <?php
 
     $response = $mysqli->query("SELECT 
-        family, 
+        n.family, 
         count(*) as total, 
-        sum(if(wfo_id like 'wfo-%', 1, 0)) AS 'matched', 
-        sum(if(length(ipni_id) > 0, 1, 0)) AS ipni,
-        sum(if(taxon_status = 'Accepted' > 0, 1, 0)) AS accepted,
-        sum(if(taxon_status = 'Synonym' > 0, 1, 0)) AS 'synonym'    
-        FROM kew.wcvp group by family order by family;");
+        sum(if(n.wfo_id like 'wfo-%', 1, 0)) AS 'matched', 
+        sum(if(length(n.ipni_id) > 0, 1, 0)) AS ipni,
+        sum(if(n.taxon_status = 'Accepted' > 0, 1, 0)) AS accepted,
+        sum(if(n.taxon_status = 'Synonym' > 0, 1, 0)) AS 'synonym',
+        sum(if(n.`hash` != l.`hash` > 0, 1, 0)) AS 'changed'
+        FROM kew.wcvp AS n
+        LEFT JOIN kew.wcvp_last AS l ON n.plant_name_id = l.plant_name_id
+        GROUP BY family ORDER BY family;");
 
         $rows = $response->fetch_all(MYSQLI_ASSOC);
 
@@ -133,6 +137,11 @@
             $params['family'] = $row['family'];
             $params['action'] = 'file_wcvp_create';
             $family_uri = 'index.php?' . http_build_query($params);
+            $percentage = number_format(($row['changed']/$row['total'])*100, 2);
+            $changed = number_format($row['changed'], 0);
+            $color = 'black';
+            if($percentage > 33) $color = 'orange';
+            if($percentage > 50) $color = 'red';
 
             echo "<tr>";
             echo "<td><a href=\"$family_uri\">{$row['family']}</a></td>";
@@ -141,6 +150,7 @@
             echo '<td  style="text-align: right" >'. number_format($row['ipni'], 0) . "</td>";
             echo '<td  style="text-align: right" >'. number_format($row['accepted'], 0) . "</td>";
             echo '<td  style="text-align: right" >'. number_format($row['synonym'], 0) . "</td>";
+            echo "<td  style=\"text-align: right; color: $color; \" >$changed ($percentage%)</td>";
             echo "</tr>";
         }
 
