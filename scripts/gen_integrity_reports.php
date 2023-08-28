@@ -32,6 +32,7 @@ if(count($argv) > 1){
     check_basionyms_not_chained($downloads_dir);
     check_full_name_string_unique($downloads_dir);
     check_homotypic_names_in_same_taxon($downloads_dir);
+    check_genus_name_part_matches_parent($downloads_dir);
 }
 
 
@@ -125,7 +126,7 @@ function check_basionyms_not_chained($downloads_dir){
 function check_homotypic_names_in_same_taxon($downloads_dir){
 
     $sql = "SELECT 
-        com_nov.id as name_id, 
+        com_nov.id as name_id,
         com_nov_i.`value` as com_nov_id,
         com_nov.name_alpha as com_nov_name,
         basionym_i.`value` as basionym_id,
@@ -166,6 +167,61 @@ function check_full_name_string_unique($downloads_dir){
         "Full name strings should be unique.", //$title,
         "No repeating full name strings were found.", // $success,
         "Full name strings (including authors and rank) should be unique or made unique by tweaking authors string. Found ## that repeat.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
+function check_genus_name_part_matches_parent($downloads_dir){
+
+    $sql = "SELECT 
+        n.id as name_id, 
+        i.`value` as wfo_id,
+        n.name_alpha, n.genus,
+        parent_n.name_alpha as parent_name, parent_n.genus as parent_genus_part
+        FROM `names` AS n 
+        JOIN taxon_names as tn on tn.name_id = n.id
+        JOIN taxa as t on t.taxon_name_id = tn.id
+        JOIN taxa as parent_t on parent_t.id = t.parent_id
+        JOIN taxon_names as parent_tn on parent_tn.id = parent_t.taxon_name_id
+        JOIN `names` as parent_n on parent_n.id = parent_tn.name_id
+        JOIN identifiers as i on i.id = n.prescribed_id 
+        WHERE length(n.genus) > 0
+        AND parent_n.`name` != n.genus AND (parent_n.genus is null OR parent_n.genus != n.genus);";
+
+    run_sql_check(
+        "check_genus_name_part_matches_parent", // $name,
+        "Genus name part should match parent name.", //$title,
+        "No names were found it taxonomy that have the wrong genus part for their placement.", // $success,
+        "The genus part of a species (or other lower rank) should be appropriate for the taxon in which it is placed e.g. the genus. Found ## that don't match.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
+function check_species_name_part_matches_parent($downloads_dir){
+
+    $sql = "SELECT 
+        n.id as name_id, 
+        i.`value` as wfo,
+        n.name_alpha, 
+        n.species,
+        parent_n.name_alpha as parent_name, parent_n.species as parent_species_part
+        FROM `names` AS n 
+        JOIN taxon_names as tn on tn.name_id = n.id
+        JOIN taxa as t on t.taxon_name_id = tn.id
+        JOIN taxa as parent_t on parent_t.id = t.parent_id
+        JOIN taxon_names as parent_tn on parent_tn.id = parent_t.taxon_name_id
+        JOIN `names` as parent_n on parent_n.id = parent_tn.name_id
+        JOIN identifiers as i on i.id = n.prescribed_id 
+        WHERE length(n.species) > 0
+        AND parent_n.`name` != n.species AND (parent_n.species is null OR parent_n.species != n.species);";
+
+    run_sql_check(
+        "check_species_name_part_matches_parent", // $name,
+        "Species name part should match parent name.", //$title,
+        "No names were found it taxonomy that have the wrong species part for their placement.", // $success,
+        "The species part of a subspecies (or other lower rank) should be appropriate for the species in which it is placed. Found ## that don't match.", // $failure,
         $sql,
         $downloads_dir);
 
