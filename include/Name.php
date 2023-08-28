@@ -1447,7 +1447,7 @@ class Name extends WfoDbObject{
      * Get a list of the names that have been changed
      * in descending order
      */
-    public static function getRecentlyChanged($limit = 0, $offset = 30, $user_id = null){
+    public static function getRecentlyChanged($limit = 20, $offset = 0, $user_id = null){
 
         global $mysqli;
 
@@ -1483,7 +1483,7 @@ class Name extends WfoDbObject{
      * Get a list of most active users in a time period of x days
      * in descending order
      */
-    public static function getMostActiveUsers($limit = 0, $offset = 30, $days = null){
+    public static function getMostActiveUsers($limit = 20, $offset = 0, $days = null){
 
         global $mysqli;
 
