@@ -42,7 +42,7 @@ if(count($argv) > 1){
 function check_no_deprecated_in_classification($downloads_dir){
 
     $sql = "SELECT 
-        i.`value` as wfo_id, n.`name_alpha` as 'name', n.`authors`, n.`rank`, n.`status`
+        n.id as name_id, i.`value` as wfo_id, n.`name_alpha` as 'name', n.`authors`, n.`rank`, n.`status`
         FROM `names` as n
         JOIN taxon_names as tn on tn.name_id = n.id
         JOIN taxa AS t ON t.id = tn.taxon_id
@@ -65,7 +65,7 @@ function check_no_deprecated_in_classification($downloads_dir){
 */
 function check_names_of_taxa_correct_status($downloads_dir){
 
-    $sql = "SELECT i.`value` as wfo_id, n.name_alpha as 'name', n.`status`, n.`year`
+    $sql = "SELECT n.id as name_id, i.`value` as wfo_id, n.name_alpha as 'name', n.`status`, n.`year`
             FROM `names` as n
             JOIN taxon_names as tn on tn.name_id = n.id
             JOIN taxa AS t ON t.taxon_name_id = tn.id
@@ -90,6 +90,7 @@ function check_names_of_taxa_correct_status($downloads_dir){
 function check_basionyms_not_chained($downloads_dir){
 
     $sql = "SELECT
+        com_novs.id as name_id, 
         cni.`value` as 'com_nov_id',
         com_novs.name_alpha as com_novs_name, com_novs.authors as com_novs_authors,
         bi.`value` as basionym_id,
@@ -124,6 +125,7 @@ function check_basionyms_not_chained($downloads_dir){
 function check_homotypic_names_in_same_taxon($downloads_dir){
 
     $sql = "SELECT 
+        com_nov.id as name_id, 
         com_nov_i.`value` as com_nov_id,
         com_nov.name_alpha as com_nov_name,
         basionym_i.`value` as basionym_id,
@@ -169,9 +171,10 @@ function check_full_name_string_unique($downloads_dir){
 
 }
 
-
 /*
     Run a check that expects an empty result set on success.
+    It looks for a 'name_id' field in the results and if there is 
+    one it replaces it with phylum and family columns.
 */
 function run_sql_check($name, $title, $success, $failure, $sql, $downloads_dir){
 
@@ -185,6 +188,15 @@ function run_sql_check($name, $title, $success, $failure, $sql, $downloads_dir){
     $header = array();
     foreach ($response->fetch_fields() as $field) $header[] = $field->name;
 
+    // if we have a name_id column replace it with two new ones
+    $first_is_name_id = false;
+    if($header[0] == 'name_id'){
+        $first_is_name_id = true;
+        array_shift($header);
+        array_unshift($header, 'family');
+        array_unshift($header, 'phylum');
+    }
+
     // rows in the csv
     $rows = $response->fetch_all(MYSQLI_ASSOC);
     
@@ -192,7 +204,17 @@ function run_sql_check($name, $title, $success, $failure, $sql, $downloads_dir){
     $out_file_path = $downloads_dir . $name . '.csv';
     $out = fopen($out_file_path, 'w');
     fputcsv($out, $header);
-    foreach ($rows as $row) fputcsv($out, $row);
+    foreach ($rows as $row){
+
+        if($first_is_name_id){
+            $name_id = array_shift($row);
+            $higher_taxa = get_higher_taxa_for_name_id($name_id);
+            array_unshift($row, $higher_taxa['family']);
+            array_unshift($row, $higher_taxa['phylum']);
+        }
+
+        fputcsv($out, $row);
+    } 
     fclose($out);
 
     // output the json describing the test
@@ -211,5 +233,37 @@ function run_sql_check($name, $title, $success, $failure, $sql, $downloads_dir){
     $meta['size_human'] = DownloadFile::humanFileSize($meta['size_bytes']);
     file_put_contents($out_file_path . '.json', json_encode($meta, JSON_PRETTY_PRINT));
 
+
+}
+
+function get_higher_taxa_for_name_id($name_id){
+    
+    global $mysqli;
+
+    $out = array('family' => 'unplaced', 'phylum' => 'unplaced'); // set them to null incase we don't find them.
+
+    $sql = "WITH RECURSIVE parentage AS(
+		SELECT n.name_alpha, n.`rank`, t.parent_id as parent_id
+		FROM `names` as n 
+		JOIN taxon_names as tn on tn.name_id = n.id
+		JOIN taxa as t on t.taxon_name_id = tn.id
+        WHERE n.id = $name_id
+    UNION ALL
+		SELECT n.name_alpha, n.`rank`, t.parent_id as parent_id
+        FROM `names` as n 
+		JOIN taxon_names as tn on tn.name_id = n.id
+		JOIN taxa as t on t.taxon_name_id = tn.id
+        JOIN parentage as p on p.parent_id = t.id
+        WHERE t.parent_id is not null AND t.parent_id != t.id
+        )
+        SELECT * FROM parentage WHERE `rank` in ('family', 'phylum');";
+
+    $response = $mysqli->query($sql);
+    $rows = $response->fetch_all(MYSQLI_ASSOC);
+    foreach ($rows as $row) {
+        $out[$row['rank']] = $row['name_alpha'];
+    }
+
+    return $out;
 
 }
