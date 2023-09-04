@@ -443,10 +443,18 @@
                         $candidates_count = count($matches['candidates']);
                         echo "<p>Candidate count: $candidates_count</p>";
 
-                        if(@$_GET['auto_create'] && $duplicates_count == 0 && $homonyms_count == 0 && $candidates_count == 0){
+                        if(
+                            (@$_GET['auto_create'] && $duplicates_count == 0 && $homonyms_count == 0 && $candidates_count == 0)
+                            ||
+                            (@$_GET['auto_create'] && @$_GET['auto_create_dangerously'] && $duplicates_count == 0)
+                        ){
 
-                            echo "<p>No duplicates or homonyms and auto create is on so will try and auto create name.</p>";
-                                
+                            if(@$_GET['auto_create_dangerously']){
+                                echo "<p>No duplicates and auto create DANGEROUSLY is on so will try and auto create name.</p>";
+                            }else{
+                                echo "<p>No duplicates or homonyms and auto create is on so will try and auto create name.</p>";
+                            }
+       
                             // we need to have a good rank to create the name at
                             $proposed_rank = $row[$_GET['rank_col']];
                             $good_rank = Name::isRankWord($proposed_rank);
@@ -479,7 +487,19 @@
 
                                     // we can't find anything and we have auto_create on so we should just create a new name and be done with it.
                                     $canonical_name = implode(' ', $matches['name_parts']);
-                                    $update = Name::createName($canonical_name, true, true);
+
+                                    // if we are creating dangerously then we will have homonyms
+                                    // so we pass those to the create function to be allowed through
+                                    $homonym_wfo_ids = array();
+                                    if(@$_GET['auto_create_dangerously']){
+                                        $homonyms = array_merge($matches['homonyms'], $matches['candidates']);
+                                        foreach ($homonyms as $homo){
+                                            $homo_name = Name::getName($homo['id']);
+                                            $homonym_wfo_ids[] = $homo_name->getPrescribedWfoId();
+                                        } 
+                                    }
+                                    
+                                    $update = Name::createName($canonical_name, true, true, $homonym_wfo_ids);
 
                                     // if the  update has failed stop and display error results
                                     if(!$update->success || !isset($update->names[0])){
@@ -521,7 +541,7 @@
                                     exit;
                             }
 
-                        }else{
+                        }else{ // end auto creation of names
 
                             echo "<p>Unattended mode so nothing to do.</p>";
 
@@ -621,6 +641,7 @@
             <th style="text-align: right;" >Auto Create Names:</th>
                 <td style="text-align: center;">
                 <input type="checkbox" name="auto_create" value="true" />
+                <br/>
                 <select name="rank_col">
                     <option value ="">~ Rank Column ~</option>
 <?php
@@ -642,6 +663,17 @@
                     If the column contains a value that isn't a recognized rank the name will not be created.
                     <br/>
                     You could check the rank values are OK before running this using the facility under the Nomenclature tab then use the rhakhis_rank column as the source for the rank name here.
+                </td>
+            </tr>
+            <th style="text-align: right;"  >Auto Create Dangerously:</th>
+                <td style="text-align: center;">
+                <input type="checkbox" name="auto_create_dangerously" value="true" onchange="document.getElementById('auto_create_dangerously_text').style = this.checked ? 'color:red; background-color: yellow;' : 'color:black';" />
+                </td>
+                <td id="auto_create_dangerously_text" >
+                    Ticking this qualifies the automatic creation of names even if there are homonyms (same name parts) present. 
+                    It still won't permit creation of complete duplicates (same name part and author string).
+                    <br/>
+                    Use with extreme caution!
                 </td>
             </tr>
             <tr>
@@ -832,6 +864,7 @@ function get_name_parts($nameString){
 
     return $newNameParts;
 }
+
 
 ?>
 

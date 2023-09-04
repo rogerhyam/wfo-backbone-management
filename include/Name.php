@@ -1023,6 +1023,8 @@ class Name extends WfoDbObject{
      * If the name is a homonym you just include a list of homonyms WFO IDs to show
      * that you know they exist and are doing it anyway.
      * 
+     * @param $known_homonyms and array of wfo ids
+     * 
      */
     public static function createName($proposed_name, $create, $force_homonym, $known_homonyms = array()){
 
