@@ -4,9 +4,9 @@
 # BEFORE: Comment out the backup in the crontab or it will overlap with these scripts
 # AFTER: Uncomment the backup in the crontab so it can carry on every day.
 # AFTER: Import the solr file - delete it if there is a test one there.
-# curl -X POST -H 'Content-Type: application/json' 'http://localhost:8983/solr/wfo2/update' --data-binary '{"delete":{"query":"classification_id_s:2022-12"} }' --user wfo:****
-# curl -X POST -H 'Content-Type: application/json' 'http://localhost:8983/solr/wfo2/update' --data-binary '{"commit":{} }' --user wfo:****
-# curl -X POST -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo2/update?commit=true' --data-binary @plant_list_2022-12.json  --user wfo:****
+# curl -X POST -H 'Content-Type: application/json' 'http://localhost:8983/solr/wfo/update' --data-binary '{"delete":{"query":"classification_id_s:2022-12"} }' --user wfo:****
+# curl -X POST -H 'Content-Type: application/json' 'http://localhost:8983/solr/wfo/update' --data-binary '{"commit":{} }' --user wfo:****
+# curl -X POST -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo/update?commit=true' --data-binary @plant_list_2022-12.json  --user wfo:****
 
 echo "Backing Up"
 

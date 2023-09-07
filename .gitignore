@@ -16,3 +16,8 @@ data/.DS_Store
 data/Bryophytes_NOIDS_Roger.csv
 data/Bryophytes_NOIDS_Roger_OUT.csv
 data/.DS_Store
+data/.DS_Store
+data/sources/rods_final_matches.csv
+data/sources/rods_names_matched.csv
+.gitignore
+data/sources/rods_names_unmatched.csv
