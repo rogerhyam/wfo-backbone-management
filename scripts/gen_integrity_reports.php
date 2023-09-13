@@ -9,6 +9,8 @@
     This is a selection of scripts that check for integrity failures in the data
     and create CSV files reporting on them in the downloads folder.
 
+    FIXME: you shouldn't be able to have a type specimen and also a basionym.
+
 */
 
 require_once('../config.php');
