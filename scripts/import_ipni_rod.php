@@ -53,7 +53,7 @@ while(true){
         $display = $ref_row['citation_full'];
         echo "\n$uri";
 
-        if(!$ref_row['wfo_id']){
+        if(!$ref_row['wfo_id'] || !preg_match('/^wfo-[0-9]{10}$/', $ref_row['wfo_id'])){
             echo "\tNo WFO ID set.";
             continue;
         }

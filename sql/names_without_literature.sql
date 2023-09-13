@@ -23,5 +23,3 @@ group by `status`
 with rollup
 order by num desc
 
-
-

@@ -1251,7 +1251,8 @@ class Name extends WfoDbObject{
         $sql = "SELECT `reference_id`, `comment`, `placement_related` 
                 FROM `name_references` as tr
                 JOIN `references` as r on tr.reference_id = r.id
-                WHERE  `name_id` = {$this->getId()}";
+                WHERE  `name_id` = {$this->getId()}
+                ORDER BY FIELD(`kind`, 'literature','specimen','person','database'), display_text";
 
         if($kind) $sql .= " AND `kind` = '$kind'";
 
