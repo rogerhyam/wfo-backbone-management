@@ -32,6 +32,9 @@ define('ORCID_TOKEN_URI', 'https://orcid.org/oauth/token');
 // the login uri is constructed from variables above
 define('ORCID_LOG_IN_URI', 'https://orcid.org/oauth/authorize?client_id='. ORCID_CLIENT_ID .'&response_type=code&scope=/authenticate&redirect_uri=' . ORCID_REDIRECT_URI);
 
+// gbif web services (end in slash)
+define('GBIF_WEB_SERVICE_URI', 'https://api.gbif.org/v1/');
+
 // status flags
 define("WFO_INTEGRITY_OK", 1); // when the integrity of a name or taxon checks out
 define("WFO_INTEGRITY_FAIL", 2); // when the integrity of a name or taxon does not check out
