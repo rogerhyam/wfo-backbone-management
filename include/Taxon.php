@@ -20,7 +20,6 @@ class Taxon extends WfoDbObject{
     protected static $loaded = array();
 
 
-
     /**
      * Create an instance of a Taxon
      * Don't call this directly use the getTaxonForName or getById or getRootTaxon
