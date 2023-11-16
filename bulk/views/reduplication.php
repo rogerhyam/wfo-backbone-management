@@ -131,8 +131,6 @@ if(@$_POST['lazarus'] && $name){
 
 <?php 
     if(!$name){
-
-        echo '<h3>No name selected.</h3>';
         echo '<p>You can load a list of WFO IDs (one per line) to work through using the box below.</p>';
         echo '<form action="index.php?action=view&phase=duplicates&task=reduplication" method="POST" style="padding-left: 2em;">';
         echo '<textarea name="wfo_list" rows="30" cols="30" placeholder="Paste a list of WFO IDs here.">';
