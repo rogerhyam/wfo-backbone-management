@@ -105,7 +105,8 @@ function render_form($table){
     global $mysqli;
 ?>
 
-<p>This utility will run through the table and, for those rows that have been matched to a WFO ID, will add a local ID to Rhakhis thus making matching easier to do next time.</p>
+<p>This utility will run through the table and, for those rows that have been matched to a WFO ID, will add a local ID
+    to Rhakhis thus making matching easier to do next time.</p>
 <p>There are a restricted list of kinds of identifiers you can have. Basically either TEN or that of a nomenclator.</p>
 <form>
     <input type="hidden" name="action" value="view" />
@@ -119,7 +120,7 @@ function render_form($table){
             <th>Table&nbsp;Column</th>
             <td>
                 <select name="identifer_column">
-<?php
+                    <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
                     foreach($cols as $col){
@@ -128,7 +129,8 @@ function render_form($table){
 ?>
                 </select>
             </td>
-            <td>The column in the table that contains the 'local' (local to the data source that is) identifier for the name.</td>
+            <td>The column in the table that contains the 'local' (local to the data source that is) identifier for the
+                name.</td>
         </tr>
         <tr>
             <th>Identifier&nbsp;Kind</th>
@@ -147,9 +149,12 @@ function render_form($table){
             <td>
                 <input type="text" name="identifer_prefix" />
             </td>
-            <td>If the local identifier is making no attempt to be globally unique (e.g. it is just a integer) then you should add a prefix to restrict it to the TEN.
-                    Recommendation is to use the domain name of the supplier followed by a :. This assumes the supplier has a domain name associated with them.
-                    <strong>Obviously one has to keep a note of the prefix for future matching!</strong></td>
+            <td>If the local identifier is making no attempt to be globally unique (e.g. it is just a integer) then you
+                should add a prefix to restrict it to the TEN.
+                Recommendation is to use something like "ten:example.org:family_name:local_identier";
+                This assumes the supplier has a domain name associated with them.
+                <strong>Obviously one has to keep a note of the prefix for future matching!</strong>
+            </td>
         </tr>
         <tr>
             <th>Move&nbsp;existing&nbsp;IDs</th>
@@ -157,19 +162,17 @@ function render_form($table){
                 <input type="checkbox" name="move_existing" value="true" />
             </td>
             <td>Uniqueness of the identifier:kind combination is enforced.
-                We can't have the same identifier associated with multiple names. 
-                If this option is checked then if an id is bound to a different name it will be moved to the name in the input table.
+                We can't have the same identifier associated with multiple names.
+                If this option is checked then if an id is bound to a different name it will be moved to the name in the
+                input table.
                 If this option is not checked then the script will stop if it come across an ID in use for another name.
             </td>
         </tr>
         <tr>
-                <td colspan="3" style="text-align: right;"><input type="submit" value="Start Linking Run"/></td>
+            <td colspan="3" style="text-align: right;"><input type="submit" value="Start Linking Run" /></td>
         </tr>
     </table>
 
 </form>
 <?php
 } // end render_form();
-
-
-
