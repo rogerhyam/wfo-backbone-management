@@ -1,4 +1,3 @@
-
 <?php 
 require_once("../config.php");
 require_once("../include/User.php");
@@ -45,7 +44,7 @@ function get_rhakhis_uri($wfo){
 
         // on the sandbox
         case 'rhakhis.rbge.info':
-            $uri = 'https://rhakhis.rbge.info/#' . $wfo;
+            $uri = 'https://rhakhis.rbge.info/rhakhis/ui/index.html#' . $wfo;
             break;
     
         // live
