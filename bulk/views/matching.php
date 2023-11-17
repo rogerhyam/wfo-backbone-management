@@ -538,7 +538,7 @@
                             }else{
                                     print_r($matches['name_parts']);
                                     echo "<p>Can't create name because of unrecognized rank value: \"$proposed_rank\"</p>";
-                                    exit;
+                                    //exit;
                             }
 
                         }else{ // end auto creation of names
@@ -569,118 +569,123 @@
     function render_options_form($table) {
         global $mysqli;
 ?>
-    <h3>Options</h3>
-    <form action="index.php" method="GET">
-        <input type="hidden" name="action" value="view" /> 
-        <input type="hidden" name="phase" value="matching" /> 
-        <input type="hidden" name="active_run" value="true" />
-        <input type="hidden" name="page" value="0" />
-        <input type="hidden" name="page_size" value="1000" />
+<h3>Options</h3>
+<form action="index.php" method="GET">
+    <input type="hidden" name="action" value="view" />
+    <input type="hidden" name="phase" value="matching" />
+    <input type="hidden" name="active_run" value="true" />
+    <input type="hidden" name="page" value="0" />
+    <input type="hidden" name="page_size" value="1000" />
     <table>
         <tr>
             <th style="text-align: right;">Scientific Name Column:</th>
-                <td>
+            <td>
                 <select name="name_col">
                     <option value="~">~ Local ID Only ~</option>
                     <?php  render_column_options($table, null); ?>
                 </select>
-                </td>
-                <td>This must be set.</td>
-            </tr>
-            <tr>
+            </td>
+            <td>This must be set.</td>
+        </tr>
+        <tr>
             <th style="text-align: right;">Authors Column:</th>
-                <td>
+            <td>
                 <select name="authors_col">
                     <option value="">~ Pick One ~</option>
                     <?php  render_column_options($table, null) ?>
                 </select>
-                </td>
-                <td>This is optional but highly desireable.</td>
-            </tr>
-            <tr>
+            </td>
+            <td>This is optional but highly desireable.</td>
+        </tr>
+        <tr>
             <th style="text-align: right;">Local ID Column:</th>
-                <td>
+            <td>
                 <select name="name_id_col">
                     <option value="">~ Pick One ~</option>
                     <?php  render_column_options($table, null) ?>
                 </select>
-                </td>
-                <td>This is only used if we know the dataset has been previously matched and the TEN IDs added.</td>
-            </tr>
-            <tr>
+            </td>
+            <td>This is only used if we know the dataset has been previously matched and the TEN IDs added.</td>
+        </tr>
+        <tr>
             <th style="text-align: right;">Local ID Kind:</th>
-                <td>
+            <td>
                 <select name="name_id_type">
                     <option value="">~ Pick One ~</option>
                     <?php  render_id_type_options(null) ?>
                 </select>
-                </td>
-                <td>This must be set if the Local ID Column is set.</td>
-            </tr>
-            <tr>
-            <tr>
+            </td>
+            <td>This must be set if the Local ID Column is set.</td>
+        </tr>
+        <tr>
+        <tr>
             <th style="text-align: right;">Local ID Prefix:</th>
-                <td>
+            <td>
                 <input name="name_id_prefix" value="" />
-                </td>
-                <td>This is added to the front of the value in the local ID column to get the id that is stored in Rhakhis (see linking for explanation).</td>
-            </tr>
-            <tr>
+            </td>
+            <td>This is added to the front of the value in the local ID column to get the id that is stored in Rhakhis
+                (see linking for explanation).</td>
+        </tr>
+        <tr>
             <th style="text-align: right;">Homonyms OK:</th>
-                <td style="text-align: center;">
+            <td style="text-align: center;">
                 <input type="checkbox" name="homonyms_ok" value="true" />
-                </td>
-                <td>Check to signify a lax approach to life.</td>
-            </tr>
-            <th style="text-align: right;" >Interactive Mode:</th>
-                <td style="text-align: center;">
-                <input type="checkbox" name="interactive_mode" value="true" />
-                </td>
-                <td>Check to get asked your opinion on all the ambiguous/unresolved names.</td>
-            </tr>
-            <th style="text-align: right;" >Auto Create Names:</th>
-                <td style="text-align: center;">
-                <input type="checkbox" name="auto_create" value="true" />
-                <br/>
-                <select name="rank_col">
-                    <option value ="">~ Rank Column ~</option>
-<?php
+            </td>
+            <td>Check to signify a lax approach to life.</td>
+        </tr>
+        <th style="text-align: right;">Interactive Mode:</th>
+        <td style="text-align: center;">
+            <input type="checkbox" name="interactive_mode" value="true" />
+        </td>
+        <td>Check to get asked your opinion on all the ambiguous/unresolved names.</td>
+        </tr>
+        <th style="text-align: right;">Auto Create Names:</th>
+        <td style="text-align: center;">
+            <input type="checkbox" name="auto_create" value="true" />
+            <br />
+            <select name="rank_col">
+                <option value="">~ Rank Column ~</option>
+                <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
                     foreach($cols as $col){
                         echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
                     }
 ?>
-                </select>
-                </td>
-                <td>
-                    This will create new names for names that don't have duplicates or homonyms.
-                    <br/>
-                    It only works if you are not in interactive mode and homonyms OK is off - they are not OK when creating new names.
-                    <br/>
-                    You need to specify which column contains the rank for name creation. The name that is created will be minimal with name parts, authors and rank.
-                    <br/>
-                    If the column contains a value that isn't a recognized rank the name will not be created.
-                    <br/>
-                    You could check the rank values are OK before running this using the facility under the Nomenclature tab then use the rhakhis_rank column as the source for the rank name here.
-                </td>
-            </tr>
-            <th style="text-align: right;"  >Auto Create Dangerously:</th>
-                <td style="text-align: center;">
-                <input type="checkbox" name="auto_create_dangerously" value="true" onchange="document.getElementById('auto_create_dangerously_text').style = this.checked ? 'color:red; background-color: yellow;' : 'color:black';" />
-                </td>
-                <td id="auto_create_dangerously_text" >
-                    Ticking this qualifies the automatic creation of names even if there are homonyms (same name parts) present. 
-                    It still won't permit creation of complete duplicates (same name part and author string).
-                    <br/>
-                    Use with extreme caution!
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="text-align: right;"><input type="submit" value="Start Matching Run"/></td>
-            </tr>
-        </table>
-    </form>
+            </select>
+        </td>
+        <td>
+            This will create new names for names that don't have duplicates or homonyms.
+            <br />
+            It only works if you are not in interactive mode and homonyms OK is off - they are not OK when creating new
+            names.
+            <br />
+            You need to specify which column contains the rank for name creation. The name that is created will be
+            minimal with name parts, authors and rank.
+            <br />
+            If the column contains a value that isn't a recognized rank the name will not be created.
+            <br />
+            You could check the rank values are OK before running this using the facility under the Nomenclature tab
+            then use the rhakhis_rank column as the source for the rank name here.
+        </td>
+        </tr>
+        <th style="text-align: right;">Auto Create Dangerously:</th>
+        <td style="text-align: center;">
+            <input type="checkbox" name="auto_create_dangerously" value="true"
+                onchange="document.getElementById('auto_create_dangerously_text').style = this.checked ? 'color:red; background-color: yellow;' : 'color:black';" />
+        </td>
+        <td id="auto_create_dangerously_text">
+            Ticking this qualifies the automatic creation of names even if there are homonyms (same name parts) present.
+            It still won't permit creation of complete duplicates (same name part and author string).
+            <br />
+            Use with extreme caution!
+        </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: right;"><input type="submit" value="Start Matching Run" /></td>
+        </tr>
+    </table>
+</form>
 <?php
 }
 
@@ -688,22 +693,30 @@ function render_algorithm_description(){
 
 ?>
 
-<hr/>
+<hr />
 <h3>That Magic Matching Algorithm</h3>
 <ol>
-    <li>Scientific name is normalized to the canonical form. i.e. any rank or rank abbreviation is removed to leave only one, two or three words separated by single spaces.</li>
-    <li>All names matching the canonical form and also the authors string are selected. If there are duplicates any deprecated names are removed - provided they aren't all deprecated. The remains are the "duplicates".</li>
-    <li>All names matching the canonical form alone are selected (ignoring the authors string). Deprecated homonyms are removed. These are homonyms.</li>
-    <li>If there is only one "duplicate" and no homonyms it is considered an unambiguous match and the WFO ID is written to the table.</li>
+    <li>Scientific name is normalized to the canonical form. i.e. any rank or rank abbreviation is removed to leave only
+        one, two or three words separated by single spaces.</li>
+    <li>All names matching the canonical form and also the authors string are selected. If there are duplicates any
+        deprecated names are removed - provided they aren't all deprecated. The remains are the "duplicates".</li>
+    <li>All names matching the canonical form alone are selected (ignoring the authors string). Deprecated homonyms are
+        removed. These are homonyms.</li>
+    <li>If there is only one "duplicate" and no homonyms it is considered an unambiguous match and the WFO ID is written
+        to the table.</li>
     <li>If there are either multiple duplicates and/or homonyms then it depends on the homonym flag setting:
         <ol>
             <li>Homonyms OK:
                 <ol>
-                    <li>If there is only one duplicate the homonyms (different authors) are ignored and the WFO ID written to the table.</li>
+                    <li>If there is only one duplicate the homonyms (different authors) are ignored and the WFO ID
+                        written to the table.</li>
                     <li>If there are multiple duplicates then:
                         <ol>
                             <li>Any homonyms are ignored.</li>
-                            <li>One of the duplicates is selected based on ranking the names by nomenclatural status. valid > other > unknown > deprecated. If this still doesn't find an unambiguous match (e.g. there are two valid names) then no match is found. Otherwise WFO ID of pick is written to the table.</li>
+                            <li>One of the duplicates is selected based on ranking the names by nomenclatural status.
+                                valid > other > unknown > deprecated. If this still doesn't find an unambiguous match
+                                (e.g. there are two valid names) then no match is found. Otherwise WFO ID of pick is
+                                written to the table.</li>
                         </ol>
                 </ol>
             </li>
@@ -711,14 +724,19 @@ function render_algorithm_description(){
         </ol>
     </li>
     <li>In <strong>Unattended Mode</strong> any unresolved ambiguity is ignored and the next name processed.</li>
-    <li>If no ambiguity is discovered in Unattended Mode and <strong>Auto Create Mode</strong> is selected then new names will be created - provided there are no duplicates or homonyms.</li>
-    <li>If there are duplicates or homonyms then new names must be created through the Rhakhis UI not the bulk loader.</li>
-    <li>In <strong>Interactive Mode:</strong> any unresolved ambiguity leads to the presentation of a choice screen.</li>
-    <li>In interactive mode a list of suggestions may be supplied if no matches are found. This is based on a simple word stemming approach.</li>
-    <li>If the scientific name column is set to "~ Local ID Only ~" then only the local ID fields are used to match and only match if they are unambiguous. All other fields are ignored.</li>
-    
+    <li>If no ambiguity is discovered in Unattended Mode and <strong>Auto Create Mode</strong> is selected then new
+        names will be created - provided there are no duplicates or homonyms.</li>
+    <li>If there are duplicates or homonyms then new names must be created through the Rhakhis UI not the bulk loader.
+    </li>
+    <li>In <strong>Interactive Mode:</strong> any unresolved ambiguity leads to the presentation of a choice screen.
+    </li>
+    <li>In interactive mode a list of suggestions may be supplied if no matches are found. This is based on a simple
+        word stemming approach.</li>
+    <li>If the scientific name column is set to "~ Local ID Only ~" then only the local ID fields are used to match and
+        only match if they are unambiguous. All other fields are ignored.</li>
+
 </ol>
-<hr/>
+<hr />
 
 <?php
 
@@ -867,4 +885,3 @@ function get_name_parts($nameString){
 
 
 ?>
-
