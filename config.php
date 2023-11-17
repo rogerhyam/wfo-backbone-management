@@ -194,14 +194,14 @@ $ranks_table = array(
   ),
 
   "species" => array(
-    "children" => array("subspecies", "variety", "form", "prole"), // permissible ranks for child taxa
+    "children" => array("subspecies", "variety", "form", "prole", "lusus"), // permissible ranks for child taxa
     "abbreviation" => "sp.", // official abbreviation
     "plural" => "Species",
     "aka" => array("nothospecies", "spec.") // alternative representations for import
   ),
 
   "subspecies" => array(
-    "children" => array("variety", "form", "prole"), // permissible ranks for child taxa
+    "children" => array("variety", "form", "prole", "lusus"), // permissible ranks for child taxa
     "abbreviation" => "subsp.", // official abbreviation
     "plural" => "Subspecies",
     "aka" => array("nothosubspecies", "nothosubsp.", "subsp.", "subsp", "ssp", "ssp.", "subspec.") // alternative representations for import
@@ -215,7 +215,7 @@ $ranks_table = array(
   ),
 
   "variety" => array(
-    "children" => array("subvariety", "form", "prole"), // permissible ranks for child taxa
+    "children" => array("subvariety", "form", "prole", "lusus"), // permissible ranks for child taxa
     "abbreviation" => "var.", // official abbreviation
     "plural" => "Varieties",
     "aka" => array("nothovar.", "var.", "var") // alternative representations for import
@@ -242,6 +242,13 @@ $ranks_table = array(
     "aka" => array("subforma") // alternative representations for import
   ),
 
+  "lusus" => array(
+    "children" => array(), // permissible ranks for child taxa
+    "abbreviation" => "lus.", // official abbreviation
+    "plural" => "Lusus",
+    "aka" => array("lus", "lusus naturae") // alternative representations for import
+  ),
+
   "unranked" => array(
     "children" => array(), // permissible ranks for child taxa = none
     "abbreviation" => "unr.", // official abbreviation
@@ -250,5 +257,3 @@ $ranks_table = array(
   )
 
 );
-
-
