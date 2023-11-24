@@ -80,7 +80,7 @@ $sql .= ",\n\tINDEX `basionym` USING BTREE (`rhakhis_basionym`)";
 
 $sql .= "\n)";
 
-$sql .= "\n DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+$sql .= "\n DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
 
 // echo $sql;
 

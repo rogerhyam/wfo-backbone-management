@@ -25,8 +25,8 @@ DROP TABLE IF EXISTS `identifiers`;
 CREATE TABLE `identifiers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name_id` int DEFAULT NULL COMMENT 'The name this is associated with. This can be null but only because we get into a loop if we can’t create a the name before the id or id before the name.',
-  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `kind` enum('ipni','tpl','wfo','if','ten','tropicos','uri','uri_deprecated') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `kind` enum('ipni','tpl','wfo','if','ten','tropicos','uri','uri_deprecated') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -34,7 +34,7 @@ CREATE TABLE `identifiers` (
   KEY `value` (`value`) USING BTREE,
   KEY `kind` (`kind`) USING BTREE,
   CONSTRAINT `name_id` FOREIGN KEY (`name_id`) REFERENCES `names` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,14 +47,14 @@ DROP TABLE IF EXISTS `matching_hints`;
 CREATE TABLE `matching_hints` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name_id` int DEFAULT NULL,
-  `hint` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `hint` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `name_id_idx` (`name_id`),
   KEY `hint` (`hint`) USING BTREE,
   CONSTRAINT `hints_name_id` FOREIGN KEY (`name_id`) REFERENCES `names` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,24 +67,24 @@ DROP TABLE IF EXISTS `names`;
 CREATE TABLE `names` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT 'Primary key for internal use.',
   `prescribed_id` int NOT NULL COMMENT 'The preferred WFO ID for this name. The name may have other IDs (WFO and otherwise) but these are stored in the other_ids table. ',
-  `rank` enum('code','kingdom','phylum','class','subclass','superorder','order','suborder','family','subfamily','supertribe','tribe','subtribe','genus','subgenus','section','subsection','series','subseries','species','subspecies','prole','variety','subvariety','form','subform') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `genus` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `species` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name_alpha` varchar(100) COLLATE utf8mb4_general_ci GENERATED ALWAYS AS (trim(concat_ws(_utf8mb4' ',if((length(`genus`) = 0),NULL,`genus`),if((length(`species`) = 0),NULL,`species`),if((length(`name`) = 0),NULL,`name`)))) STORED,
-  `authors` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rank` enum('code','kingdom','phylum','class','subclass','superorder','order','suborder','family','subfamily','supertribe','tribe','subtribe','genus','subgenus','section','subsection','series','subseries','species','subspecies','prole','variety','subvariety','form','subform') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `genus` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `species` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name_alpha` varchar(100) COLLATE utf8mb4_0900_ai_ci GENERATED ALWAYS AS (trim(concat_ws(_utf8mb4' ',if((length(`genus`) = 0),NULL,`genus`),if((length(`species`) = 0),NULL,`species`),if((length(`name`) = 0),NULL,`name`)))) STORED,
+  `authors` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `year` int DEFAULT NULL COMMENT 'Year of publication\n',
-  `status` enum('unknown','invalid','valid','illegitimate','superfluous','conserved','rejected','sanctioned','deprecated') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `citation_micro` varchar(800) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `citation_full` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `citation_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `publication_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` enum('unknown','invalid','valid','illegitimate','superfluous','conserved','rejected','sanctioned','deprecated') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `citation_micro` varchar(800) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `citation_full` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `citation_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `publication_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `basionym_id` int DEFAULT NULL,
-  `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `change_log` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `change_log` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `user_id` int NOT NULL,
-  `source` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `source` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this record was created',
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'When this record was last modified\\\\\\\\n',
   PRIMARY KEY (`id`),
@@ -99,7 +99,7 @@ CREATE TABLE `names` (
   CONSTRAINT `basionym_link` FOREIGN KEY (`basionym_id`) REFERENCES `names` (`id`),
   CONSTRAINT `names_editor` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `prescribed_id` FOREIGN KEY (`prescribed_id`) REFERENCES `identifiers` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,28 +112,28 @@ DROP TABLE IF EXISTS `names_log`;
 CREATE TABLE `names_log` (
   `id` int NOT NULL COMMENT 'Primary key for internal use.',
   `prescribed_id` int NOT NULL COMMENT 'The preferred WFO ID for this name. The name may have other IDs (WFO and otherwise) but these are stored in the other_ids table. ',
-  `rank` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `genus` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `species` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name_alpha` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `authors` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rank` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `genus` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `species` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name_alpha` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `authors` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `year` int DEFAULT NULL COMMENT 'Year of publication\n',
-  `status` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `citation_micro` varchar(800) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `citation_full` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `citation_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `publication_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `citation_micro` varchar(800) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `citation_full` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `citation_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `publication_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `basionym_id` int DEFAULT NULL,
-  `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `change_log` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `change_log` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `user_id` int NOT NULL,
-  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `created` timestamp NULL DEFAULT NULL COMMENT 'When this record was created',
   `modified` timestamp NULL DEFAULT NULL COMMENT 'When this record was last modified',
   KEY `id` (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -145,15 +145,15 @@ DROP TABLE IF EXISTS `stats_genera`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stats_genera` (
   `name_id` int NOT NULL,
-  `wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `role` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `phylum` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `phylum_wfo` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `family` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `family_wfo` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `order` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `order_wfo` varchar(15) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name` varchar(45) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `role` varchar(45) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `phylum` varchar(45) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `phylum_wfo` varchar(15) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `family` varchar(45) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `family_wfo` varchar(15) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `order` varchar(45) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `order_wfo` varchar(15) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `taxa` int DEFAULT NULL,
   `taxa_with_editors` int DEFAULT NULL,
   `species` int DEFAULT NULL,
@@ -170,7 +170,7 @@ CREATE TABLE `stats_genera` (
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`name_id`),
   KEY `name_id` (`name_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -182,15 +182,15 @@ DROP TABLE IF EXISTS `stats_genera_log`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stats_genera_log` (
   `name_id` int NOT NULL,
-  `wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `role` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `phylum` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `phylum_wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `family` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `family_wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `order` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `order_wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `role` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `phylum` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `phylum_wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `family` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `family_wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `order` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `order_wfo` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `taxa` int DEFAULT NULL,
   `taxa_with_editors` int DEFAULT NULL,
   `species` int DEFAULT NULL,
@@ -205,7 +205,7 @@ CREATE TABLE `stats_genera_log` (
   `unplaced_subspecies` int DEFAULT NULL,
   `unplaced_variety` int DEFAULT NULL,
   `modified` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -220,18 +220,18 @@ CREATE TABLE `taxa` (
   `parent_id` int DEFAULT NULL,
   `taxon_name_id` int DEFAULT NULL COMMENT 'The id of the name of this taxon. Note it has a unique index. Only one taxon per name.',
   `is_hybrid` tinyint(1) DEFAULT '0',
-  `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `comment` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `issue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `user_id` int NOT NULL,
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'When this record was last modified\\n',
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When this record was created',
-  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_id_UNIQUE` (`taxon_name_id`),
   KEY `editor_idx` (`user_id`),
   KEY `parentage_idx` (`parent_id`),
   CONSTRAINT `editor` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -252,7 +252,7 @@ CREATE TABLE `taxon_names` (
   KEY `taxon_id_idx` (`taxon_id`),
   CONSTRAINT `taxon_id` FOREIGN KEY (`taxon_id`) REFERENCES `taxa` (`id`),
   CONSTRAINT `taxon_name_id` FOREIGN KEY (`name_id`) REFERENCES `names` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -264,21 +264,21 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `uri` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `role` enum('anonymous','nobody','editor','god') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `wfo_access_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `orcid_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `orcid_access_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `orcid_refresh_token` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `uri` varchar(100) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `role` enum('anonymous','nobody','editor','god') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `wfo_access_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `orcid_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `orcid_access_token` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `orcid_refresh_token` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `orcid_expires_in` int DEFAULT NULL,
-  `orcid_raw` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `orcid_raw` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_unique` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -295,7 +295,7 @@ CREATE TABLE `users_taxa` (
   KEY `user_fk_idx` (`user_id`),
   CONSTRAINT `taxon_fk` FOREIGN KEY (`taxon_id`) REFERENCES `taxa` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -306,12 +306,12 @@ DROP TABLE IF EXISTS `wfo_mint`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `wfo_mint` (
-  `rank` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `rank` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `next_id` bigint DEFAULT NULL,
   `max_id` bigint DEFAULT NULL,
   `start_id` bigint DEFAULT NULL,
   PRIMARY KEY (`rank`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

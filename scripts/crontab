@@ -1,10 +1,10 @@
-# backing up the about pages and list
-22 03 * * * cd ~/backup && ./backup.sh > /dev/null 2>&1
-
-# Rhakhis jobs
+# 
+# For more information see the manual pages of crontab(5) and cron(8)
+# 
+# m h  dom mon dow   command
 
 # backup live database
-12 01 * * * cd /var/wfo-list/rhakhis/api/scripts && ./db_backup_live.sh  > /dev/null 2>&1
+12 01 * * * cd /var/wfo-list/rhakhis/api/scripts && ./db_backup_live.sh && cd /var/wfo-list && ./rhakhis_db_sync_to_staging.sh > /dev/null 2>&1
 
 # copy the last update of the code to the backup dir - so it can be picked up by the sandbox server
 32 01 * * * cd /var/wfo-list && ./update_sandbox.sh > /dev/null 2>&1
@@ -18,6 +18,7 @@
 32 04 * * * cd /var/wfo-list/rhakhis/api/scripts &&php -d memory_limit=5G gen_name_match_big_file.php > /dev/null 2>&1
 56 * * * * cd /var/wfo-list/rhakhis/api/scripts && php -d memory_limit=2048M gen_family_dwc_file.php > /dev/null 2>&1
 06 * * * * cd /var/wfo-list/rhakhis/api/scripts && php -d memory_limit=2048M gen_family_html_file.php > /dev/null 2>&1
+52 08 * * 6 cd /var/wfo-list/rhakhis/api/scripts && php gen_integrity_reports.php > /dev/null 2>&1
 
 # The stats run every hour but only process 1000 genera. It will only update rows over 2 days old.
 22 * * * * cd /var/wfo-list/rhakhis/api/scripts && php -d memory_limit=1024M  gen_genus_stats.php '2 DAY' > /dev/null 2>&1
@@ -25,8 +26,11 @@
 # Stats download files are generated every two days
 10 1 */2 * * cd /var/wfo-list/rhakhis/api/scripts && php gen_stats_files.php > /dev/null 2>&1
 
-# we scrap gbif every hour
+# we scrape gbif every hour
 15 * * * * cd /var/wfo-list/rhakhis/api/scripts && php gen_gbif_count.php > /dev/null 2>&1
 
 # get the kew data each day
 40 03 * * * cd /var/wfo-list/kew_sync/scripts && php daily_sync.php > /dev/null 2>&1
+
+# check for new DOIs in IPNI on the middle of each month
+40 07 15 * * cd /var/wfo-list/kew_sync/scripts && php import_ipni_doi_periodic.php 100 > /dev/null 2>&1
