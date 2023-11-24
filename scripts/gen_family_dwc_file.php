@@ -317,6 +317,9 @@ function process_family($family_wfo, $file_path){
             
             // now fields that only taxa == accepted names
             if($taxon){
+
+                // scientificName is changed as it may include hybrid flags
+                $row["scientificName"] = trim(strip_tags($taxon->getFullNameString(false,false)));
                 
                 // parentNameUsageID = For accepted names of taxa only the parent taxon wfo_ID
                 $row["parentNameUsageID"] = $taxon->getParent()->getAcceptedName()->getPrescribedWfoId();
@@ -783,4 +786,3 @@ function convert($size){
     $unit=array('b','kb','mb','gb','tb','pb');
     return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
 }
-

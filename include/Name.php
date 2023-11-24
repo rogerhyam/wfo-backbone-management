@@ -368,6 +368,9 @@ class Name extends WfoDbObject{
 
         $out .= "</span>";
 
+        // we sometimes end up with double spaces = bad
+        $out = preg_replace('/  /', ' ', $out);
+
         return $out;
 
     }

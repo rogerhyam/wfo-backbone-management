@@ -278,6 +278,8 @@ class Taxon extends WfoDbObject{
         }
         $fns = str_replace('<span class="wfo-name-rank">', $additions  . ' <span class="wfo-name-rank">', $fns);
 
+        // we sometimes end up with double spaces = bad
+        $fns = preg_replace('/  /', ' ', $fns);
 
         return $fns;
 
