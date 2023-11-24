@@ -125,7 +125,7 @@ function process_family($family_wfo, $file_path){
             $link_index[$taxon->getAcceptedName()->getPrescribedWfoId()] = $taxon;
 
             // find the associated unplaced names
-            $finder = new UnplacedFinder($taxon->getAcceptedName()->getId(), 0, 1000000, true);
+            $finder = new UnplacedFinder($taxon->getAcceptedName()->getId(), 0, 1000000, false); // don't include deprecated.
             $unplaced_names = array_merge($unplaced_names, $finder->unplacedNames);
         }
 
@@ -136,7 +136,7 @@ function process_family($family_wfo, $file_path){
             $link_index[$name->getPrescribedWfoId()] = $name;
 
             // find associated unplaced names
-            $finder = new UnplacedFinder($name->getId(), 0, 1000000, true);
+            $finder = new UnplacedFinder($name->getId(), 0, 1000000, false); // no deprecated
             $unplaced_names = array_merge($unplaced_names, $finder->unplacedNames);
         }
 
