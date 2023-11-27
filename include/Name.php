@@ -942,6 +942,9 @@ class Name extends WfoDbObject{
             $sql .=  " AND (length(`species`) = 0 || `species` IS NULL)";
         }
 
+        // 2023-11-27 - restrict to same rank
+        $sql .=  " AND `rank` = '{$this->getRank()}'";
+ 
         $result = $mysqli->query($sql);
         while($row = $result->fetch_assoc()){
             $homonyms[] = Name::getName($row['id']);
