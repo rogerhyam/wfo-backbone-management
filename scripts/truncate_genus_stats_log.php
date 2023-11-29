@@ -13,12 +13,12 @@ ADD INDEX `modified` USING BTREE (`modified`) VISIBLE;
 */
 
 
-echo "\nSummarizing genus stats older than 6 months.\n";
+echo "\nSummarizing genus stats older than 1 month.\n";
 
 // get all the names that have more than one row in a month over 6 months old
 $sql = "SELECT name_id, extract(YEAR_MONTH FROM modified) as ym, count(*) as n
 FROM stats_genera_log 
-where `modified` < now() - INTERVAL 6 MONTH 
+where `modified` < now() - INTERVAL 1 MONTH 
 group by name_id, extract(YEAR_MONTH FROM modified)
 having n > 1
 order by n desc";
@@ -34,7 +34,7 @@ echo " found. \n";
 foreach($candidates as $c){
 
     // fetch all the rows for this one
-    $sql = "SELECT * FROM stats_genera_log WHERE name_id = {$c['name_id']} AND extract(YEAR_MONTH FROM modified) = '{$c['ym']}' AND `modified` < now() - INTERVAL 6 MONTH ORDER BY `modified`;";
+    $sql = "SELECT * FROM stats_genera_log WHERE name_id = {$c['name_id']} AND extract(YEAR_MONTH FROM modified) = '{$c['ym']}' AND `modified` < now() - INTERVAL 1 MONTH ORDER BY `modified`;";
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);
     $response->close();
@@ -131,7 +131,7 @@ foreach($candidates as $c){
     $summary['order'] = $mysqli->real_escape_string($row['order']);
 
     // delete the existing rows
-    $sql = "DELETE FROM stats_genera_log WHERE name_id = {$c['name_id']} AND extract(YEAR_MONTH FROM modified) = '{$c['ym']}' AND `modified` < now() - INTERVAL 6 MONTH ORDER BY `modified`;";
+    $sql = "DELETE FROM stats_genera_log WHERE name_id = {$c['name_id']} AND extract(YEAR_MONTH FROM modified) = '{$c['ym']}' AND `modified` < now() - INTERVAL 1 MONTH ORDER BY `modified`;";
     echo "Rows affected: " . $mysqli->affected_rows . "\n";
     //echo $sql . "\n";
     $mysqli->query($sql);
