@@ -1,9 +1,4 @@
 <?php
-    $table = @$_SESSION['selected_table'];
-    if(!$table){
-        echo '<p style="color: red;">You need to select a table before you can do anything here.</p>';
-        exit();
-    } 
     /*
 
     Validity check.
@@ -15,10 +10,13 @@
             store the root ids in the session.
     */
 
+    echo '<div>';
+    echo '<strong>Taxonomy: </strong>';
 
+    $table = @$_SESSION['selected_table'];
+    if($table){
 ?>
-<div>
-<strong>Taxonomy: </strong>
+
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_summary">Summary</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_internal">Mapping</a>
@@ -34,10 +32,22 @@
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_basionyms">Basionyms</a>
 |
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_prescribed">Prescribed IDs</a>
-</div>
-<hr/>
+|
 <?php
-    $task =  @$_GET['task'];
-    if(!$task) $task = 'taxonomy_summary';
-    require_once('../bulk/views/'. $task . ".php");
+    } // if table
+?>
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_unplace">Unplace</a>
+</div>
+<hr />
+<?php
+    $table = @$_SESSION['selected_table'];
+    if(!$table){
+        echo '<p style="color: red;">You need to select a table before you can do much more here.</p>';
+    }else{
+        $task =  @$_GET['task'];
+        if(!$task) $task = 'taxonomy_summary';
+        require_once('../bulk/views/'. $task . ".php");
+    }
+
+
 ?>

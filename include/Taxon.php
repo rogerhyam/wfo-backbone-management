@@ -1486,6 +1486,9 @@ class Taxon extends WfoDbObject{
 
         $this->synonyms = array();
 
+        // no synonyms if we don't have an id yet
+        if(!$this->getId()) return $this->synonyms;
+
         $sql = "SELECT name_id FROM taxon_names WHERE taxon_id = {$this->getId()}";
 
         // if we aren't root we exclude ourselves
