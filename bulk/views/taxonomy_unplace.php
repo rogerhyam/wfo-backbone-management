@@ -26,10 +26,10 @@
             try{
                 $placer = new NamePlacer($wfo, 'remove');
                 $placer->updatePlacement(null);
-                echo "<p><strong>$wfo</strong>: Unplaced</p>";
+                echo "<p><a target=\"rhakhis\" href=\"" . get_rhakhis_uri($wfo) ."\">$wfo</a>: Unplaced</p>";
                 unset($list[array_search($wfo, $list)]);
             }catch(Exception $e){
-                echo "<p><strong>$wfo</strong>: ". $e->getMessage() . "</p>";
+                echo "<p><a target=\"rhakhis\" href=\"" . get_rhakhis_uri($wfo) ."\">$wfo</a>: ". $e->getMessage() . "</p>";
                 $name = Name::getName($wfo);
                 $taxon = Taxon::getTaxonForName($name);
                 echo "<p style=\"margin-left: 2em;\">" . $name->getFullNameString() . "</p>";
