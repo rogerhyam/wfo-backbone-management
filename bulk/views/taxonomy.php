@@ -41,7 +41,8 @@
 <hr />
 <?php
     $table = @$_SESSION['selected_table'];
-    if(!$table){
+    $task =  @$_GET['task'];
+    if(!$table && $task != 'taxonomy_unplace'){
         echo '<p style="color: red;">You need to select a table before you can do much more here.</p>';
     }else{
         $task =  @$_GET['task'];
