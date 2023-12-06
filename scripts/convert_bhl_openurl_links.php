@@ -6,23 +6,78 @@ require_once("../config.php");
 
 This is a run once to clean out the openurl links (333k of them)
 
-SELECT 
-	REGEXP_SUBSTR(link_uri, 'http://www.biodiversitylibrary.org/(page|bibliography)/[0-9]+' ), link_uri,thumbnail_uri 
-# count(*)
-FROM 
-	promethius.references 
-WHERE 
-	kind = 'literature' 
-and 
-	REGEXP_SUBSTR(link_uri, 'http://www.biodiversitylibrary.org/page/[0-9]+' ) is  null
-and 
-	link_uri like "http://www.biodiversitylibrary.org/openurl%" 
-
-
+php -d memory_limit=2G convert_bhl_openurl_links.php
 
 */
 
 
 echo "\nConverting BHL links to page links\n\n";
 
-$sql =  
+$sql =  "SELECT * FROM promethius.references where link_uri like 'http://www.biodiversitylibrary.org/openurl%' and
+link_uri like '%http://www.biodiversitylibrary.org/bibliography%'";
+
+$response = $mysqli->query($sql);
+$rows = $response->fetch_all(MYSQLI_ASSOC);
+
+$counter = 0;
+foreach($rows as $row){
+
+	// call for the redirec to the page.
+	$counter++;
+	echo "$counter\t{$row['id']}\t";
+
+	$link_uri = $row['link_uri'];
+
+	$link_uri = preg_replace('/^http:\/\//', 'https://', $link_uri);
+
+	$headers = get_headers($link_uri, true);
+	$location = $headers['Location'];
+
+	if(!preg_match('/^https:\/\/www.biodiversitylibrary.org\/page\//', $location)){
+		echo "Not a page URI - continuing. $location\n";
+		continue;
+	}
+
+	echo $location . "\t";
+	$headers = get_headers($location, true);
+	echo $headers[0] . "\t";
+
+	if ($headers[0] != "HTTP/1.1 200 OK"){
+		echo "Failed to get page so continuing.\n";
+		continue;
+	}
+
+	// thumbnail uri by calculation
+	$thumbnail_uri = preg_replace('/page/', 'pagethumb', $location);
+	$headers = get_headers($thumbnail_uri, true);
+	echo $headers[0] . "\t";
+
+	if ($headers[0] != "HTTP/1.1 200 OK"){
+		$thumbnail_uri = null;
+	}
+
+	$uri_safe = $mysqli->real_escape_string($location);
+	$response = $mysqli->query("SELECT * FROM `references` WHERE link_uri = '$uri_safe'");
+	if($response->num_rows){
+		echo "already exists!\n";
+
+		continue;
+	}
+
+	// got to here so safe to update the reference
+	$sql = "UPDATE `references` SET link_uri = '$uri_safe'";
+	if($thumbnail_uri){
+		$thumb_safe = $mysqli->real_escape_string($thumbnail_uri);
+		$sql .= ", thumbnail_uri = '$thumb_safe' ";
+	}
+	$sql .= " WHERE id = {$row['id']}";
+	$mysqli->query($sql);
+	if($mysqli->error){
+		echo $sql;
+		echo $mysqli->error;
+		exit;
+	}else{
+		echo "Saved\n";
+	}
+
+}
