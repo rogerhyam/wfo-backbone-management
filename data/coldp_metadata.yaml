@@ -1,0 +1,777 @@
+# single, primary DOI for the dataset
+doi: 10.5281/zenodo.7460141
+
+# Full dataset title
+title: World Flora Online Plant List 2023-12
+
+# Short, hopefully unique name for the dataset
+alias: WFO Plant List 2023-12
+
+# Multi paragraph description / abstract of the dataset
+description: "The consensus taxonomy of plants used as a backbone for the World Flora\
+ \ Online portal in support of Target 1 of the Global Strategy for Plant Conservation.\
+ \ New versions of this checklist are released every six months in June and December.\
+ \ This is release 2023-06. The initial data ingestion into the World Flora Online\
+ \ taxonomic backbone was from The Plant List Version 1.1 (TPL, http://theplantlist.org, September 2013),\
+ \ with the full list of contributing datasets given here: http://theplantlist.org/1.1/about/#collaborators.\
+ \ New taxonomic names have been incorporated into WFO from nomenclators International Plant Name Index\
+ \ (IPNI, https://www.ipni.org) for vascular plants, and Tropicos (https://www.tropicos.org) for bryophytes.\
+ \ Taxonomic and nomenclatural updates have been incorporated from the WFO's Taxonomic Expert Networks (TENs)\
+ \ (https://about.worldfloraonline.org/tens) and the World Checklist of Vascular Plants\
+ \ (WCVP, http://wcvp.science.kew.org), facilitated by the Royal Botanic Gardens, Kew."
+
+# Official release date of this version in ISO YYYY-MM-DD. Will be part of the default citation!
+issued: 2023-12-21      
+
+# Version name of this copy
+version: 2023-12 
+
+# Keywords list. Added in v1.1
+keyword:
+ - Global Strategy for Plant Conservation
+ - Plants
+ - Bryophytes
+ - Taxonomic backbone
+
+# Single point of contact for questions
+contact:
+  orcid: 0000-0002-8677-5688
+  given: Alan
+  family: Elliott
+  email: taxwg@worldfloraonline.org
+
+# Creators of the dataset. Will be treated as authors in the default citation!
+# For available fields see Agent type at the top
+# Please provide an ORCID if you can so it can be included in DOI metadata
+creator:
+ -
+  email: taxwg@worldfloraonline.org
+  url: http://www.worldfloraonline.org
+  organisation: World Flora Online
+
+
+# Editors of the dataset. Will be part of the default citation!
+editor: 
+ -
+  orcid: 0000-0002-1640-9156
+  given: Gregory
+  family: Anderson
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0001-6369-6269
+  given: Giovani carlos
+  family: Andrella
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4071-8108
+  given: Marco
+  family: Anguiano
+  note: Curator of Lycianthes in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7388-7608
+  given: Wisnu handoyo
+  family: Ardi
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3523-1883
+  given: Hannah
+  family: Atkins
+  note: Curator of Gesneriaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8646-6711
+  given: John j.
+  family: Atwood
+  note: Curator of Andreaeales, Andreaeobryales, Anthocerotales, Archidiales, Bartramiales, Blasiales, Bryales, Bryoxiphiales, Buxbaumiales, Calobryales, Catoscopiaceae, Dicranales, Diphysciales, Disceliales, Distichiaceae, Encalyptales, Flexitrichaceae, Fossombroniales, Funariales, Gigaspermales, Grimmiales, Hedwigiales, Hookeriales, Hypnales, Hypnodendrales, Hypopterygiales, Jungermanniales, Leiosporocerotales, Lunulariales, Metzgeriales, Neohodgsoniales, Notothyladales, Oedipodiales, Orthotrichales, Pallaviciniales, Pelliales, Phymatocerotales, Pleuroziales, Polytrichales, Porellales, Pottiales, Pseudoditrichales, Ptilidiales, Ptychomniales, Rhizogoniales, Scouleriales, Sphaerocarpales, Sphagnales, Splachnales, Tetraphidales, Timmiales, Timmiellaceae and Treubiales in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8112-0754
+  given: Xavier
+  family: Aubriot
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0001-6727-1831
+  given: William
+  family: Baker
+  note: Curator of Arecaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-0608-970X
+  given: Anoop puthuparampil
+  family: Balan
+  note: Curator of Detarioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-8199-6003
+  given: Fabrizio
+  family: Bartolucci
+  note: Curator of Papavereae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-9945-7606
+  given: Walter g.
+  family: Berendsohn
+  note: Curator of Aizoaceae and Nepenthaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0377-3853
+  given: Mauricio
+  family: Bonifacino
+  note: Curator of Asteraceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-9269-7316
+  given: Leonardo
+  family: Borges
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-9083-1235
+  given: John c.
+  family: Brinda
+  note: Curator of Andreaeales, Andreaeobryales, Anthocerotales, Archidiales, Bartramiales, Blasiales, Bryales, Bryoxiphiales, Buxbaumiales, Calobryales, Catoscopiaceae, Dicranales, Diphysciales, Disceliales, Distichiaceae, Encalyptales, Flexitrichaceae, Fossombroniales, Funariales, Gigaspermales, Grimmiales, Hedwigiales, Hookeriales, Hypnales, Hypnodendrales, Hypopterygiales, Jungermanniales, Leiosporocerotales, Lunulariales, Metzgeriales, Neohodgsoniales, Notothyladales, Oedipodiales, Orthotrichales, Pallaviciniales, Pelliales, Phymatocerotales, Pleuroziales, Polytrichales, Porellales, Pottiales, Pseudoditrichales, Ptilidiales, Ptychomniales, Rhizogoniales, Scouleriales, Sphaerocarpales, Sphagnales, Splachnales, Tetraphidales, Timmiales, Timmiellaceae and Treubiales in the Rhakhis editor.
+ -
+  orcid: 0000-0002-7940-5435
+  given: Gillian
+  family: Brown
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-5547-0796
+  given: Anne
+  family: Bruneau
+  note: Curator of Fabaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7072-2656
+  given: Domingos
+  family: Cardoso
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-1880-654X
+  given: Catarina silva de
+  family: Carvalho
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-6473-3129
+  given: Franco
+  family: Chiarini
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8509-6587
+  given: Thomas
+  family: Couvreur
+  note: Curator of Annonaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-3353-591X
+  given: Dan
+  family: Crowley
+  note: Curator of Hippocastanoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-6152-5458
+  given: Lei
+  family: Duan
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0600-8348
+  given: Juan david tovar
+  family: Durán
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7803-4444
+  given: Ashley n
+  family: Egan
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8677-5688
+  given: Alan
+  family: Elliott
+  note: Curator of Ericaceae, Irvingiaceae and Papavereae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-6320-7792
+  given: Eugenio valderrama
+  family: Escallón
+  note: Curator of Renealmia in the Rhakhis editor.
+ -
+  orcid: 0000-0002-4484-3566
+  given: Manuel de la
+  family: Estrella
+  note: Curator of Detarioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-8337-5112
+  given: Marcus
+  family: Falcão
+  note: Curator of Dialioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3606-663X
+  given: Peter
+  family: Fritsch
+  note: Curator of Cercidoideae and Styracaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-3212-9688
+  given: Edeline
+  family: Gagnon
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-2501-456X
+  given: Gabriele
+  family: Galasso
+  note: Curator of Papavereae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4719-3711
+  given: Gianpietro giusso del
+  family: Galdo
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-8862-4042
+  given: Leandro
+  family: Giacomin
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3096-8763
+  given: Deden
+  family: Girmansyah
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5081-2803
+  given: Danilo soares
+  family: Gissi
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-6799-376X
+  given: Paúl
+  family: Gonzáles
+  note: Curator of Salpichroa in the Rhakhis editor.
+ -
+  orcid: 0000-0002-7162-8458
+  given: Yuri
+  family: Gouvêa
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0003-2991-5282
+  given: Rafaël herman anna
+  family: Govaerts
+  note: Curator of Acanthaceae, Achariaceae, Acoraceae, Aextoxicaceae, Akaniaceae, Alismataceae, Alseuosmiaceae, Alstroemeriaceae, Altingiaceae, Alzateaceae, Amborellaceae, Anisophylleaceae, Aphloiaceae, Aponogetonaceae, Araceae, Araliaceae, Arecaceae, Argophyllaceae, Asteliaceae, Austrobaileyaceae, Balanophoraceae, Berberidopsidaceae, Betulaceae, Bignoniaceae, Bonnetiaceae, Bromeliaceae, Brunelliaceae, Burmanniaceae, Butomaceae, Byblidaceae, Caesalpinioideae, Calceolariaceae, Calyceraceae, Canellaceae, Cannabaceae, Cardiopteridaceae, Caricaceae, Carlemanniaceae, Casuarinaceae, Celastraceae, Ceratophyllaceae, Cercidiphyllaceae, Chloranthus, Chrysobalanaceae, Clethraceae, Columelliaceae, Combretaceae, Connaraceae, Cornaceae, Corsiaceae, Costaceae, Crossosomataceae, Crypteroniaceae, Cyclanthaceae, Cymodoceaceae, Cynomoriaceae, Daphniphyllaceae, Dasypogonaceae, Degeneriaceae, Dichapetalaceae, Dioscoreaceae, Dipentodontaceae, Doryanthaceae, Ecdeiocoleaceae, Elaeagnaceae, Elatinaceae, Ephedraceae, Eriocaulaceae, Escalloniaceae, Eucommiaceae, Eupomatiaceae, Flagellariaceae, Francoaceae, Garryaceae, Geissolomataceae, Gelsemiaceae, Gentianaceae, Gerrardinaceae, Gnetaceae, Grossulariaceae, Guamatelaceae, Gunneraceae, Hamamelidaceae, Heliconiaceae, Helwingiaceae, Hernandiaceae, Himantandraceae, Humiriaceae, Hydrangeaceae, Hydrocharitaceae, Hydroleaceae, Hypoxidaceae, Icacinaceae, Iteaceae, Ixioliriaceae, Joinvilleaceae, Juglandaceae, Juncaceae, Juncaginaceae, Lacistemataceae, Lardizabalaceae, Lauraceae, Lentibulariaceae, Lepidobotryaceae, Linderniaceae, Loganiaceae, Magnoliaceae, Marantaceae, Marcgraviaceae, Martyniaceae, Maundiaceae, Mazaceae, Melanthiaceae, Menyanthaceae, Metteniusaceae, Montiniaceae, Myodocarpaceae, Myricaceae, Myristicaceae, Myrtaceae, Nartheciaceae, Nothofagaceae, Nymphaeaceae, Nyssaceae, Olacaceae, Oleaceae, Opiliaceae, Orobanchaceae, Paeoniaceae, Papilionoideae, Paracryphiaceae, Paulowniaceae, Pedaliaceae, Penaeaceae, Pentaphragmataceae, Peraceae, Petenaeaceae, Phellinaceae, Phrymaceae, Phyllonomaceae, Plantaginaceae, Plocospermataceae, Poaceae, Posidoniaceae, Potamogetonaceae, Rafflesiaceae, Rapateaceae, Restionaceae, Rhizophoraceae, Rousseaceae, Rubiaceae, Ruppiaceae, Sabiaceae, Sarraceniaceae, Scheuchzeriaceae, Schisandraceae, Schlegeliaceae, Schoepfiaceae, Scrophulariaceae, Simaroubaceae, Siparunaceae, Sphenocleaceae, Stachyuraceae, Staphyleaceae, Stemonaceae, Stemonuraceae, Stilbaceae, Strasburgeriaceae, Tapisciaceae, Tetrachondraceae, Theaceae, Thomandersiaceae, Thurniaceae, Tofieldiaceae, Trigoniaceae, Trimeniaceae, Triuridaceae, Trochodendraceae, Tropaeolaceae, Typhaceae, Ulmaceae, Vahliaceae, Verbenaceae, Vitales, Winteraceae, Xeronemataceae, Xyridaceae and Zosteraceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7892-5757
+  given: Bernarda
+  family: Gregório
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-4808-267X
+  given: Laurence
+  family: Haegi
+  note: Curator of Anthocercideae, Datura, Lycium and Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0001-8934-4544
+  given: Thomas
+  family: Haevermans
+  note: Curator of Musaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-6801-2484
+  given: David j.
+  family: Harris
+  note: Curator of Irvingiaceae and Putranjivaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-8234-9502
+  given: Robin fernandez
+  family: Hilario
+  note: Curator of Saracha in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4984-8224
+  given: Helen fortune
+  family: Hopkins
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-3331-2898
+  given: 
+  family: Hua-feng
+  note: Curator of Dipsacales in the Rhakhis editor.
+ -
+  orcid: 0000-0002-2168-0514
+  given: Mark
+  family: Hughes
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5740-3666
+  given: João
+  family: Iganci
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3714-8231
+  given: Rando,
+  family: J.g.
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-7123-124X
+  given: Orlando adolfo
+  family: Jara-muñoz
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5836-6764
+  given: Firouzeh
+  family: Javadi
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5917-1846
+  given: Kai-wen
+  family: Jiang
+  note: Curator of Caesalpinioideae and Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-2815-4477
+  given: Pedro
+  family: Jiménez-mejías
+  note: Curator of Cyperaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-9501-0548
+  given: Lucas sá barreto
+  family: Jordão
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8509-0556
+  given: Bente
+  family: Klitgaard
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-0948-5038
+  given: R.r.
+  family: Klopper
+  note: Curator of Aloe inopinata, Aloeae, Asphodelaceae and Bruniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0106-3209
+  given: Nadja
+  family: Korotkova
+  note: Curator of Caryophyllales in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0285-722X
+  given: Isabel
+  family: Larridon
+  note: Curator of Cyperaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-2390-5078
+  given: Nicolás
+  family: Lavandero
+  note: Curator of Nicotiana in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4490-3490
+  given: Jana
+  family: Leong-skornickova
+  note: Curator of Lowiaceae and Zingiberaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-2599-4577
+  given: Gwilym
+  family: Lewis
+  note: Curator of Caesalpinioideae and Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-2707-0335
+  given: Sigrid
+  family: Liede-schumann
+  note: Curator of Apocynaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-9168-2507
+  given: Alexandre gibau de
+  family: Lima
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-5143-1773
+  given: Chris
+  family: Martine
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3039-0973
+  given: Bruce
+  family: Maslin
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5788-9010
+  given: Joseph t.
+  family: Miller
+  note: Curator of Fabaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-2819-0323
+  given: Michael
+  family: Moeller
+  note: Curator of Gesneriaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4342-2089
+  given: Peter
+  family: Moonlight
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-9136-1391
+  given: Andres
+  family: Moreira-munoz
+  note: Curator of Schizanthus in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8358-363X
+  given: Daniel
+  family: Murphy
+  note: Curator of Caesalpinioideae and Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-9902-830X
+  given: Wendy a.
+  family: Mustaqim
+  note: Curator of Costera, Gaultheria Diplycosia and Rigiolepis in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3909-4388
+  given: Charles
+  family: Nelson
+  note: Curator of Erica in the Rhakhis editor.
+ -
+  orcid: 0000-0002-4380-7715
+  given: Anush
+  family: Nersesyan
+  note: Curator of Dianthus in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4851-015X
+  given: Mark
+  family: Newman
+  note: Curator of Zingiberaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3511-1478
+  given: Andres
+  family: Orejuela
+  note: Curator of Solandreae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0700-6723
+  given: Arun
+  family: Pandey
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8783-1362
+  given: Marco o. o.
+  family: Pellegrini
+  note: Curator of Cabombaceae, Commelinales and Mayacaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8196-288X
+  given: Toby
+  family: Pennington
+  note: Curator of Caesalpinioideae and Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-9802-8516
+  given: Rafael
+  family: Pinto
+  note: Curator of Detarioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0403-4470
+  given: Michael d.
+  family: Pirie
+  note: Curator of Calluna, Daboecia and Erica in the Rhakhis editor.
+ -
+  orcid: 0000-0002-7651-6439
+  given: Axel dalberg
+  family: Poulsen
+  note: Curator of Lowiaceae and Zingiberaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0304-1812
+  given: Carmen
+  family: Puglisi
+  note: Curator of Ebenaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7618-3112
+  given: Alejandro
+  family: Quintanar
+  note: Curator of Putranjivaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-2620-6464
+  given: Nivohenintsoa
+  family: Rakotonirina
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-4539-394X
+  given: Gustavo
+  family: Ramos
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-4130-6685
+  given: Michele
+  family: Rodda
+  note: Curator of Apocynaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-1850-8158
+  given: Rodrigo schütz
+  family: Rodrigues
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4705-2513
+  given: Margaretha marianne le
+  family: Roux
+  note: Curator of Fabaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-6551-8877
+  given: Valéria da silva
+  family: Sampaio
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0001-5429-3441
+  given: Ludovica
+  family: Santilli
+  note: Curator of Nicotiana in the Rhakhis editor.
+ -
+  orcid: 0000-0002-9823-6569
+  given: Julio v.
+  family: Schneider
+  note: Curator of Quiinoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-5742-3707
+  given: Rafael costa
+  family: Silva
+  note: Curator of Cannaceae, Griseliniaceae and Lycianthes in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5732-1716
+  given: Marcelo
+  family: Simon
+  note: Curator of Caesalpinioideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-2010-4459
+  given: Stacey
+  family: Smith
+  note: Curator of Iochroma, Saracha and Vassobia in the Rhakhis editor.
+ -
+  orcid: 0000-0001-6314-9767
+  given: Dmitry
+  family: Sokoloff
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-6196-6197
+  given: Solange
+  family: Sotuyo
+  note: Curator of Caesalpinioideae and Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7207-2765
+  given: Charles
+  family: Stirton
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-7506-9043
+  given: Shannon
+  family: Straub
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-1109-7015
+  given: Joeri sergej
+  family: Strijk
+  note: Curator of Fagaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-6884-8946
+  given: Mark
+  family: Tebbitt
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-8493-0736
+  given: Eric
+  family: Tepe
+  note: Curator of Solanum in the Rhakhis editor.
+ -
+  orcid: 0000-0002-1307-6042
+  given: Daniel caspar
+  family: Thomas
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0001-5970-8343
+  given: Mats
+  family: Thulin
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-0899-1120
+  given: Maria (bat) s.
+  family: Vorontsova
+  note: Curator of Poaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0003-4029-5387
+  given: Nicholas
+  family: Wilding
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5231-3987
+  given: Hannah
+  family: Wilson
+  note: Curator of Begoniaceae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-3202-7334
+  given: Pilar
+  family: Zamora-tavares
+  note: Curator of Alkekengi, Brachistus, Calliphysalis, Capsicophysalis, Chamaesaracha, Leucophysalis, Oryctes, Physaliastrum, Physalis, Schraderanthus, Tzeltalia and Witheringia in the Rhakhis editor.
+ -
+  orcid: 0000-0002-4528-1382
+  given: Rong
+  family: Zhang
+  note: Curator of Papilionoideae in the Rhakhis editor.
+ -
+  orcid: 0000-0002-5030-7049
+  given: Georg
+  family: Zizka
+  note: Curator of Quiinoideae in the Rhakhis editor.
+
+# Single publishing organisation. Will be part of the default citation!
+publisher:         
+    organisation: World Flora Online
+    #rorid: FIXME - we've applied for one
+    url: http://www.worldfloraonline.org
+    email: taxwg@worldfloraonline.org
+
+# Agent contributing to the dataset in any other way, but who is not considered an author of the dataset
+# Use the optional note field to specify the kind of contribution
+contributor: 
+ -
+  url: https://doi.org/10.11646/phytotaxa.46.1.6
+  organisation: Krishnaraj, M. V. N., Mohanan, N. N., Davis, T., & Abraham, J. M. (2012). Validating Clitoria annua var. sekharii (Fabaceae: Clitoriinae). Phytotaxa, 46, 59-59.
+ -
+  url: https://powo.science.kew.org/
+  organisation: World Checklist of Vascular Plants. Facilitated by the Royal Botanic Gardens, Kew.
+ -
+  url: https://about.worldfloraonline.org/tens/caryophyllales-org
+  organisation: The Caryophyllales TEN -The Caryophyllales Network
+ -
+  url: https://about.worldfloraonline.org/tens/bryophytesgroup
+  organisation: The Bryophyte TEN
+ -
+  url: https://about.worldfloraonline.org/tens/annonaceae
+  organisation: The Annonaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/haloragaceae-and-related-families
+  organisation: The Haloragaceae and related Families TEN
+ -
+  url: https://about.worldfloraonline.org/tens/apocynaceae
+  organisation: The Apocynaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/monographia-aquifoliacearum
+  organisation: The Aquifoliaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/conifers
+  organisation: The Conifer TEN
+ -
+  url: https://about.worldfloraonline.org/tens/arecaceae
+  organisation: The Arecaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/begonia-resource-centre
+  organisation: The Begoniaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/boraginaceae-subtribe-amsinckiinae
+  organisation: The Boraginaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/bruniaceae
+  organisation: The Bruniaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/cabombaceae
+  organisation: The Cabombaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/dipsacales-caprifoliaceae-viburnaceae
+  organisation: The Dipsacales TEN
+ -
+  url: https://about.worldfloraonline.org/tens/commelinales
+  organisation: The Commelinales TEN
+ -
+  url: https://about.worldfloraonline.org/tens/the-international-compositae-alliance
+  organisation: The Asteraceaae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/cycads
+  organisation: The Cycad TEN
+ -
+  url: https://about.worldfloraonline.org/tens/cyperaceae
+  organisation: The Cyperaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/dioscoreaceae
+  organisation: The Dioscoreaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/forestry-research-programme-dipterocarpaceae-data-base
+  organisation: The Dipterocarpaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/ebenaceae
+  organisation: Ebenaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/ericaceae-resource-centre
+  organisation: The Ericaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/fagaceae
+  organisation: The Fagaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/gesneriaceae
+  organisation: The Gesneriaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/hypericum
+  organisation: The Hypericum TEN
+ -
+  url: https://about.worldfloraonline.org/tens/irvingiaceae
+  organisation: The Irvingiaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/fabaceae
+  organisation: The Fabaceae TEN - Legume Taxonomy Working Group
+ -
+  url: https://about.worldfloraonline.org/tens/lowiaceae
+  organisation: The Lowiaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/mayacaceae
+  organisation: The Mayacaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/melastomataceae-net
+  organisation: The Melastomataceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/musaceae
+  organisation: The Musaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/quiinoideae
+  organisation: The Ochnaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/papaveraceae_tribe_papaverae
+  organisation: The Papaveraceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/picramniaceae
+  organisation: The Picramniaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/grassbase
+  organisation: The Poaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/putranjivaceae
+  organisation: The Putranjivaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/global-conservation-consortium-acer-subfamily-hippocastanoideae
+  organisation: The Sapindaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/sapotaceae-resource-centre
+  organisation: The Sapotaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/endemic-plant-families-of-madagascar
+  organisation: The Endemic Plant Families of Madagascar TEN
+ -
+  url: https://about.worldfloraonline.org/tens/solanaceaesource-org
+  organisation: The Solanaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/styracaceae
+  organisation: The Styracaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/zingiberaceae-resource-centre
+  organisation: The Zingiberaceae TEN
+ -
+  url: https://about.worldfloraonline.org/tens/alooideae
+  organisation: The Asphodelaceae TEN
+
+# Description of the geographical scope of the dataset
+geographicScope: global
+
+# Taxonomic scope of the dataset
+taxonomicScope: Plantae, Bryophyta, Marchantiophyta, Anthocerotophyta, 
+
+# Taxonomic scope of the dataset given as English vernacular name(s)
+taxonomicScopeInEnglish: Plants, Mosses, Liverworts, Horworts
+
+# Temporal scope of the dataset
+temporalScope: Consensus taxonomy as of 2023-12-21
+
+# Integer between 1-5 with 5 expressing highest confidence in quality of the data
+confidence: 5
+
+# 0-100 to express the completeness of the dataset in regards to the defined scope
+completeness: 95
+
+# Any commons license (CC0, CC-BY, CC-BY-NC, CC-BY-SA, CC-BY-ND, CC-BY-NC-SA, CC-BY-NC-ND)
+# Must be CC0 or CC-BY to be used by COL !!!
+license: cc0
+
+# Link to a website for the dataset
+url: https://wfoplantlist.org
+
+# URL to large logo image
+logo: https://list.worldfloraonline.org/rhakhis/ui/logo1024.png 
+
+notes: "Note on persistence of IDs. Identifiers for NAMES remain constant and of the\
+   \ form wfo-0000000000. Identifiers for TAXA are of the form wfo-0000000000-YY-MM\
+   \ and change with each release to show that they belong to a different taxonomic\
+   \ treatment and may not be directly comparable. There are associated HTTP URIs\
+   \ with these short identifiers of the form https://list.worldfloraonline.org/<name or taxon identifier>.\
+   \ These HTTP URIs support an API that enables navigation between different versions of the taxonomy.\
+   \ See  https://list.worldfloraonline.org/ for details. For humans, using a web\
+   \ browser, the associated HTTP URIs will redirect to the WFO Portal.\
+   \ For machines they will provide data."
+
+

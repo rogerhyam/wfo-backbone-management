@@ -19,22 +19,18 @@ echo "\nStarting COLDP File\n";
 
 $start = time();
 
-// date of dump
-$year = date('Y');
-$june_solstice = mktime(0,0,0,6,22,date('Y')); // one day after it for the comparison...
-$december_solstice = mktime(0,0,0,12,21,date('Y'));
-
-if($start < $june_solstice || $start > $december_solstice){
-    $pub_date = "$year-06-21";
-    $version = "$year-06";
-}else{
-    $pub_date = "$year-12-21";
-    $version = "$year-12";
+// date of dump must be passed in.
+if(count($argv) < 2 || !preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $argv[1]) ){
+    echo "\nYou must provide a publish date in the format 2023-06-21\n";
+    exit;
 }
 
-// fix it for now
-$pub_date = "2023-06-21";
-$version = "2023-06";
+$pub_date = $argv[1];
+$version = substr($pub_date, 0, 7);
+
+echo "Version: $version\n";
+echo "Publication: $pub_date\n";
+
 
 $downloads_dir = '../www/downloads/coldp/';
 if(!file_exists($downloads_dir)) mkdir($downloads_dir, 0755, true);
@@ -116,7 +112,6 @@ $types_fields = array(
     "link"
 );
 fputcsv($synonyms_out, $synonym_fields, "\t");
-
 
 $counter = 0;
 $offset = 1; // offset is one because the first one is the root
@@ -638,105 +633,16 @@ while($row = $response->fetch_assoc()){
 
 fclose($types_out);
 
-
 // build the metadata file
 
-// get the editors in Rhakhis
-$sql = "SELECT u.`name` as user_name, u.orcid_id as orcid, n.name_alpha as taxon_name  
-FROM users_taxa as ut
-join taxa as t on ut.taxon_id = t.id
-join users as u on u.id = ut.user_id
-join taxon_names as tn on tn.id = t.taxon_name_id
-join `names` as n on tn.name_id = n.id
-order by u.orcid_id";
-$response = $mysqli->query($sql);
-$users = array();
-while($row = $response->fetch_assoc()){
-
-    if(isset($users[$row['orcid']])){
-        $users[$row['orcid']]['taxa'][] = $row['taxon_name'];
-    }else{
-
-        $parts = explode(' ', $row['user_name']);
-        $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
-        $given =  mb_ucfirst(mb_strtolower(implode(' ', $parts)));
-
-        $users[$row['orcid']] = array(
-            'sort_name' => $family . ' ' . $given,
-            'orcid' => $row['orcid'],
-            'given' => $given,
-            'family' => $family,
-            'taxa' => array($row['taxon_name'])
-        );
-    }
-}
-
-// sort them alphabetically - this destroys the orcids as keys
-usort($users, function ($a, $b) {
-  return strcmp(strtolower($a['sort_name']), strtolower($b['sort_name']));
-} );
-
-// now we have a list of users write them out in yaml style
-$editors = array();
-foreach($users as $user){
-
-    $editor = $user;
-    unset($editor['sort_name']);
-
-    sort($user['taxa']);
-    $last = array_pop($user['taxa']);
-    if ($user['taxa']) {
-        $taxon_list = implode(', ', $user['taxa']) . ' and ' . $last;
-    }else{
-        $taxon_list = $last;
-    }
-    $editor['note'] = "Curator of $taxon_list in the Rhakhis editor.";
-
-    unset($editor['taxa']);
-    $editors[] = $editor;
-
-}
-
-// manually generated YAML rather than just use JSON in a YAML file that doesn't seem to work
-// this syntax is based on the successful yaml downloaded from the last release
-$editors_yaml = "";
-foreach ($editors as $editor) {
-    $editors_yaml .= "\n -";
-    foreach($editor as $key => $val){
-        $editors_yaml .= "\n  $key: $val";
-    }
-}
-
-// get a list of all the TENs to add to the metadata file.
-$sql = "SELECT link_uri as `url`, display_text as `organisation`
-FROM `references` AS r
-JOIN `name_references` AS nr ON nr.reference_id = r.id AND nr.placement_related = 1
-WHERE r.kind = 'person'
-group by link_uri, display_text";
-
-$response = $mysqli->query($sql);
-$contributors_yaml = "";
-while($row = $response->fetch_assoc()){
-    $contributors[] = $row;
-    $contributors_yaml .= "\n -";
-    $contributors_yaml .= "\n  url: {$row['url']}";
-    $contributors_yaml .= "\n  organisation: {$row['organisation']}";
-}
-
-// write the metadata.yaml file
+// we are going to do a YAML and JSON one in parallel for the 2023-12
 $yaml_file_path = $downloads_dir . 'metadata.yaml';
-$meta = file_get_contents('coldp.yaml');
-$meta = str_replace('{{editors}}', $editors_yaml, $meta);
-$meta = str_replace('{{contributors}}', $contributors_yaml, $meta);
-$meta = str_replace('{{date}}',$pub_date, $meta);
-$meta = str_replace('{{version}}',$version, $meta);
+// $json_file_path = $downloads_dir . 'metadata.yaml';
 
-// we can pass a variable to indicate this is not a final release
-if(count($argv) > 1) $release = $argv[1];
-else $release = "";
-$meta = str_replace('{{release}}',$release, $meta);
 
-file_put_contents($yaml_file_path, $meta);
+//$meta_json = json_decode(file_get_contents('coldp.json'));
+
+
 
 echo "\nZipping Up\n";
 
@@ -774,10 +680,4 @@ unlink($downloads_dir . 'metadata.yaml');
 function convert($size){
     $unit=array('b','kb','mb','gb','tb','pb');
     return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
-}
-
-// needed to handle multibyte chars and upper casing the first
-function mb_ucfirst($str) {
-    $fc = mb_strtoupper(mb_substr($str, 0, 1));
-    return $fc.mb_substr($str, 1);
 }
