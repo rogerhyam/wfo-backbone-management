@@ -32,6 +32,15 @@ $start = time();
 
 // we build the output on the basis of the month and year
 $version_name = date('Y-m');
+
+// date of dump must be passed in.
+if(count($argv) < 2 || !preg_match('/[0-9]{4}-[0-9]{2}/', $argv[1]) ){
+    echo "\nYou must provide a version name  in the format 2023-06\n";
+    exit;
+}
+
+$version_name = $argv[1];
+
 $parts = explode('-', $version_name);
 $version_year = $parts[0];
 $version_month = $parts[1];
