@@ -84,7 +84,6 @@ function generate_metadata($file_path, $pub_date, $version){
         $editor['note'] = "Curator of $taxon_list in the Rhakhis editor.";
 
         unset($editor['taxa']);
-        $editor['orcidAsUrl'] = 'https://orcid.org/' . $editor['orcid'];
         $json->editor[] = (object)$editor;
 
     }
@@ -100,8 +99,6 @@ function generate_metadata($file_path, $pub_date, $version){
     $json->contributor = array(); // clean list of contributors
 
     while($row = $response->fetch_assoc()){
-        // organization and name are the same for some reason - not in YAML
-        $row['name'] = $row['organisation'];
         $json->contributor[] = (object)$row;
     }
 

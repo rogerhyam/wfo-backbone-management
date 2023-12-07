@@ -9,15 +9,12 @@
         "orcid": "0000-0002-8677-5688",
         "given": "Alan",
         "family": "Elliott",
-        "email": "taxwg@worldfloraonline.org",
-        "name": "Elliott A.",
-        "orcidAsUrl": "https://orcid.org/0000-0002-8677-5688"
+        "email": "taxwg@worldfloraonline.org"
     },
     "creator": [
         {
             "email": "taxwg@worldfloraonline.org",
             "url": "http://www.worldfloraonline.org",
-            "name": "World Flora Online",
             "organisation": "World Flora Online"
         }
     ],
@@ -26,21 +23,17 @@
             "orcid": "0000-0002-1640-9156",
             "given": "Example",
             "family": "Example",
-            "note": "Curator of some example .",
-            "name": "Exampl, example",
-            "orcidAsUrl": "https://orcid.org/0000-0002-1640-9156"
+            "note": "Curator of some example ."
         }
     ],
     "publisher": {
         "email": "taxwg@worldfloraonline.org",
         "url": "http://www.worldfloraonline.org",
-        "name": "World Flora Online",
         "organisation": "World Flora Online"
     },
     "contributor": [
         {
             "url": "https://example.come",
-            "name": "Example name",
             "organisation": "Example name again"
         }
     ],
