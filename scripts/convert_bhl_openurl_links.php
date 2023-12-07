@@ -22,7 +22,7 @@ $rows = $response->fetch_all(MYSQLI_ASSOC);
 $counter = 0;
 foreach($rows as $row){
 
-	// call for the redirec to the page.
+	// call for the redirect to the page.
 	$counter++;
 	echo "$counter\t{$row['id']}\t";
 
@@ -33,12 +33,21 @@ foreach($rows as $row){
 	$headers = get_headers($link_uri, true);
 	$location = $headers['Location'];
 
-	if(!preg_match('/^https:\/\/www.biodiversitylibrary.org\/page\//', $location)){
-		echo "Not a page URI - continuing. $location\n";
+	if(!is_string($location) || !preg_match('/^https:\/\/www.biodiversitylibrary.org\/page\//', $location)){
+		echo "Not a BHL page URI - continuing. $location\n";
 		continue;
 	}
 
 	echo $location . "\t";
+
+	// before we call it we check if exists
+	$uri_safe = $mysqli->real_escape_string($location);
+	$response = $mysqli->query("SELECT * FROM `references` WHERE link_uri = '$uri_safe'");
+	if($response->num_rows){
+		echo "already exists!\n";
+		continue;
+	}
+
 	$headers = get_headers($location, true);
 	echo $headers[0] . "\t";
 
@@ -54,14 +63,6 @@ foreach($rows as $row){
 
 	if ($headers[0] != "HTTP/1.1 200 OK"){
 		$thumbnail_uri = null;
-	}
-
-	$uri_safe = $mysqli->real_escape_string($location);
-	$response = $mysqli->query("SELECT * FROM `references` WHERE link_uri = '$uri_safe'");
-	if($response->num_rows){
-		echo "already exists!\n";
-
-		continue;
 	}
 
 	// got to here so safe to update the reference

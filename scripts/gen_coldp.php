@@ -3,7 +3,7 @@
 // this will generate a COLDP suitable for import into
 // ChecklistBank
 
-// php -d memory_limit=3G gen_coldp.php
+// php -d memory_limit=3G gen_coldp.php 2023-12-22 test-01
 
 require_once("../config.php");
 require_once("../include/WfoDbObject.php");
@@ -30,7 +30,7 @@ $version = substr($pub_date, 0, 7);
 
 echo "Version: $version\n";
 echo "Publication: $pub_date\n";
-
+echo "Release: " . @$argv[2] . "\n";
 
 $downloads_dir = '../www/downloads/coldp/';
 if(!file_exists($downloads_dir)) mkdir($downloads_dir, 0755, true);
@@ -532,6 +532,8 @@ while(true){
 
     } // end row loop
 
+    // debug - do a single page
+    break;
 
 } // paging loop
 
@@ -634,15 +636,11 @@ while($row = $response->fetch_assoc()){
 fclose($types_out);
 
 // build the metadata file
+require_once('gen_coldp_metadata_json.php');
+generate_metadata($downloads_dir . "metadata.json", $pub_date, $version);
 
-// we are going to do a YAML and JSON one in parallel for the 2023-12
-$yaml_file_path = $downloads_dir . 'metadata.yaml';
-// $json_file_path = $downloads_dir . 'metadata.yaml';
-
-
-//$meta_json = json_decode(file_get_contents('coldp.json'));
-
-
+// require_once('gen_coldp_metadata_yaml.php');
+// generate_metadata($downloads_dir . "metadata.yaml", $pub_date, $version);
 
 echo "\nZipping Up\n";
 
@@ -659,7 +657,8 @@ $zip->addFile($downloads_dir . 'reference.tsv', "reference.tsv");
 $zip->addFile($downloads_dir . 'synonym.tsv', "synonym.tsv");
 $zip->addFile($downloads_dir . 'taxon.tsv', "taxon.tsv");
 $zip->addFile($downloads_dir . 'typematerial.tsv', "typematerial.tsv");
-$zip->addFile($downloads_dir . 'metadata.yaml', "metadata.yaml");
+if(file_exists($downloads_dir . 'metadata.yaml')) $zip->addFile($downloads_dir . 'metadata.yaml', "metadata.yaml");
+if(file_exists($downloads_dir . 'metadata.json')) $zip->addFile($downloads_dir . 'metadata.json', "metadata.json");
 
 if ($zip->close()!==TRUE) {
     exit("cannot close <$zip_path>\n". $zip->getStatusString());
@@ -673,7 +672,8 @@ unlink($downloads_dir . 'reference.tsv');
 unlink($downloads_dir . 'synonym.tsv');
 unlink($downloads_dir . 'taxon.tsv');
 unlink($downloads_dir . 'typematerial.tsv');
-unlink($downloads_dir . 'metadata.yaml');
+@unlink($downloads_dir . 'metadata.yaml');
+@unlink($downloads_dir . 'metadata.json');
 
 
 // cut and paste utility function

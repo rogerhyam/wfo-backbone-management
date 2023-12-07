@@ -21,3 +21,4 @@ data/sources/rods_final_matches.csv
 data/sources/rods_names_matched.csv
 .gitignore
 data/sources/rods_names_unmatched.csv
+data/coldp_metadata.json

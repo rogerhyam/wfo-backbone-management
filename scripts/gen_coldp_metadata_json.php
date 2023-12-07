@@ -22,6 +22,16 @@ function generate_metadata($file_path, $pub_date, $version){
     global $mysqli;
     global $argv;
 
+    // we load the json object and update it
+    $json_string = file_get_contents('coldp.json');
+
+    // The version and other data occur in template strings so we replace that first.
+    $json_string = str_replace('*VERSION*',$version, $json_string);
+    $json_string = str_replace('*YEAR*', substr($pub_date, 0, 4), $json_string);
+
+    // turn it into an object for the rest
+    $json = json_decode($json_string);
+
     // get the editors in Rhakhis
     $sql = "SELECT u.`name` as user_name, u.orcid_id as orcid, n.name_alpha as taxon_name  
     FROM users_taxa as ut
@@ -57,8 +67,8 @@ function generate_metadata($file_path, $pub_date, $version){
     return strcmp(strtolower($a['sort_name']), strtolower($b['sort_name']));
     } );
 
-    // now we have a list of users write them out in yaml style
-    $editors = array();
+    // now we have a list of users write them out in 
+    $json->editor = array(); // fresh editors list
     foreach($users as $user){
 
         $editor = $user;
@@ -74,18 +84,9 @@ function generate_metadata($file_path, $pub_date, $version){
         $editor['note'] = "Curator of $taxon_list in the Rhakhis editor.";
 
         unset($editor['taxa']);
-        $editors[] = $editor;
+        $editor['orcidAsUrl'] = 'https://orcid.org/' . $editor['orcid'];
+        $json->editor[] = (object)$editor;
 
-    }
-
-    // manually generated YAML rather than just use JSON in a YAML file that doesn't seem to work
-    // this syntax is based on the successful yaml downloaded from the last release
-    $editors_yaml = "";
-    foreach ($editors as $editor) {
-        $editors_yaml .= "\n -";
-        foreach($editor as $key => $val){
-            $editors_yaml .= "\n  $key: $val";
-        }
     }
 
     // get a list of all the TENs to add to the metadata file.
@@ -96,27 +97,24 @@ function generate_metadata($file_path, $pub_date, $version){
     group by link_uri, display_text";
 
     $response = $mysqli->query($sql);
-    $contributors_yaml = "";
+    $json->contributor = array(); // clean list of contributors
+
     while($row = $response->fetch_assoc()){
-        $contributors[] = $row;
-        $contributors_yaml .= "\n -";
-        $contributors_yaml .= "\n  url: {$row['url']}";
-        $contributors_yaml .= "\n  organisation: {$row['organisation']}";
+        // organization and name are the same for some reason - not in YAML
+        $row['name'] = $row['organisation'];
+        $json->contributor[] = (object)$row;
     }
 
-    // write the metadata.yaml file
-    $meta = file_get_contents('coldp.yaml');
-    $meta = str_replace('{{editors}}', $editors_yaml, $meta);
-    $meta = str_replace('{{contributors}}', $contributors_yaml, $meta);
-    $meta = str_replace('{{date}}',$pub_date, $meta);
-    $meta = str_replace('{{version}}',$version, $meta);
+    // when and what
+    $json->issued = $pub_date;
+    $json->version = $version;
+    $json->temporalScope = "Consensus taxonomy as of $pub_date";
 
     // we can pass a variable to indicate this is not a final release
-    if(count($argv) > 2) $release = $argv[2];
-    else $release = "";
-    $meta = str_replace('{{release}}',$release, $meta);
+    if(count($argv) > 2) $json->version .= ' ' . $argv[2];
+    
 
-    file_put_contents($file_path, $meta);
+    file_put_contents($file_path, json_encode($json, JSON_PRETTY_PRINT));
 }
 
 // needed to handle multibyte chars and upper casing the first
