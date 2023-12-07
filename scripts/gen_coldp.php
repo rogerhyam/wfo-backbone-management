@@ -532,8 +532,6 @@ while(true){
 
     } // end row loop
 
-    // debug - do a single page
-    break;
 
 } // paging loop
 
