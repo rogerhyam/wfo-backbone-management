@@ -124,6 +124,15 @@ while(true){
 fwrite($out, "\n]");
 fclose($out);
 
+// write the fields out so we have a record
+file_put_contents($fields_file_path, json_encode($fields, JSON_PRETTY_PRINT));
+
+
+/*
+
+we no longer zip it up because we will
+trigger an import immediately then zip it in the shell script
+
 echo "\nCreating zip\n";
 $zip = new ZipArchive();
 $zip_path = $json_file_path . ".zip";
@@ -139,11 +148,11 @@ if ($zip->close()!==TRUE) {
     exit("cannot close <$zip_path>\n". $zip->getStatusString());
 }
 
+
 unlink($json_file_path);
 unlink($fields_file_path);
 
-// write the fields out so we have a record
-file_put_contents($fields_file_path, json_encode($fields, JSON_PRETTY_PRINT));
+*/
 
 function process_name($name, $version_name){
 
