@@ -19,6 +19,6 @@ else
 fi
 
 php -d memory_limit=3G gen_plant_list.php $1
-curl -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo2/update?commit=true' -X POST -T ../data/versions/plant_list_$1.json --user $2
+curl -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo/update?commit=true' -X POST -T ../data/versions/plant_list_$1.json --user $2
 gzip ../data/versions/plant_list_$1.json
 
