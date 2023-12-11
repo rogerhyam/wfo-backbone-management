@@ -2,16 +2,7 @@
 
 require_once('../config.php');
 
-$local_files = array(
-    "plant_list_2023-06.json.zip"   => "../data/versions/plant_list_2023-06.json.zip", // generated with php -d memory_limit=3G gen_plant_list.php
-    "wfo_plantlist_2023-06.zip"     => "../www/downloads/coldp/wfo_plantlist_2023-06.zip", // generated with php -d memory_limit=3G gen_coldp.php
-    "ipni_to_wfo.csv.gz"            => "../www/downloads/lookup/015_ipni_to_wfo.csv.gz", // generated with php gen_ipni_to_wfo.php
-    "families_dwc.tar.gz"           => "../www/downloads/dwc/families_dwc.tar.gz", // php -d memory_limit=5G gen_family_dwc_file.php - for each file - ./gen_families_combined_tar.sh for single tar file
-    "_uber.zip"                     => "../www/downloads/dwc/_uber.zip", // php -d memory_limit=5G gen_uber_dwc_file.php
-    "_DwC_backbone_R.zip"           => "../www/downloads/dwc/_DwC_backbone_R.zip", // php gen_uber_dwc_file.php
-    "plant_list_2023-06.sql.gz"     => "../data/versions/plant_list_2023-06.sql.gz"
-);
-
+// $zenodo_file_map is pulled from config
 
 // get the id of the latest version of the concept
 $curl = curl_init();
@@ -52,16 +43,16 @@ $version = json_decode($response, true);
 //print_r($version);
 
 // delete files on server that aren't in list or who's checksums don't match
-$files_to_upload = array_keys($local_files);
+$files_to_upload = array_keys($zenodo_file_map);
 
 foreach ($version['files'] as $file) {
     
-    if(!isset($local_files[$file['filename']])){
+    if(!isset($zenodo_file_map[$file['filename']])){
         // it isn't in the list so should be removed
         delete_file($zenodo_access_uri, $zenodo_access_token, $version['id'], $file['id']);
     }else{
         // it is in the list but does it have the same checksum
-        $local_checksum = md5_file($local_files[$file['filename']]);
+        $local_checksum = md5_file($zenodo_file_map[$file['filename']]);
 
         if($local_checksum != $file['checksum']){
             // checksums don't match so delete uploaded file
@@ -82,7 +73,7 @@ foreach($files_to_upload as $filename){
 
     echo "\n\tUploading file $filename";
 
-    $file_path = $local_files[$filename];
+    $file_path = $zenodo_file_map[$filename];
 
     // upload the file
     $curl = curl_init();
@@ -133,6 +124,3 @@ function delete_file($zenodo_access_uri, $zenodo_access_token, $deposit_id, $fil
     curl_close($curl);
 
 }
-
-
-
