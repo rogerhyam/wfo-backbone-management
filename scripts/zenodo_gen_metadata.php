@@ -39,7 +39,7 @@ $contributors = array();
 foreach($users as $user){
     if($user->isEditor() && $user->getOrcidId() && $user->getTaxaCurated()){
         $meta = array();
-        $meta['type'] = "DataCurator";
+       // $meta['type'] = "DataCurator";
         $meta['orcid'] = $user->getOrcidId();
         $parts = explode(' ', $user->getName());
         $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
@@ -52,9 +52,18 @@ foreach($users as $user){
 // sort them by family
 ksort($contributors);
 
-// add them in in the correct order
+// add them in in the correct order - everyone is a creator these days!
+$lead_creators = $metadata->creators;
 foreach($contributors as $name => $meta){
-    $metadata->contributors[] = $meta;
+
+    $meta = (object)$meta;
+
+    foreach($lead_creators as $leader){
+        if(!isset($leader->orcid)) continue; // wfo doesn't have an ORCID
+        if($meta->orcid == $leader->orcid) continue 2;
+    }
+
+    $metadata->creators[] = $meta;
 }
 
 // now for the TENs

@@ -68,6 +68,3 @@ print_r(json_decode($response));
 echo "\n--------------------------\n";
 echo "Metdata updated";
 echo "\n--------------------------\n";
-
-
-
