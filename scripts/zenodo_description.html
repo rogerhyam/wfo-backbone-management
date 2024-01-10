@@ -41,13 +41,13 @@
 <ul>
     <li><strong>wfo_plantlist_2023-12.zip</strong> The Catalogue of Life Data Package of the WFO Plant List. This is the
         most expressive standards based form of the list.</li>
-    <li><strong>plant_list_2023-12.json.zip</strong> JSON formatted version of the WFO Plant List. This has been
+    <li><strong>plant_list_2023-12.json.gz</strong> JSON formatted version of the WFO Plant List. This has been
         designed for direct import into a schemaless instance of a SOLR index and is used to drive the WFO Plant List
         API (<a href="https://list.worldfloraonline.org">https://list.worldfloraonline.org</a>) which in turn drives the
         WFO Plant List in the portal. This is recommended if you want a local, read only version of the list rather than
         use the API.</li>
     <li><strong>plant_list_2023-12.sql.gz</strong> This is the complete production database (minus logging data and API
-        keys) as a MySQL backup file. It can be restored directly to a MySQL 5.7 or later instance if you require the
+        keys) as a MySQL backup file. It can be restored directly to a MySQL 8.0 or later instance if you require the
         list in SQL format.</li>
     <li><strong>ipni_to_wfo.csv.gz</strong> A file mapping all the IPNI IDs we track to their associated WFO IDs.</li>
     <li><strong>families_dwc.tar.gz</strong> Individual Darwin Core Archive files for each of 718 recognized families.
