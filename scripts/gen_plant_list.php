@@ -170,7 +170,7 @@ function process_name($name, $version_name){
     $out["nomenclatural_status_s"] = $name->getStatus();
     $out["rank_s"] = $name->getRank();
     $out["citation_micro_s"] = $name->getCitationMicro();
-    $out["publication_year_i"] = $name->year();
+    $out["publication_year_i"] = $name->getYear();
     $out["citation_micro_t"] = $name->getCitationMicro();
     $out["comment_t"] = $name->getComment();
     
