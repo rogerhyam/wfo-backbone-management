@@ -11,6 +11,12 @@
 
     FIXME: you shouldn't be able to have a type specimen and also a basionym.
 
+·         Missing species name for accepted infraspecies
+·         Missing species name for synonym infraspecies
+·         Missing species name for other infraspecies
+·         Missing accepted names in taxon names
+·         Duplicate name–author combinations
+
 */
 
 require_once('../config.php');
@@ -35,6 +41,7 @@ if(count($argv) > 1){
     check_full_name_string_unique($downloads_dir);
     check_homotypic_names_in_same_taxon($downloads_dir);
     check_genus_name_part_matches_parent($downloads_dir);
+    check_missing_authors($download_dir);
 }
 
 
@@ -228,6 +235,61 @@ function check_species_name_part_matches_parent($downloads_dir){
         $downloads_dir);
 
 }
+
+function check_missing_authors($downloads_dir){
+
+    $sql = "SELECT i.`value` as 'wfo_id', n.name_alpha as 'name', n.`rank` as 'rank', n.`status` as 'nomenclatural_status', 
+            if(
+                tn.id, 
+                if(t.taxon_name_id = tn.id, 'accepted', 'synonym'),
+                'unplaced'
+            )
+            as 'taxonomic_role', n.authors
+            FROM `names` as n 
+            join identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
+            left JOIN taxon_names as tn on n.id = tn.name_id
+            left join taxa as t on t.id = tn.taxon_id
+            where length(n.authors) < 2 
+            and n.`name` != n.`species`
+            and n.`status` != 'deprecated';";
+
+    run_sql_check(
+        "check_missing_authors", // $name,
+        "Names should have an author string of at least two characters unless they are autonyms or deprecated.", //$title,
+        "No names were found that lack author strings when they should have them.", // $success,
+        "Names were found that lack author strings.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
+function check_missing_species_name_part($downloads_dir){
+
+    $sql = "SELECT i.`value`, n.genus, n.species, n.`name` as `infraspecific_name`, n.`rank`, n.`status` as 'nomenclatural_status', 
+            if(
+                tn.id, 
+                if(t.taxon_name_id = tn.id, 'accepted', 'synonym'),
+                'unplaced'
+            )
+            as 'taxonomic_role', n.authors
+            FROM `names` as n 
+            join identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
+            left JOIN taxon_names as tn on n.id = tn.name_id
+            left join taxa as t on t.id = tn.taxon_id
+            where n.`rank` in ('subspecies', 'prole', 'variety', 'subvariety', 'form', 'subform', 'lusus')
+            and length(n.`species`) < 2
+            and n.`status` != 'deprecated';";
+
+    run_sql_check(
+        "check_missing_species_name_part", // $name,
+        "Names below the rank of species should have a species part to their name.", //$title,
+        "No infraspecific names were found that lacked a species part.", // $success,
+        "Infraspecific names were found that lack a species part.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
 
 /*
     Run a check that expects an empty result set on success.
