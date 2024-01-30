@@ -238,7 +238,7 @@ function check_species_name_part_matches_parent($downloads_dir){
 
 function check_missing_authors($downloads_dir){
 
-    $sql = "SELECT i.`value` as 'wfo_id', n.name_alpha as 'name', n.`rank` as 'rank', n.`status` as 'nomenclatural_status', 
+    $sql = "SELECT n.id as name_id, i.`value` as 'wfo_id', n.name_alpha as 'name', n.`rank` as 'rank', n.`status` as 'nomenclatural_status', 
             if(
                 tn.id, 
                 if(t.taxon_name_id = tn.id, 'accepted', 'synonym'),
@@ -265,7 +265,7 @@ function check_missing_authors($downloads_dir){
 
 function check_missing_species_name_part($downloads_dir){
 
-    $sql = "SELECT i.`value`, n.genus, n.species, n.`name` as `infraspecific_name`, n.`rank`, n.`status` as 'nomenclatural_status', 
+    $sql = "SELECT n.id as name_id, i.`value` as wfo_id, n.genus, n.species, n.`name` as `infraspecific_name`, n.`rank`, n.`status` as 'nomenclatural_status', 
             if(
                 tn.id, 
                 if(t.taxon_name_id = tn.id, 'accepted', 'synonym'),
@@ -290,6 +290,27 @@ function check_missing_species_name_part($downloads_dir){
 
 }
 
+function check_missing_children($downloads_dir){
+
+    $sql = "SELECT n.id as name_id, i.`value` as wfo_id, n.name_alpha, n.`rank`
+            FROM `names` as n 
+            join identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
+            left JOIN taxon_names as tn on n.id = tn.name_id
+            left JOIN taxa as t on t.id = tn.taxon_id
+            left JOIN taxa as kid on kid.parent_id = t.id
+            where n.`rank` not in ('species', 'subspecies', 'prole', 'variety', 'subvariety', 'form', 'subform', 'lusus')
+            and t.taxon_name_id = tn.id
+            and kid.id is null";
+
+    run_sql_check(
+        "check_missing_children", // $name,
+        "Accepted taxa above the rank of species should have child taxa or there is no reason for them to exist.", //$title,
+        "Not taxa were found above species level that lack child taxa.", // $success,
+        "Taxa above species level were found that lack children.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
 
 /*
     Run a check that expects an empty result set on success.
