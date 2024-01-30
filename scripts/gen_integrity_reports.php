@@ -41,7 +41,9 @@ if(count($argv) > 1){
     check_full_name_string_unique($downloads_dir);
     check_homotypic_names_in_same_taxon($downloads_dir);
     check_genus_name_part_matches_parent($downloads_dir);
-    check_missing_authors($download_dir);
+    check_missing_authors($downloads_dir);
+    check_missing_species_name_part($downloads_dir);
+    check_missing_children($downloads_dir);
 }
 
 
