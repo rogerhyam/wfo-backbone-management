@@ -253,6 +253,10 @@ function process_name($name, $version_name){
                 $out['parent_id_s'] = $parent->getAcceptedName()->getPrescribedWfoId()  . '-' . $version_name;
             }
 
+            // some useful stats for rendering the tree
+            $out['child_taxon_count_i'] = getChildCount();
+            $out['descendant_taxon_count_i'] = getDescendantCount();
+
         }else{
 
             // we are a synonym
