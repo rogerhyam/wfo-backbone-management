@@ -350,11 +350,12 @@ function check_author_string_characters($downloads_dir){
         n.id as name_id,
         i.`value`,
         authors,
-        if( authors like '%.ex %', 'dot-ex-space',  if(authors like '%. ,%', 'dot-space-comma', 'dot-ampersand') ) as 'error'
+        if( authors like '%.ex %', 'dot-ex-space', if(authors like '% ex.%', 'space-ex-dot',  if(authors like '%. ,%', 'dot-space-comma', 'dot-ampersand') ) ) as 'error'
         FROM `names` as n
         JOIN identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
         WHERE  
             authors like '%.ex %'
+            or authors like '% ex.%'
             or authors like '%. ,%'
             or authors like '%.&%'";
 
