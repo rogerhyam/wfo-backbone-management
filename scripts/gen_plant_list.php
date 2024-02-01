@@ -254,7 +254,7 @@ function process_name($name, $version_name){
             }
 
             // some useful stats for rendering the tree
-            $out['child_taxon_count_i'] = getChildCount();
+            $out['child_taxon_count_i'] = $taxon->getChildCount();
 
         }else{
 
