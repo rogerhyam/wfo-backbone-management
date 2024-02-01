@@ -44,6 +44,8 @@ if(count($argv) > 1){
     check_missing_authors($downloads_dir);
     check_missing_species_name_part($downloads_dir);
     check_missing_children($downloads_dir);
+    check_author_string_contains_in($downloads_dir);
+    check_author_string_characters($downloads_dir);
 }
 
 
@@ -307,8 +309,60 @@ function check_missing_children($downloads_dir){
     run_sql_check(
         "check_missing_children", // $name,
         "Accepted taxa above the rank of species should have child taxa or there is no reason for them to exist.", //$title,
-        "Not taxa were found above species level that lack child taxa.", // $success,
+        "No taxa were found above species level that lack child taxa.", // $success,
         "Taxa above species level were found that lack children.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
+function check_author_string_contains_in($downloads_dir){
+
+    $sql = "SELECT
+            n.id as name_id,
+            i.`value`,
+            authors,
+            `status`
+            FROM `names` as n
+            JOIN identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
+            WHERE  
+                authors like '%.in %'
+                or authors like '%,in %'
+                or authors like '% in %'
+                or authors like '% in,%'
+                or authors like '% in.%'
+                and `status` != 'deprecated'";
+
+    run_sql_check(
+        "check_author_string_contains_in", // $name,
+        "Author strings should not contain ' in '.", //$title,
+        "No names were found with in in their author strings.", // $success,
+        "Names were found with in in their author strings.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
+
+function check_author_string_characters($downloads_dir){
+
+    $sql = "SELECT
+        n.id as name_id,
+        i.`value`,
+        authors,
+        if( authors like '%.ex %', 'dot-ex-space',  if(authors like '%. ,%', 'dot-space-comma', 'dot-ampersand') ) as 'error'
+        FROM `names` as n
+        JOIN identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
+        WHERE  
+            authors like '%.ex %'
+            or authors like '%. ,%'
+            or authors like '%.&%'";
+
+    run_sql_check(
+        "check_author_string_characters", // $name,
+        "Certain combinations of characters in author strings are errors e.g. a dot before an ampersand.", //$title,
+        "No names were found with incorrect character combinations.", // $success,
+        "Names were found with suspicious character combinations.", // $failure,
         $sql,
         $downloads_dir);
 

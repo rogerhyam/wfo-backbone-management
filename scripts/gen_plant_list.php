@@ -265,7 +265,6 @@ function process_name($name, $version_name){
             // couple of useful things to help build links without fetching the other record
             $out['accepted_full_name_string_html_s'] = $taxon->getAcceptedName()->getFullNameString();
             $out['accepted_full_name_string_plain_s'] = strip_tags($taxon->getAcceptedName()->getFullNameString());
-            $out['accepted_child_count_is'][] = $taxon->getChildCount();
 
         }
 
