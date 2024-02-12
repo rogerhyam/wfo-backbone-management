@@ -22,3 +22,5 @@ data/sources/rods_names_matched.csv
 .gitignore
 data/sources/rods_names_unmatched.csv
 data/coldp_metadata.json
+data/treatment_bank/xml.rss.xml
+data/treatment_bank/potential_plants_csv
