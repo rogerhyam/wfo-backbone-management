@@ -19,6 +19,13 @@
     cd ../data/treatment_bank/
     curl -O https://tb.plazi.org/GgServer/xml.rss.xml
 
+    -- get a list of the treatments
+    SELECT i.`value`, r.* FROM promethius.references as r
+JOIN name_references as nr ON r.id = nr.reference_id
+JOIN identifiers as i on nr.name_id = i.name_id and i.kind = 'wfo'
+ where r.kind = 'treatment';
+
+
 */
 
 require_once('../config.php');
@@ -78,14 +85,19 @@ function process_xml_file($file){
 }
 
 // this is where the work is done
-function process_item($item){
+function process_item($item, $tries = 0){
 
     global $out;
     global $mysqli;
     global $total_count;
     global $plants_count;
+    global $argv;
 
-    $total_count++;
+    // we have a skip mechanism to jump on to where we failed before
+    if(count($argv) > 1 && $argv[1] > $total_count){
+        $total_count++;
+        return;
+    }
 
     $name_string = trim($item['TITLE']);
     $link = trim($item['LINK']);
@@ -101,8 +113,21 @@ function process_item($item){
     //echo "\t{$link_html}\n";
 
     // is a plant at least mentioned in the treatement?
-
-    $taxonx = file_get_contents($link_taxonx);
+    try{
+        $taxonx = file_get_contents($link_taxonx);
+    }catch (Exception $e) {
+        if($tries < 4){
+            echo $e->getMessage();
+            echo "\nTrying again in 10 seconds\n";
+            sleep(10); // hang on 10 seconds see if the connection comes back up
+            $tries++;
+            process_item($item, $tries);
+        }
+        return;
+    }
+    
+    $total_count++;
+    
     $xml = simplexml_load_string($taxonx);
 
     $xml->registerXPathNamespace('tax', 'http://www.taxonx.org/schema/v1');
