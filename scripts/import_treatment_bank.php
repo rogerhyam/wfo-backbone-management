@@ -114,7 +114,8 @@ function process_item($item, $tries = 0){
 
     // is a plant at least mentioned in the treatement?
     try{
-        $taxonx = file_get_contents($link_taxonx);
+        $taxonx = @file_get_contents($link_taxonx);
+        if($taxonx === false) throw new ErrorException("nothing returned");
     }catch (Exception $e) {
         if($tries < 4){
             echo $e->getMessage();
