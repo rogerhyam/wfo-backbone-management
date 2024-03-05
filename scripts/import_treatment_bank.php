@@ -29,8 +29,8 @@ $_SESSION['user'] = serialize(User::loadUserForDbId(1));
 $treatment_bank_uri = "https://tb.plazi.org/GgServer/srsStats/stats?outputFields=doc.uuid+doc.uploadDate+doc.updateDate+lnk.doi+lnk.httpUri+pubLnk.articleDoi+tax.name+tax.rank+tax.kingdomEpithet+tax.phylumEpithet+tax.classEpithet+tax.orderEpithet+tax.familyEpithet+tax.genusEpithet+tax.speciesEpithet+tax.authority+tax.colId&groupingFields=doc.uuid+doc.uploadDate+doc.updateDate+lnk.doi+lnk.httpUri+pubLnk.articleDoi+tax.name+tax.rank+tax.kingdomEpithet+tax.phylumEpithet+tax.classEpithet+tax.orderEpithet+tax.familyEpithet+tax.genusEpithet+tax.speciesEpithet+tax.authority+tax.colId&orderingFields=-doc.uploadDate&FP-tax.kingdomEpithet=Plantae&limit=10000&format=json&FP-doc.uploadDate=";
 
 // first ever upload is 2009-05-26
-// $day = new DateTime();
-$day = new DateTime('2023-05-25');
+$day = new DateTime();
+//$day = new DateTime('2023-05-25');
 $stop = new DateTime('2009-05-25');
 
 $out = fopen('../data/treatments/treatment_bank_no_match.csv', 'w'); // FIXME - in production set this to append?
@@ -82,7 +82,7 @@ while($day > $stop){
         echo "\t" . strip_tags($name->getFullNameString()) . "\n";
         echo "+\t" . $name->getPrescribedWfoId() . "\n";
 
-        echo "\t--- doing treatmentbank ref ---\n";
+        echo "\t--- doing treatmentbank ref ---";
 
         // we can make a record using the LnkHttpUri
         // do we have a reference for this uri?
@@ -95,9 +95,9 @@ while($day > $stop){
             $ref->setDisplayText("Parsed treatment for \"{$treatment->TaxName}\" uploaded to TreatmentBank on $day_string.");  
             $ref->setUserId(1);
             $ref->save();
-            echo "\tCreated:\t" . $ref->getId() . "\n";
+            echo "\n\tCreated:\t" . $ref->getId() . "\n";
         }else{
-            echo "\tExists:\t" . $ref->getId() . "\n";
+            echo "\n\tExists:\t" . $ref->getId() . "\n";
         }
 
         // is it already attached?
@@ -122,7 +122,7 @@ while($day > $stop){
         $doi_match = array();
         if($treatment->PubLnkArticleDoi && preg_match('/(10\.[0-9]+\/.+)/', $treatment->PubLnkArticleDoi, $doi_match)){
 
-            echo "\t--- doing doi ref ---\n";
+            echo "\t--- doing doi ref ---";
 
             // our doi uris look like this 'https://doi.org/10.11646/phytotaxa.19.1.3'
 
