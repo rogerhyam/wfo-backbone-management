@@ -23,3 +23,4 @@ data/treatment_bank/potential_plants_csv
 data/.DS_Store
 scripts/ranks.tsv
 data/.DS_Store
+data/treatments/xml.rss.xml
