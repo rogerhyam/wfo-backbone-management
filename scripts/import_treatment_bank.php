@@ -127,7 +127,9 @@ while($day > $stop){
             // our doi uris look like this 'https://doi.org/10.11646/phytotaxa.19.1.3'
 
             $doi = 'doi:' . $doi_match[0];
+            echo "\n\t{$doi}";
             $uri = 'https://doi.org/' . $doi_match[0];
+            echo "\n\t{$uri}";
 
             // as before we create the reference if needed
             $ref = Reference::getReferenceByUri($uri);
