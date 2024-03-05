@@ -35,6 +35,10 @@ define('ORCID_LOG_IN_URI', 'https://orcid.org/oauth/authorize?client_id='. ORCID
 // gbif web services (end in slash)
 define('GBIF_WEB_SERVICE_URI', 'https://api.gbif.org/v1/');
 
+// webservices for accessing the plant list API
+define('PLANT_LIST_URI_LIVE', 'https://list.worldfloraonline.org/');
+define('PLANT_LIST_URI_STAGING', 'https://rhakhis.rbge.info/');
+
 // status flags
 define("WFO_INTEGRITY_OK", 1); // when the integrity of a name or taxon checks out
 define("WFO_INTEGRITY_FAIL", 2); // when the integrity of a name or taxon does not check out

@@ -8,10 +8,10 @@
  */
 class NameMatcher{
 
-    private String $queryString;
-    private Array $name_parts = array();
-    private ?String $rank = null;
-    private ?String $authors = null;
+    protected String $queryString;
+    protected Array $name_parts = array();
+    protected ?String $rank = null;
+    protected ?String $authors = null;
 
     function alphaMatch($queryString){
 
