@@ -50,7 +50,7 @@ while($day > $stop){
     // work through the data and try and match them
     foreach($response->data as $treatment){
 
-        echo "\t$treatment->TaxName\n";
+        echo "\n\t$treatment->TaxName\n";
         echo "\t" . $treatment->LnkHttpUri . "\n";
         echo "\t" . $treatment->PubLnkArticleDoi . "\n";
 
@@ -82,7 +82,20 @@ while($day > $stop){
         echo "\t" . strip_tags($name->getFullNameString()) . "\n";
         echo "+\t" . $name->getPrescribedWfoId() . "\n";
 
-        echo "\t--- doing treatmentbank ref ---";
+        echo "\t--- doing treatmentbank ref ---\n";
+        $treatment_xml_uri = "https://tb.plazi.org/GgServer/xml/" . $treatment->DocUuid;
+        $treatment_xml = file_get_contents($treatment_xml_uri);
+        $treatment_doc = new SimpleXMLElement($treatment_xml);
+        $treatment_doc->registerXPathNamespace("mods", "http://www.loc.gov/mods/v3");
+
+        if(isset($treatment_doc->xpath("/document/mods:mods/mods:classification")[0])) $treatment_kind = $treatment_doc->xpath("/document/mods:mods/mods:classification")[0];
+        else $treatment_kind = '';
+        echo "\tKind: " . $treatment_kind . "\n";
+
+        if(isset($treatment_doc->xpath("/document/mods:mods/mods:titleInfo/mods:title")[0])) $treatment_title = $treatment_doc->xpath("/document/mods:mods/mods:titleInfo/mods:title")[0];
+        else $treatment_title = '';
+
+        echo "+\t" . $treatment_title . "\n";
 
         // we can make a record using the LnkHttpUri
         // do we have a reference for this uri?
@@ -92,12 +105,12 @@ while($day > $stop){
             $ref = Reference::getReference(null);
             $ref->setKind('treatment');
             $ref->setLinkUri($treatment->LnkHttpUri);
-            $ref->setDisplayText("Parsed treatment for \"{$treatment->TaxName}\" uploaded to TreatmentBank on $day_string.");  
+            $ref->setDisplayText("Parsed text from $treatment_kind \"{$treatment_title}\" uploaded to TreatmentBank on $day_string.");  
             $ref->setUserId(1);
             $ref->save();
-            echo "\n\tCreated:\t" . $ref->getId() . "\n";
+            echo "\tCreated:\t" . $ref->getId() . "\n";
         }else{
-            echo "\n\tExists:\t" . $ref->getId() . "\n";
+            echo "\tExists:\t" . $ref->getId() . "\n";
         }
 
         // is it already attached?
@@ -155,9 +168,9 @@ while($day > $stop){
                     print_r($update_response);
                     exit;
                 }
-                echo "\n\tCreated:\t" . $ref->getId();
+                echo "\n\tDOI Created:\t" . $ref->getId();
             }else{
-                echo "\n\tExists:\t" . $ref->getId();
+                echo "\n\tDOI Exists:\t" . $ref->getId();
             }
 
             // is it already attached?
@@ -172,9 +185,9 @@ while($day > $stop){
             // do we need to attach it to the name?
             if(!$already_there){
                 $name->addReference($ref, "DOI link from Plazi TreatmentBank.", false);
-                echo "\n\tAdded";
+                echo "\n\tDOI Added";
             }else{
-                echo "\n\tAlready present";
+                echo "\n\tDOI Already present";
             }
 
         } // if DOI present
