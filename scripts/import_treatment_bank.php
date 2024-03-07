@@ -29,8 +29,8 @@ $_SESSION['user'] = serialize(User::loadUserForDbId(1));
 $treatment_bank_uri = "https://tb.plazi.org/GgServer/srsStats/stats?outputFields=doc.uuid+doc.uploadDate+doc.updateDate+lnk.doi+lnk.httpUri+pubLnk.articleDoi+tax.name+tax.rank+tax.kingdomEpithet+tax.phylumEpithet+tax.classEpithet+tax.orderEpithet+tax.familyEpithet+tax.genusEpithet+tax.speciesEpithet+tax.authority+tax.colId&groupingFields=doc.uuid+doc.uploadDate+doc.updateDate+lnk.doi+lnk.httpUri+pubLnk.articleDoi+tax.name+tax.rank+tax.kingdomEpithet+tax.phylumEpithet+tax.classEpithet+tax.orderEpithet+tax.familyEpithet+tax.genusEpithet+tax.speciesEpithet+tax.authority+tax.colId&orderingFields=-doc.uploadDate&FP-tax.kingdomEpithet=Plantae&limit=10000&format=json&FP-doc.uploadDate=";
 
 // first ever upload is 2009-05-26
-$day = new DateTime();
-//$day = new DateTime('2023-05-25');
+//$day = new DateTime();
+$day = new DateTime('2020-05-09');
 $stop = new DateTime('2009-05-25');
 
 $out = fopen('../data/treatments/treatment_bank_no_match.csv', 'w'); // FIXME - in production set this to append?
