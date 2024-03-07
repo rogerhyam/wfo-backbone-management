@@ -8,6 +8,12 @@
 
     https://tb.plazi.org/GgServer/srsStats/stats?outputFields=doc.uuid+doc.uploadDate+doc.updateDate+lnk.doi+lnk.httpUri+pubLnk.articleDoi+tax.name+tax.rank+tax.kingdomEpithet+tax.phylumEpithet+tax.classEpithet+tax.orderEpithet+tax.familyEpithet+tax.genusEpithet+tax.speciesEpithet+tax.authority+tax.colId&groupingFields=doc.uuid+doc.uploadDate+doc.updateDate+lnk.doi+lnk.httpUri+pubLnk.articleDoi+tax.name+tax.rank+tax.kingdomEpithet+tax.phylumEpithet+tax.classEpithet+tax.orderEpithet+tax.familyEpithet+tax.genusEpithet+tax.speciesEpithet+tax.authority+tax.colId&orderingFields=tax.name&FP-doc.uploadDate=%222024-01-12%22&FP-tax.kingdomEpithet=Plantae&format=TSV
 
+    nohup php import_treatment_bank.php &
+
+
+    To watch progress...
+    egrep -i '^[0-9]{4}' nohup.out
+
 
 */
 
@@ -40,7 +46,7 @@ $matcher = new NameMatcherPlantList();
 while($day > $stop){
 
     $day_string = $day->format('Y-m-d');
-    echo "$day_string";
+    echo "\n$day_string";
     $query_uri = $treatment_bank_uri . '%22'. $day_string .'%22';
     //echo "\t$query_uri\n";
     $json = file_get_contents($query_uri);
@@ -255,6 +261,11 @@ function fetch_citation($uri, $doi){
 
         // they send HTML we use the doi
         if(preg_match('/<html/', $citation)) return $doi;
+
+        // clean up the string 
+        $citation = str_replace('&Apos;', '&apos;', $citation);
+        $citation = html_entity_decode($citation, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $citation = strip_tags($citation);
 
         // max length
         if(strlen($citation) > 1000) $citation = substr($citation, 0, 995) . " ...";
