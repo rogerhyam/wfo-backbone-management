@@ -26,3 +26,8 @@ data/.DS_Store
 data/treatments/xml.rss.xml
 data/treatments/treatment_bank_no_match.csv
 data/.DS_Store
+data/sources/TypesForRBGE.csv
+data/.DS_Store
+data/sources/TypesForRBGE_found.csv
+data/sources/TypesForRBGE_not_found.csv
+data/.DS_Store
