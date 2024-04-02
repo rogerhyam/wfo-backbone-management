@@ -377,10 +377,10 @@ function process_row($row, $out, $fields ,$out_references, $fields_references){
     // references
     $refs = $name->getReferences();
     foreach($refs as $usage){
-        if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'database'){
+        if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'database'){
             $dwc["references"] = $usage->reference->getLinkUri();
         }
-        if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+        if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
             $dwc["source"] = $usage->reference->getDisplayText();
         }
     }
@@ -393,7 +393,7 @@ function process_row($row, $out, $fields ,$out_references, $fields_references){
             if($anc->getAcceptedName()->getRank() == 'family'){
                 $fam_refs = $anc->getAcceptedName()->getReferences();
                 foreach ($fam_refs as $usage) {
-                   if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                   if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
                         $dwc["source"] = $usage->reference->getDisplayText();
                     }
                 }

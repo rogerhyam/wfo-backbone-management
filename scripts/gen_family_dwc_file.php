@@ -378,10 +378,10 @@ function process_family($family_wfo, $file_path){
             // get the references for the name
             $refs = $name->getReferences();
             foreach($refs as $usage){
-                if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'database'){
+                if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'database'){
                     $row["references"] = $usage->reference->getLinkUri();
                 }
-                if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
                     $row["source"] = $usage->reference->getDisplayText();
                 }
             }
@@ -404,7 +404,7 @@ function process_family($family_wfo, $file_path){
                     if($anc->getAcceptedName()->getRank() == 'family'){
                         $fam_refs = $anc->getAcceptedName()->getReferences();
                         foreach ($fam_refs as $usage) {
-                            if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                            if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
                                 $row["source"] = $usage->reference->getDisplayText();
                             }
                         }
@@ -600,7 +600,7 @@ function process_family($family_wfo, $file_path){
         // look for a person taxon reference - they are the organisation we use
         $refs = $family_name->getReferences();
         foreach($refs as $usage){
-            if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+            if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
                 $eml_organisation = $usage->reference->getDisplayText();
                 $eml_organisation_uri = $usage->reference->getLinkUri();
                 $eml_comment = $usage->comment;

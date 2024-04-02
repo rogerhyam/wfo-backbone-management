@@ -49,7 +49,7 @@ while($row = $result->fetch_assoc()){
      // get the references for the name
     $refs = $name->getReferences();
     foreach($refs as $usage){
-        if($usage->subjectType == 'taxon'){
+        if($usage->role == 'taxonomic'){
             echo "\tEXISTS";
             $existing_refs++;
             continue 2;
@@ -82,7 +82,7 @@ while($row = $result->fetch_assoc()){
     // check we haven't already got it
     $usages = $name->getReferences();
     foreach($usages as $usage){
-        if($usage->reference->getId() == $ref->getId() && $usage->subjectType == 'taxon'){
+        if($usage->reference->getId() == $ref->getId() && $usage->role == 'taxonomic'){
             echo "\t Already got ref.";
             $counter++;
             continue 2;
@@ -95,5 +95,3 @@ while($row = $result->fetch_assoc()){
 
 
 }
-
-

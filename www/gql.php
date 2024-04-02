@@ -698,7 +698,7 @@ $schema = new Schema([
                     ],
                     'subjectType' => [
                         'type' => Type::string(),
-                        'description' => "Whether this applies to a taxon or name. Should be just 'taxon' or 'name'",
+                        'description' => "The role this reference plays in this name. Should be 'nomenclatural', 'taxanomic' or 'treatment'. ('taxon' and 'name' are supported for backwards compatibility).",
                         'required' => true
                     ],
                     'wfo' => [
@@ -822,5 +822,3 @@ try {
 
 header('Content-Type: application/json');
 echo json_encode($output);
-
-

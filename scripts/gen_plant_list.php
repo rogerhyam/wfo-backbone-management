@@ -226,7 +226,7 @@ function process_name($name, $version_name){
         $out["reference_thumbnail_uris_ss"][] = $usage->reference->getThumbnailUri() ? $usage->reference->getThumbnailUri() : "-";
         $out["reference_labels_ss"][] = $usage->reference->getDisplayText();
         $out["reference_comments_ss"][] = $usage->comment ? $usage->comment: "-";
-        $out["reference_contexts_ss"][] = $usage->subjectType;
+        $out["reference_contexts_ss"][] = $usage->role;
     }
 
 
@@ -310,7 +310,7 @@ function process_name($name, $version_name){
             $anc_refs = $anc->getAcceptedName()->getReferences();
             foreach($anc_refs as $usage){
                 // this is how we flag TENs as being the source
-                if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
                     $out['ten_name_s'] = $usage->reference->getDisplayText();
                     $out['ten_uri_s'] = $usage->reference->getLinkUri();
                     $out['ten_comment_s'] = $usage->comment;

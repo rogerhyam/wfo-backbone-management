@@ -1,10 +1,9 @@
-
 <div style="width: 1000px">
-<h2>References</h2>
+    <h2>References</h2>
 
-<p style="color: red;">Changes data in Rhakhis.</p>
+    <p style="color: red;">Changes data in Rhakhis.</p>
 
-<?php
+    <?php
     $table = @$_SESSION['selected_table'];
     if(!$table){
         echo '<p style="color: red;">You need to select a table before you can do anything here.</p>';
@@ -42,7 +41,7 @@ function run_references($table){
     $uri_column  = $_GET['uri_column'];
     $ref_kind = $_GET['ref_kind'];
     $uri_filter  = $_GET['uri_filter'];
-    $subject_type = @$_GET['taxonomic'] ? 'taxon':'name';
+    $role = $_GET['role'];
 
     $sql = "SELECT * FROM `rhakhis_bulk`.`$table` WHERE `$wfo_column` IS NOT NULL";
     if($uri_filter) $sql .= " AND `$uri_column` LIKE 'uri_filter%'";
@@ -124,14 +123,14 @@ function run_references($table){
         $ref_usages = $name->getReferences();
         $found = false;
         foreach($ref_usages as $ref_use){
-            if($ref_use->reference == $ref && $ref_use->subjectType == $subject_type){
+            if($ref_use->reference == $ref && $ref_use->role == $role){
                 
                 // we already have that reference as a taxon/name type.
 
                 // update the comment if there is one
                 if($ref_use->comment != $comment){
                     // update comment
-                    $placement_related = $subject_type == 'taxon' ? true: false;
+                    $placement_related = $role == 'taxonomic' ? true: false;
                     $name->updateReference($ref, $comment, $placement_related);
                     $_SESSION['references_updated']++;
                 }
@@ -154,12 +153,12 @@ function run_references($table){
                 So for each reference type we can only have one instance
             */
 
-            if($subject_type == 'taxon'){
+            if($role == 'taxonomic'){
 
                 // look through the current references again
                 $ref_usages = $name->getReferences();
                 foreach($ref_usages as $ref_use){
-                    if($ref_use->subjectType == 'taxon' && $ref_use->reference->getKind() == $ref->getKind()){
+                    if($ref_use->role == 'taxonomic' && $ref_use->reference->getKind() == $ref->getKind()){
                         // found a taxon reference of the same kind as the one we adding
                         // so remove it
                         $name->removeReference($ref_use->reference, true);
@@ -169,7 +168,7 @@ function run_references($table){
             }
 
             // finally add the new reference to the name
-            $placement_related = $subject_type == 'taxon' ? true: false;
+            $placement_related = $role == 'taxonomic' ? true: false;
             $name->addReference($ref, $comment, $placement_related);
             $_SESSION['references_added']++;
         
@@ -186,122 +185,137 @@ function render_form($table){
     global $mysqli;
 ?>
 
-<p>
-    This tool enables the import of references from a table that has at least three columns: WFO ID, Label and URI. 
-    If the reference already exists (based on the URI) it will not be created or changed but the comment might be updated.    
-<p>
+    <p>
+        This tool enables the import of references from a table that has at least three columns: WFO ID, Label and URI.
+        If the reference already exists (based on the URI) it will not be created or changed but the comment might be
+        updated.
+    <p>
 
-<form>
-    <input type="hidden" name="action" value="view" />
-    <input type="hidden" name="phase" value="references" />
-    <input type="hidden" name="active_run" value="true" />
-    <input type="hidden" name="page" value="0" />
-    <input type="hidden" name="page_size" value="1000" />
+    <form>
+        <input type="hidden" name="action" value="view" />
+        <input type="hidden" name="phase" value="references" />
+        <input type="hidden" name="active_run" value="true" />
+        <input type="hidden" name="page" value="0" />
+        <input type="hidden" name="page_size" value="1000" />
 
-    <table style="width: 800px">
-        <tr>
-            <th>WFO ID Column</th>
-            <td>
-                <select name="wfo_column">
-<?php
+        <table style="width: 800px">
+            <tr>
+                <th>WFO ID Column</th>
+                <td>
+                    <select name="wfo_column">
+                        <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
                     foreach($cols as $col){
                         echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
                     }
 ?>
-                </select>
-            </td>
-            <td>The column in the table that contains the WFO ID of the name the references apply to.</td>
-        </tr>
-        <tr>
-            <th>Label Column</th>
-            <td>
-                <select name="label_column">
-<?php
+                    </select>
+                </td>
+                <td>The column in the table that contains the WFO ID of the name the references apply to.</td>
+            </tr>
+            <tr>
+                <th>Label Column</th>
+                <td>
+                    <select name="label_column">
+                        <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
                     foreach($cols as $col){
                         echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
                     }
 ?>
-                </select>
-            </td>
-            <td>The column in the table that contains the string text for the reference. This is the reference citation and is the same everywhere the referenced is used.</td>
-        </tr>
-        <tr>
-            <th>Comment Column</th>
-            <td>
-                <select name="comment_column">
-                    <option value="">~ Ignore ~</option>
-<?php
+                    </select>
+                </td>
+                <td>The column in the table that contains the string text for the reference. This is the reference
+                    citation and is the same everywhere the referenced is used.</td>
+            </tr>
+            <tr>
+                <th>Comment Column</th>
+                <td>
+                    <select name="comment_column">
+                        <option value="">~ Ignore ~</option>
+                        <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
                     foreach($cols as $col){
                         echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
                     }
 ?>
-                </select>
-            </td>
-            <td>The column in the table that contains the string text for the reference for this name. This is a comment on how the reference relates to this name in particular. It can be different for every name-reference relationship.</td>
-        </tr>
-        <tr>
-            <th>URI Column</th>
-            <td>
-                <select name="uri_column">
-<?php
+                    </select>
+                </td>
+                <td>The column in the table that contains the string text for the reference for this name. This is a
+                    comment on how the reference relates to this name in particular. It can be different for every
+                    name-reference relationship.</td>
+            </tr>
+            <tr>
+                <th>URI Column</th>
+                <td>
+                    <select name="uri_column">
+                        <?php
                     $response = $mysqli->query("DESCRIBE `rhakhis_bulk`.`$table`");
                     $cols = $response->fetch_all(MYSQLI_ASSOC);
                     foreach($cols as $col){
                         echo "<option value=\"{$col['Field']}\">{$col['Field']}</option>";
                     }
 ?>
-                </select>
-            </td>
-            <td>The column in the table that contains the URI of the reference. This could be a DOI with the https prefix. Import of the reference will fail if this isn't a valid URI syntax.</td>
-        </tr>
-        <tr>
-            <th>Reference Kind</th>
-            <td>
-                <select name="ref_kind">
-<?php
-    $kinds = Reference::getReferenceKindEnumeration();
-    sort($kinds);
-    foreach($kinds as $kind){
-        echo "<option value=\"$kind\">$kind</option>";
-    }
-?>                  
-                </select>
-            </td>
-            <td>What does the reference point to?</td>
-        </tr>
-        <tr>
-            <th>Is&nbsp;Taxonomic&nbsp;Reference</th>
-            <td>
-                <input type="checkbox" name="taxonomic" />
-            </td>
-            <td>The default is to presume reference is about nomenclature (gray box). 
-                Check this box if the reference is about placement of the name in the taxonomy (yellow box).
-                <strong>Placement references replace existing placement references of the same kind.</strong>
-                The placement reference is the authoritative reason for accepting the taxon so there can only be 
-                one of them, typically one literature, one database and one 'person' (a TEN).
-            </td>
-        </tr>
-        <tr>
-            <th>URI Filter</th>
-            <td>
-                <input type="text" name="uri_filter" placeholder="start of uri"/>
-            </td>
-            <td>If specified here, only rows where the URI starts with this string (case insensitive) will be imported. This may be useful when there are references of multiple kinds in the table and they need to be imported in batches. e.g. Using https://doi.org/ to separate literature references from database references.</td>
-        </tr>
-        <tr>
-                <td colspan="3" style="text-align: right;"><input type="submit" value="Start Import Now"/></td>
-        </tr>
-    </table>
+                    </select>
+                </td>
+                <td>The column in the table that contains the URI of the reference. This could be a DOI with the https
+                    prefix. Import of the reference will fail if this isn't a valid URI syntax.</td>
+            </tr>
+            <tr>
+                <th>Reference Kind</th>
+                <td>
+                    <select name="ref_kind">
+                        <?php
+                    $kinds = Reference::getReferenceKindEnumeration();
+                    sort($kinds);
+                    foreach($kinds as $kind){
+                        echo "<option value=\"$kind\">$kind</option>";
+                    }
+?>
+                    </select>
+                </td>
+                <td>What does the reference point to?</td>
+            </tr>
+            <tr>
+                <th>Role&nbsp;of&nbsp;Reference&nbsp;to&nbsp;name</th>
+                <td>
+                    <select name="role">
+                        <?php
+                $roles = ReferenceUsage::getRoleEnumeration();
+                sort($roles);
+                foreach($roles as $role){
+                    echo "<option value=\"$role\">$role</option>";
+                }
+?>
+                    </select>
+                </td>
+                <td>Specify the role the reference plays in the name.
+                    <strong>Taxonomic references replace existing placement references of the same kind.</strong>
+                    The taxonomic reference is the authoritative reason for accepting the taxon so there can only be
+                    one of them, typically one literature, one database and one 'person' (a TEN).
+                </td>
+            </tr>
+            <tr>
+                <th>URI Filter</th>
+                <td>
+                    <input type="text" name="uri_filter" placeholder="start of uri" />
+                </td>
+                <td>If specified here, only rows where the URI starts with this string (case insensitive) will be
+                    imported. This may be useful when there are references of multiple kinds in the table and they need
+                    to be imported in batches. e.g. Using https://doi.org/ to separate literature references from
+                    database references.</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align: right;"><input type="submit" value="Start Import Now" /></td>
+            </tr>
+        </table>
 
-</form>
+    </form>
 
-<?php
+    <?php
 }
 ?>
 

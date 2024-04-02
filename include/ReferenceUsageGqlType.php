@@ -27,7 +27,10 @@ class ReferenceUsageGqlType extends ObjectType
                     ],
                     'subjectType' => [
                         'type' => Type::string(),
-                        'description' => "Whether the reference is about a taxon or name."
+                        'description' => "Whether the reference is about a taxon or name or treatment.",
+                        'resolve' => function($usage){
+                            return $usage->role;
+                        }
                     ]
                 ];
             }

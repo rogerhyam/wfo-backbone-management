@@ -293,7 +293,7 @@ while(true){
                 // get the first taxonomic literature reference if we have one
                 $anc_refs = $anc->getAcceptedName()->getReferences();
                 foreach($anc_refs as $usage){
-                    if($usage->subjectType == 'taxon'){
+                    if($usage->role == 'taxonomic'){
 
                         // if we have found a literature reference then 
                         // it is the according to
@@ -393,7 +393,7 @@ while(true){
                     $anc_refs = $anc->getAcceptedName()->getReferences();
                     foreach($anc_refs as $usage){
                         // this is how we flag TENs as being the source
-                        if($usage->subjectType == 'taxon' && $usage->reference->getKind() == 'person'){
+                        if($usage->role == 'taxonomic' && $usage->reference->getKind() == 'person'){
                             $scrutinizer = $usage->reference->getDisplayText() . ": " . $usage->comment;
                             $scrutinizer_id = $usage->reference->getLinkUri();
                         }
@@ -435,7 +435,7 @@ while(true){
         $protologue = null;
         $protologue_row = array();
         foreach($refs as $usage){
-            if($usage->subjectType == 'name' && $usage->reference->getKind() == 'literature'){
+            if($usage->role == 'nomenclatural' && $usage->reference->getKind() == 'literature'){
                $protologues[] = $usage;
             }
         }

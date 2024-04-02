@@ -69,7 +69,7 @@ while($row = $result->fetch_assoc()){
 
         // find the one that is the padme one
         foreach($refs as $usage){
-            if( strpos($usage->reference->getLinkUri(), 'padme') && $usage->subjectType == 'taxon'){
+            if( strpos($usage->reference->getLinkUri(), 'padme') && $usage->role == 'taxonomic'){
                 echo "\tremoving\t{$usage->reference->getLinkUri()}";
                 $name->removeReference($usage->reference, true);
             }
@@ -83,4 +83,3 @@ while($row = $result->fetch_assoc()){
 }
 
  echo "\n$counter";
-

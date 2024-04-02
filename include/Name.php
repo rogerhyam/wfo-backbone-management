@@ -1167,11 +1167,16 @@ class Name extends WfoDbObject{
      * No attempt is made to prevent duplicates.
      * But adding ones with identical URI will fail
      */
-    public function addReference(Reference $ref, $comment, $placement_related = false){
+    public function addReference(Reference $ref, $comment, $role = false){
 
         global $mysqli;
 
-        $placement = $placement_related ? 1:0;
+        // we need a bit of backward compatibility
+        // before we changed placement from a simple boolean flag to a string value.
+        // if we are passed a boolean we convert it to the appropriate string.
+        if(is_bool($role)){
+            $role = $role ? 'taxonomic' : 'nomenclatural';
+        }
 
         // we do things as the current user no the user of this object
         $user = unserialize($_SESSION['user']);
@@ -1180,18 +1185,18 @@ class Name extends WfoDbObject{
             throw new ErrorException("User: {$user->getName()} ({$user->getId()}) does not have permission to edit this item ({$this->getId()})");
         }
 
-        $stmt = $mysqli->prepare("INSERT INTO `name_references`(`name_id`, `reference_id`, `comment`, `placement_related`, `user_id`) VALUES (?,?,?,?,?)");
+        $stmt = $mysqli->prepare("INSERT INTO `name_references`(`name_id`, `reference_id`, `comment`, `role`, `user_id`) VALUES (?,?,?,?,?)");
         
         if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
 
         $user_id = $user->getId();
         $ref_id = $ref->getId();
 
-        $stmt->bind_param("iisii", 
+        $stmt->bind_param("iissi", 
             $this->id,
             $ref_id,
             $comment,
-            $placement,
+            $role,
             $user_id
         );
         if(!$stmt->execute()){
@@ -1203,11 +1208,16 @@ class Name extends WfoDbObject{
         $this->updateChangeLog("Added reference: {$ref_id}");
     }
 
-    public function updateReference(Reference $ref, $comment, $placement_related = false){
+    public function updateReference(Reference $ref, $comment, $role = false){
        
         global $mysqli;
 
-        $placement = $placement_related ? 1:0;
+        // we need a bit of backward compatibility
+        // before we changed placement from a simple boolean flag to a string value.
+        // if we are passed a boolean we convert it to the appropriate string.
+        if(is_bool($role)){
+            $role = $role ? 'taxonomic' : 'nomenclatural';
+        }
 
         // we do things as the current user no the user of this object
         $user = unserialize($_SESSION['user']);
@@ -1218,7 +1228,7 @@ class Name extends WfoDbObject{
 
         // simple query to update the comment.
         $c = $mysqli->real_escape_string($comment);
-        $sql = "UPDATE `name_references` SET `comment` = '$c' WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND placement_related = $placement";
+        $sql = "UPDATE `name_references` SET `comment` = '$c' WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND `role` = '$role'";
 
         $result = $mysqli->query($sql);
 
@@ -1226,18 +1236,23 @@ class Name extends WfoDbObject{
 
     }
 
-    public function removeReference(Reference $ref, $placement_related = false){
+    public function removeReference(Reference $ref, $role = false){
 
         global $mysqli;
 
-        $placement = $placement_related ? 1:0;
+        // we need a bit of backward compatibility
+        // before we changed placement from a simple boolean flag to a string value.
+        // if we are passed a boolean we convert it to the appropriate string.
+        if(is_bool($role)){
+            $role = $role ? 'taxonomic' : 'nomenclatural';
+        }
 
         if(!$this->canEdit()){
             throw new ErrorException("User: {$user->getName()} ({$user->getId()}) does not have permission to edit this item ({$this->getId()})");
         }
 
         // simple query. Including taxon/name id should help secure 
-        $result = $mysqli->query("DELETE FROM `name_references` WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND placement_related = $placement");
+        $result = $mysqli->query("DELETE FROM `name_references` WHERE reference_id = {$ref->getId()} AND `name_id` = {$this->getId()} AND `role` = '$role'");
         if($mysqli->error) echo $mysqli->error;
         
     }
@@ -1254,11 +1269,11 @@ class Name extends WfoDbObject{
         // no attempt made to cache list but references are singletons so should only be created once
         // even if we call this several times.
 
-        $sql = "SELECT `reference_id`, `comment`, `placement_related` 
+        $sql = "SELECT `reference_id`, `comment`, tr.`role` 
                 FROM `name_references` as tr
                 JOIN `references` as r on tr.reference_id = r.id
                 WHERE  `name_id` = {$this->getId()}
-                ORDER BY FIELD(`kind`, 'literature','specimen','person','database', 'treatment'), display_text";
+                ORDER BY FIELD(`kind`, 'literature','specimen','person','database'), display_text";
 
         if($kind) $sql .= " AND `kind` = '$kind'";
 
@@ -1266,12 +1281,9 @@ class Name extends WfoDbObject{
 
         $out = array();
         while($row = $result->fetch_assoc()){
-
-            $placement = $row['placement_related'] == 0 ? 'name':'taxon';
-
             $ref = Reference::getReference($row['reference_id']);
-            $id = $ref->getId() . '-' . $this->getId() . '-' . $placement;
-            $out[] = new ReferenceUsage($id,$ref,$row['comment'], $placement);
+            $id = $ref->getId() . '-' . $this->getId() . '-' . $row['role'];
+            $out[] = new ReferenceUsage($id,$ref,$row['comment'], $row['role']);
         }
         return $out;
 
