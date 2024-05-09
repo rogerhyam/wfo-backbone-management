@@ -651,7 +651,7 @@ class Name extends WfoDbObject{
 
         // we should not have ? in the author 
         $authors = $this->getAuthorsString();
-        if(strpos($authors, "?") !== false){
+        if($authors != null && strpos($authors, "?") !== false){
             $out->status = WFO_INTEGRITY_FAIL;
             $out->success = false;
             $out->children[] = new UpdateResponse('authors', false, "The author string can't contain a '?'.");
