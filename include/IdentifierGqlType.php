@@ -32,6 +32,13 @@ class IdentifierGqlType extends ObjectType
                         'resolve' => function($identifier){
                             return $identifier->getValues();
                         }
+                    ],
+                    'preferredValue' => [
+                        'type' => Type::string(),
+                        'description' => "The preferred value to use to refer to this name. Null if one isn't specified.",
+                        'resolve' => function($identifier){
+                            return $identifier->getPreferredValue();
+                        }
                     ]
                 ];
             }

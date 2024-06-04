@@ -21,6 +21,10 @@ class Name extends WfoDbObject{
     private ?string $citation_micro = null; // 800 char
     private ?int $basionym_id = null;
 
+    private ?int $preferredIpniIdentifierId = null; // saved and loaded to the names table
+    private ?string $preferredIpniIdentifier = null; // loaded on demand from the identifiers table
+
+
     private Array $all_ids = array();
     private Array $hints = array();
 
@@ -71,6 +75,7 @@ class Name extends WfoDbObject{
 
             // set all the fields individually - more data knitting
             $this->prescribed_wfo_id = $row['prescribed_wfo_id'];
+            $this->preferredIpniIdentifierId = $row['preferred_ipni_id'];
             $this->rank = $row['rank'];
             $this->name = $row['name'];
             $this->genus = $row['genus'];
@@ -87,10 +92,8 @@ class Name extends WfoDbObject{
             $this->source = $row['source'];
             $this->modified = $row['modified'];
             $this->created = $row['created'];
-
+            
         }
-
-
 
         $result->close();
 
@@ -180,35 +183,40 @@ class Name extends WfoDbObject{
     }
 
     public function setNameString($name){
-        $this->name = Name::sanitizeNameString(trim($name));
+        if($name) $this->name = Name::sanitizeNameString(trim($name));
+        else $this->name = null;
     }
     public function getNameString(){
         return $this->name;
     }
 
     public function setGenusString($genus){
-        $this->genus = ucfirst(mb_strtolower( Name::sanitizeNameString(trim($genus))) );
+        if($genus) $this->genus = ucfirst(mb_strtolower( Name::sanitizeNameString(trim($genus))) );
+        else $this->genus = null;
     }
     public function getGenusString(){
         return $this->genus;
     }
 
     public function setSpeciesString($species){
-        $this->species = mb_strtolower( Name::sanitizeNameString(trim($species)) );
+        if(($species)) $this->species = mb_strtolower( Name::sanitizeNameString(trim($species)));
+        else $this->species = null;
     }
     public function getSpeciesString(){
         return $this->species;
     }
 
     public function setAuthorsString($authors){
-        $this->authors = trim($authors);
+        if($authors) $this->authors = trim($authors);
+        else $this->authors = null;
     }
     public function getAuthorsString(){
         return $this->authors;
     }
 
     public function setStatus($status){
-        $this->status = mb_strtolower(trim($status));
+        if($status) $this->status = mb_strtolower(trim($status));
+        else $this->status = null;
     }
     public function getStatus(){
         return $this->status;
@@ -561,7 +569,10 @@ class Name extends WfoDbObject{
         // turn that into objects
         $out = array();
         foreach ($all_ids as $kind => $values) {
-           $out[] = new Identifier($kind, $values);
+            $preferred_value = null;
+            if($kind == 'ipni' && $this->getPreferredIpniId()) $preferred_value = $this->getPreferredIpniId();
+            if($kind == 'wfo') $preferred_value = $this->getPrescribedWfoId();
+            $out[] = new Identifier($kind, $values, $preferred_value);
         }
 
         // add in our internal identifiers - they are useful to see!
@@ -604,6 +615,83 @@ class Name extends WfoDbObject{
         return 'wfo-' . $row['wfo_id'];
 
         // FIXME - this could do with limits checks on it but can run for many millions before we run out of space.
+
+    }
+
+
+    /*
+        There is an index to ensure this is unique
+        so we have to be careful 
+    */
+    public function setPreferredIpniId($ipni_id){
+
+        global $mysqli;
+
+        // we do nothing if the user doesn't have rights to change this name
+        // They should never get here because interface should stop them
+        if(!$this->canEdit()){
+            throw new ErrorException("User does not have permission to set a preferred IPNI ID.");
+            return;
+        }
+
+        if(!$this->id) throw new ErrorException("Attempt to add preferred IPNI identifier to Name which doesn't have a db id.");
+        
+        // identifiers may not be sql friendly strings
+        $identifier_safe = $mysqli->real_escape_string($identifier);
+
+        // does that exist as an identifier for another name? - throw a wobbly
+        $sql = "SELECT * FROM `identifiers` WHERE `value` = '$identifier_safe' AND `kind` = 'IPNI' ";
+        $result = $mysqli->query($sql);
+        
+        // we need to find the identifiers id to add it to the names table
+        $identifier_id = false;
+        while($row = $result->fetch_assoc()){
+            if($row['name_id'] == $this->id) $identifier_id = $row['id'];
+
+            // if it is in use by another name throw a wobbly
+            if($row['name_id'] != $this->id){
+                throw new ErrorException("Attempt to add preferred IPNI identifier that is already in use for another name.");
+            }
+        }
+        $result->close();
+
+        // if we haven't found an id for the identifier then we need to add it to the table
+        if(!$identifier_id){
+             $mysqli->query("INSERT INTO `identifiers`  (`name_id`, `value`, `kind`) VALUES ({$this->id}, '$identifier_safe', 'ipni')");
+            if($mysqli->affected_rows != 1 ) throw new ErrorException("Failed to add preferred IPNI identifier." . $mysqli->error);
+             $identifier_id = $mysqli->insert_id;
+        }
+
+        // we have added it to the table now so 
+        // add it to our own values
+        // note the name now has to be saved for this to take affect
+        $this->preferredIpniIdentifierId = $identifier_id;
+        $this->preferredIpniIdentifier = $identifier;
+
+
+    }
+
+    public function getPreferredIpniId(){
+
+        global $mysqli;
+
+        // we don't have one set
+        if(!$this->preferredIpniIdentifierId) return null;
+
+        // have we already loaded the value? - return it
+        if($this->preferredIpniIdentifier) return $this->preferredIpniIdentifier;
+
+        // not got the identifier so load it.
+        $response = $mysqli->query("SELECT `value` FROM `identifiers` WHERE `id` = {$this->preferredIpniIdentifierId};");
+        if($response->num_rows > 0){
+            $row = $response->fetch_assoc();
+            $response->close();
+            $this->preferredIpniIdentifier = $row['value'];
+            return $this->preferredIpniIdentifier;
+        }else{
+            $response->close();
+            return null;
+        }
 
     }
 
@@ -782,6 +870,7 @@ class Name extends WfoDbObject{
             $stmt = $mysqli->prepare("UPDATE `names`
             SET 
                 `prescribed_id` = ? ,
+                `preferred_ipni_id` = ?,
                 `rank` = ? ,
                 `name` = ? ,
                 `genus` = ? ,
@@ -802,8 +891,9 @@ class Name extends WfoDbObject{
                 error_log($mysqli->error);
             }; // should only have prepare errors during dev
 
-            $stmt->bind_param("issssssssssiiii", 
+            $stmt->bind_param("iissssssssssiiii", 
                 $wfo_id_db_id,
+                $this->preferredIpniIdentifierId,
                 $this->rank,
                 $this->name,
                 $this->genus,
@@ -833,14 +923,15 @@ class Name extends WfoDbObject{
             
             // we don't have a db id so we need to create a row
             $stmt = $mysqli->prepare("INSERT 
-                INTO `names`(`prescribed_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`comment`, `change_log`, `basionym_id`, `year`, `user_id`) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                INTO `names`(`prescribed_id`, `preferred_ipni_id`, `rank`, `name`, `genus`, `species`, `authors`, `status`, `source`, `citation_micro`,`comment`, `change_log`, `basionym_id`, `year`, `user_id`) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             if($mysqli->error) {
                 error_log('Inserting name - prepare');
                 error_log($mysqli->error);
             };  // should only have prepare errors during dev
-            $stmt->bind_param("issssssssssiii", 
+            $stmt->bind_param("iissssssssssiii", 
                 $wfo_id_db_id,
+                $this->preferredIpniIdentifierId,
                 $this->rank,
                 $this->name,
                 $this->genus,
