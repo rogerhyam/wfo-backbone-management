@@ -637,10 +637,10 @@ class Name extends WfoDbObject{
         if(!$this->id) throw new ErrorException("Attempt to add preferred IPNI identifier to Name which doesn't have a db id.");
         
         // identifiers may not be sql friendly strings
-        $identifier_safe = $mysqli->real_escape_string($identifier);
+        $identifier_safe = $mysqli->real_escape_string($ipni_id);
 
         // does that exist as an identifier for another name? - throw a wobbly
-        $sql = "SELECT * FROM `identifiers` WHERE `value` = '$identifier_safe' AND `kind` = 'IPNI' ";
+        $sql = "SELECT * FROM `identifiers` WHERE `value` = '$identifier_safe' AND `kind` = 'ipni' ";
         $result = $mysqli->query($sql);
         
         // we need to find the identifiers id to add it to the names table
@@ -650,7 +650,10 @@ class Name extends WfoDbObject{
 
             // if it is in use by another name throw a wobbly
             if($row['name_id'] != $this->id){
-                throw new ErrorException("Attempt to add preferred IPNI identifier that is already in use for another name.");
+                // fail silently
+                $result->close();
+                return false;
+                // throw new ErrorException("Attempt to add preferred IPNI identifier that is already in use for another name.");
             }
         }
         $result->close();
@@ -666,7 +669,9 @@ class Name extends WfoDbObject{
         // add it to our own values
         // note the name now has to be saved for this to take affect
         $this->preferredIpniIdentifierId = $identifier_id;
-        $this->preferredIpniIdentifier = $identifier;
+        $this->preferredIpniIdentifier = $ipni_id;
+
+        return true;
 
 
     }
