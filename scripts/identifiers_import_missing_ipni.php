@@ -31,6 +31,7 @@ while(true){
         from kew.ipni as k
         left join identifiers as i on i.`value` = k.id and i.kind = 'ipni'
         where i.id is null
+        order by k.id
         limit 1000 offset $offset";
 
     $response = $mysqli->query($sql);
