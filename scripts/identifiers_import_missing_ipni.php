@@ -19,6 +19,7 @@ $_SESSION['user'] = serialize(User::loadUserForDbId(1));
 
 $counter = 0;
 $matched = 0;
+$missed = 0;
 
 $offset = 0;
 $matcher = new NameMatcherPlantList();
@@ -39,7 +40,6 @@ while(true){
     $response->close();
 
     if(count($rows) == 0) break;
-    else $offset = $offset + 1000;
 
     foreach($rows as $row){
 
@@ -55,6 +55,7 @@ while(true){
             echo "\t{$name->getPrescribedWfoId()}";
             $name->addIdentifier($row['id'], 'ipni');
         }else{
+            $offset++; // because the next query will not include the ones we have updated
             echo "\t ". count($matches->names) ." candidates found.";
         }
 
@@ -63,6 +64,5 @@ while(true){
 
         echo "\n";
     }
-
 
 }
