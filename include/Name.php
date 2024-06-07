@@ -1467,7 +1467,14 @@ class Name extends WfoDbObject{
         // we have to be severed 
 
         $identifiers = $this->getIdentifiers();
+        $target_identifiers = $target_name->getIdentifiers();
         foreach ($identifiers as $identifier) {
+
+            // get the equivalent identifier from the target
+            $target_identifier = null;
+            foreach($target_identifiers as $ti){
+                if($ti->getKind() == $identifier->getKind()) $target_identifier = $ti;
+            }
 
             foreach ($identifier->getValues() as $value) {
                 // we can't delete a prescribed WFO ID - it will go when the name is deleted
@@ -1476,7 +1483,14 @@ class Name extends WfoDbObject{
                 }
                 // but we do add in if they are in the db enumeration
                 if(in_array($identifier->getKind(), array('ipni', 'tpl', 'wfo', 'if', 'ten', 'tropicos', 'uri', 'uri_deprecated'))){
-                    $target_name->addIdentifier($value, $identifier->getKind());
+
+                    // check we don't already have that kind and value of identifier
+                    // don't have a target id of that kind at all
+                    // of if we do the value isn't already in the array of values
+                    if(!$target_identifier || !in_array($value, $target_identifier->getValues())){
+                        $target_name->addIdentifier($value, $identifier->getKind());
+                    }
+                    
                 }
                 
             }
@@ -1513,6 +1527,15 @@ class Name extends WfoDbObject{
 
         // actually delete the name record
         $old_name_id = $this->getId();
+
+        // move any basionyms from us to the target name.
+        $homos = $this->getHomotypicNames();
+        foreach ($homos as $h) {
+            if($h->getBasionym() && $h->getBasionym()->getId() == $this->getId()){
+                $h->setBasionym($target_name);
+                $h->save();
+            }
+        }
 
         try{
             $mysqli->query("SET foreign_key_checks = 0");
