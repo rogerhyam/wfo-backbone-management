@@ -91,7 +91,7 @@ function generate_metadata($file_path, $pub_date, $version){
     // get a list of all the TENs to add to the metadata file.
     $sql = "SELECT link_uri as `url`, display_text as `organisation`
     FROM `references` AS r
-    JOIN `name_references` AS nr ON nr.reference_id = r.id AND nr.placement_related = 1
+    JOIN `name_references` AS nr ON nr.reference_id = r.id AND nr.`role` = 1
     WHERE r.kind = 'person'
     group by link_uri, display_text";
 

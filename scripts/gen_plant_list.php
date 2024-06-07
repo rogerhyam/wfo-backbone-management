@@ -199,6 +199,9 @@ function process_name($name, $version_name){
 
     }
 
+    // set a preferred ipni id
+    $out['ipni_preferred_id_s'] = $name->getPreferredIpniId();
+
     // basionym!
     $basionym = $name->getBasionym();
     if($basionym){

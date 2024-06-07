@@ -7,7 +7,7 @@ FROM promethius_A.names as n
 WHERE n.citation_micro is not null
 AND n.id not in (
 	SELECT n.id FROM `names` AS n
-	JOIN name_references as nr on n.id = nr.name_id and nr.placement_related = 0
+	JOIN name_references as nr on n.id = nr.name_id and nr.`role` = 'nomenclatural'
     JOIN `references` as r on nr.reference_id = r.id AND r.kind = 'literature'
 )
 #and n.citation_micro like 'Phytologia%'
@@ -17,7 +17,7 @@ order by n desc
 
 /* Count names with literature references */
 SELECT `status`, count(*) num FROM `names` AS n
-JOIN name_references as nr on n.id = nr.name_id and nr.placement_related = 0
+JOIN name_references as nr on n.id = nr.name_id and nr.`role` = 'nomenclatural'
 JOIN `references` as r on nr.reference_id = r.id AND r.kind = 'literature'
 group by `status`
 with rollup

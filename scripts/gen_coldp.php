@@ -542,7 +542,7 @@ fclose($synonyms_out);
 echo "\nWriting References\n";
 
 // we export the people and databases who are associated with taxa
-$response = $mysqli->query("SELECT DISTINCT r.* FROM `references` AS r JOIN `name_references` AS nr ON r.id = nr.reference_id WHERE r.kind in ('person', 'database') AND nr.placement_related = 1;");
+$response = $mysqli->query("SELECT DISTINCT r.* FROM `references` AS r JOIN `name_references` AS nr ON r.id = nr.reference_id WHERE r.kind in ('person', 'database') AND nr.`role` = 'taxonomic';");
 while($row = $response->fetch_assoc()){
     
     $ref = array();
@@ -606,7 +606,7 @@ $response = $mysqli->query(
     JOIN `names` AS n ON n.id = nr.name_id
     JOIN `identifiers` AS i ON i.id = n.prescribed_id
     WHERE r.kind = 'specimen'
-    AND nr.placement_related = 0
+    AND nr.`role` = 'nomenclatural'
     AND i.kind = 'wfo'", 
     MYSQLI_USE_RESULT);
 

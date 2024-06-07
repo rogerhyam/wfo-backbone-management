@@ -71,7 +71,7 @@ $response = $mysqli->query("
 SELECT distinct r.id, r.display_text
 FROM `references` AS r
 JOIN `name_references` AS nr ON nr.reference_id = r.id
-WHERE nr.placement_related = 1
+WHERE nr.`role` = 'taxonomic'
 AND r.kind = 'person'
 ");
 
