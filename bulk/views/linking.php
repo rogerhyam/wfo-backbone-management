@@ -1,8 +1,13 @@
 <h3>Linking</h3>
 <p style="color: red;">Changes data in Rhakhis.</p>
 <?php
-    $table = $_SESSION['selected_table'];
+    $table = @$_SESSION['selected_table'];
 
+
+    if(!$table){
+        echo '<p style="color: red;">You need to select a table before you can do anything here.</p>';
+        exit();
+    }
 
 if(@$_GET['active_run']){
     run_linking($table);   
@@ -42,6 +47,10 @@ function run_linking($table){
 
     foreach($rows as $row){
 
+        // we are working with a name
+        $name = Name::getName($row['rhakhis_wfo']);
+        if(!$name) continue;
+
         $new_id = trim($row[$id_column]);
         if(!$new_id) continue;
 
@@ -52,11 +61,13 @@ function run_linking($table){
         if($id_kind == 'ipni' && !preg_match('/^urn:lsid:ipni.org:names:/', $id_value) ){
             $id_value = 'urn:lsid:ipni.org:names:'. $id_value;
         }
-        
+
+        // load all the ids of the same kind and value
         $response = $mysqli->query("SELECT * from `identifiers` WHERE `kind` = '$id_kind' AND `value` = '$id_value'");
         $id_rows = $response->fetch_all(MYSQLI_ASSOC);
         $response->close();
 
+        // does this id/kind already exist
         if(count($id_rows) > 0){
             
             //  it does so is the name the same WFO ID as the row in the table?
@@ -78,6 +89,10 @@ function run_linking($table){
                         $mysqli->query("DELETE from `identifiers` WHERE `id` = {$id_row['id']}");
                     } 
 
+                    // add it to the name
+                    $name->addIdentifier($id_value, $id_kind); // no need to save as this writes straight to the identifiers table.
+                    echo "<p><strong>$id_value: </strong> now bound to " . $name->getPrescribedWfoId() . " - " . $name->getFullNameString() . "</p>";
+
                 }else{
                     echo "<p>Stopping here as we can't proceed if two names have the same ID. If you would like to move IDs instead then check the 'Move existing IDs' box and run again.</p>";
                     exit;
@@ -86,12 +101,18 @@ function run_linking($table){
             }
 
         }else{
-            
-            // it doesn't exist in the IDs table so we can add it
-            $name = Name::getName($row['rhakhis_wfo']);
-            $name->addIdentifier($id_value, $id_kind); // no need to save as this writes straight to the identifiers table.
-            echo "<p><strong>$id_value: </strong> newly bound to " . $name->getPrescribedWfoId() . " - " . $name->getFullNameString() . "</p>"; 
 
+            // it doesn't exist in the IDs table so we can add it to the table and the name
+            $name->addIdentifier($id_value, $id_kind); // no need to save as this writes straight to the identifiers table.
+            echo "<p><strong>$id_value: </strong> newly bound to " . $name->getPrescribedWfoId() . " - " . $name->getFullNameString() . "</p>";
+
+        }
+    
+        // Special case from IPNI IDs again
+        // If we are adding an IPNI ID and the name doesn't already have a preferred IPNI ID then we add it in
+        if($id_kind == 'ipni' && $name->getPreferredIpniId() == null){
+            $name->setPreferredIpniId($id_value);
+            $name->save();
         }
 
     }
@@ -106,8 +127,10 @@ function render_form($table){
 ?>
 
 <p>This utility will run through the table and, for those rows that have been matched to a WFO ID, will add a local ID
-    to Rhakhis thus making matching easier to do next time.</p>
-<p>There are a restricted list of kinds of identifiers you can have. Basically either TEN or that of a nomenclator.</p>
+    to Rhakhis thus making matching easier to do next time. There are a restricted kinds of identifiers you can have.
+    Basically either 'TEN' or one of the nomenclators. If the identifier kind is IPNI and the name doesn't already have
+    a preferred IPNI then this ID will be set as the
+    preferred IPNI ID for the name. Subsequent IPNI IDs added will just be added as extra IDs.</p>
 <form>
     <input type="hidden" name="action" value="view" />
     <input type="hidden" name="phase" value="linking" />
