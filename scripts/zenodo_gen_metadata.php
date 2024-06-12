@@ -43,7 +43,15 @@ foreach($users as $user){
         $meta['orcid'] = $user->getOrcidId();
         $parts = explode(' ', $user->getName());
         $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
-        $given =  mb_ucfirst(mb_strtolower(implode(' ', $parts)));
+
+        // We need to get capitalisation consistent in given names
+        // e.g. Ardi, Wisnu handoyo or Govaerts, Rafaël herman anna
+        // should be Ardi, Wisnu Handoyo or Govaerts, Rafaël Herman Anna
+        $given =  mb_convert_case(implode(' ', $parts), MB_CASE_TITLE);
+
+        // Beware of 'de la' etc.
+        $given = preg_replace('/ De La$/', ' de la', $given);
+        
         $meta['name'] =   "$family, $given";
         $contributors[$meta['name']] = $meta;
     }
