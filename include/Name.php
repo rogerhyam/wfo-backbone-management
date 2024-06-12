@@ -297,6 +297,7 @@ class Name extends WfoDbObject{
 
     public function setYear($year){
         $this->year = (int)$year;
+        if($this->year == 0) $this->year = null;
     }
 
     public function getYear(){
