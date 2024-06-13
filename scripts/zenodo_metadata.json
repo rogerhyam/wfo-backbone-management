@@ -26,15 +26,38 @@
         },
         {
             "orcid": "0000-0002-8677-5688",
-            "name": "Elliott, Alan"
+            "name": "Elliott, Alan",
+            "affiliation": "Royal Botanic Garden Edinburgh"
         },
         {
             "orcid": "0000-0003-4581-1379",
-            "name": "Hyam, Roger"
+            "name": "Hyam, Roger",
+            "affiliation": "Royal Botanic Garden Edinburgh"
         },
         {
             "orcid": "0000-0002-4989-3976",
-            "name": "Watson, Mark"
+            "name": "Watson, Mark",
+            "affiliation": "Royal Botanic Garden Edinburgh"
+        },
+        {
+            "orcid": "0009-0009-8267-890X",
+            "name": "Wrankmore, Emma",
+            "affiliation": "IPNI (International Plant Names Index)"
+        },
+        {
+            "orcid": "0009-0005-9205-1351",
+            "name": " Hartley, Helen",
+            "affiliation": "IPNI (International Plant Names Index)"
+        },
+        {
+            "orcid": "0000-0002-6507-8293",
+            "name": " Krieger, Jonathan",
+            "affiliation": "IPNI (International Plant Names Index)"
+        },
+        {
+            "orcid": "0000-0002-2205-0610",
+            "name": " Gandhi, Kanchi",
+            "affiliation": "IPNI (International Plant Names Index)"
         }
     ]
 }

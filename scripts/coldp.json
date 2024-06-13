@@ -33,8 +33,28 @@
     },
     "contributor": [
         {
-            "url": "https://example.come",
-            "organisation": "Example name again"
+            "orcid": "0009-0009-8267-890X",
+            "given": "Emma",
+            "family": "Wrankmore",
+            "organisation": "IPNI (International Plant Names Index)"
+        },
+        {
+            "orcid": "0009-0005-9205-1351",
+            "given": "Helen",
+            "family": "Hartley",
+            "organisation": "IPNI (International Plant Names Index)"
+        },
+        {
+            "orcid": "0000-0002-6507-8293",
+            "given": "Jonathan",
+            "family": "Krieger",
+            "organisation": "IPNI (International Plant Names Index)"
+        },
+        {
+            "orcid": "0000-0002-2205-0610",
+            "given": "Kanchi",
+            "family": "Gandhi",
+            "organisation": "IPNI (International Plant Names Index)"
         }
     ],
     "keyword": [

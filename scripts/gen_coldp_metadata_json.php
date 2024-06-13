@@ -96,7 +96,10 @@ function generate_metadata($file_path, $pub_date, $version){
     group by link_uri, display_text";
 
     $response = $mysqli->query($sql);
-    $json->contributor = array(); // clean list of contributors
+    
+    // we now have the IPNI editors in as contributors
+    // by default so we just add to that list
+    //$json->contributor = array(); // clean list of contributors
 
     while($row = $response->fetch_assoc()){
         $json->contributor[] = (object)$row;
@@ -112,6 +115,8 @@ function generate_metadata($file_path, $pub_date, $version){
     
 
     file_put_contents($file_path, json_encode($json, JSON_PRETTY_PRINT));
+
+    echo "Written: $file_path\n";
 }
 
 // needed to handle multibyte chars and upper casing the first
