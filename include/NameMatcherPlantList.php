@@ -59,12 +59,17 @@ class NameMatcherPlantList extends NameMatcher{
             $matches->names[] = Name::getName($response->match->wfo_id);
             $matches->distances[] = 0;
         }else{
-            $dist = 0;
-            foreach($response->candidates as $candidate){
-                $matches->names[] = Name::getName($candidate->wfo_id);
-                $matches->distances[] = $dist;
-                $dist++;
+
+            // problem - single candidate will look like a match!
+            if(count($response->candidates) > 1){
+                $dist = 0;
+                foreach($response->candidates as $candidate){
+                    $matches->names[] = Name::getName($candidate->wfo_id);
+                    $matches->distances[] = $dist;
+                    $dist++;
+                }
             }
+     
         }
         
         return $matches;
