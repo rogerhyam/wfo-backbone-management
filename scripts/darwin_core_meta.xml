@@ -14,7 +14,7 @@
 
         <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
         <field index="1" term="http://rs.tdwg.org/dwc/terms/scientificNameID" />
-        <field index="2" term="http://worldfloraonline.org/terms/localID" />
+        <field index="2" term="http://rs.worldfloraonline/terms/localID" />
         <field index="3" term="http://rs.tdwg.org/dwc/terms/scientificName" />
         <field index="4" term="http://rs.tdwg.org/dwc/terms/taxonRank" />
         <field index="5" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
@@ -39,8 +39,8 @@
         <field index="24" term="http://purl.org/dc/terms/modified" />
         <field index="25" term="http://purl.org/dc/terms/references" />
         <field index="26" term="http://purl.org/dc/terms/source" />
-        <field index="27" term="http://worldfloraonline.org/terms/majorGroup" />
-        <field index="28" term="http://worldfloraonline.org/terms/tplID" />
+        <field index="27" term="http://rs.worldfloraonline/terms/majorGroup" />
+        <field index="28" term="http://rs.worldfloraonline/terms/tplID" />
 
 
         <!-- static values -->
