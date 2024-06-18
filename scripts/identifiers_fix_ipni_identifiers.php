@@ -27,12 +27,21 @@ $matcher = new NameMatcherPlantList();
 while(true){
 
     echo "\n--------- Offset $offset --------\n";
-
+/*
     $sql = "SELECT distinct(n.id)
         FROM `names` as n
-        JOIN `identifiers` as i on i.name_id = n.id and i.kind = 'ipni'
+        JOIN `identifiers` as i on i.name_id = n.id and i.kind = 'ipni' AND i.modified > '2024-06-01'
         order by n.id
         limit 1000 offset $offset";
+
+*/
+
+    $sql = "SELECT distinct(n.id)
+        from identifiers as i 
+        JOIN `names` as n ON i.name_id = n.id and i.kind = 'ipni' and n.rank = 'genus'
+        JOIN `kew`.`ipni` as ipni on i.`value` = ipni.id and ipni.rank_s_alphanum != 'gen.'
+        limit 1000 offset $offset;";
+
 
     $response = $mysqli->query($sql);
     $rows = $response->fetch_all(MYSQLI_ASSOC);
