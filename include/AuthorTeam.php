@@ -13,11 +13,11 @@ class AuthorTeam{
 
     public function __construct($team_abbreviation, $call_wikidata = false){
         $matches = array();
-        if(preg_match('/\((.*)\)(.*)/', $team_abbreviation, $matches)){
-            $this->extractIndividualAuthors(trim($matches[1]));
-            $this->extractIndividualAuthors(trim($matches[2]));
+        if(preg_match('/\((.*)\)(.*)/', $team_abbreviation ?? '', $matches)){
+            $this->extractIndividualAuthors(trim($matches[1] ?? ''));
+            $this->extractIndividualAuthors(trim($matches[2] ?? ''));
         }else{
-            $this->extractIndividualAuthors(trim($team_abbreviation));
+            $this->extractIndividualAuthors(trim($team_abbreviation ?? ''));
         }
 
         $this->populateAuthors($call_wikidata);
@@ -185,7 +185,7 @@ class AuthorTeam{
             $title = $author['label'];
 
             if($author['birth'] || $author['death']){
-                $title .= " " . substr($author['birth'], 0, 4) . "-" . substr($author['death'], 0, 4);
+                $title .= " " . substr($author['birth'] ?? '', 0, 4) . "-" . substr($author['death'] ?? '', 0, 4);
             }
             
             $link = '<a href="' . $author['person'] . '" title="'. $title .'">' . $abbrev . '</a>';
