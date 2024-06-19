@@ -1,52 +1,28 @@
-<p>A global consensus classification of vascular plants and bryophytes used as the taxonomic backbone for the World
-    Flora Online (WFO) portal (<a href="http://www.worldfloraonline.org/">http://www.worldfloraonline.org</a>) and the
-    WFO Plant List (<a href="https://wfoplantlist.org">https://wfoplantlist.org</a>).</p>
-
-<p>Initiated in 2012, WFO has developed to represent a comprehensive knowledge base on the world&rsquo;s plant
-    species.&nbsp; Comprising over 50 botanical institutions and organisations worldwide, the WFO Consortium recognizes
-    the need for the synthesis of botanical knowledge that has been generated through more than 260 years of botanical
-    exploration, taxonomic and, more recently, phylogenetic research throughout the world. Endorsed by the Convention on
-    Biological Diversity, WFO supports the Global Strategy for Plant Conservation (<a
-        href="https://www.plants2020.net">https://www.plants2020.net</a>) and the <a
-        href="https://www.cbd.int/doc/c/e6d3/cd1d/daf663719a03902a9b116c34/cop-15-l-25-en.pdf">Montreal-Kunming Global
-        Biodiversity Framework</a>.</p>
-
-<p>WFO has become a first-ever global source of information on the world&rsquo;s plant diversity supported by the
-    international taxonomic community. At the heart of the WFO is a checklist which aims to provide the most up to date
-    source of scientific plant names and their synonyms compiled. The WFO checklist is curated, moderated and updated by
-    an expert and specialist-based global community (Taxonomic Expert Networks ,TENs) covering a taxonomic group.</p>
-
-<p>The initial data ingestion into the WFO checklist was undertaken in 2015 using data from The Plant List Version 1.1
-    (TPL,&nbsp;September 2013). The list of datasets contributing to TPL is given here:&nbsp;<a
-        href="https://about.worldfloraonline.org/the-plantlist-data-contributors">https://about.worldfloraonline.org/the-plantlist-data-contributors</a>.
-</p>
-
-<p>New taxonomic names and data updates are regularly incorporated into WFO from nomenclators: International Plant Name
-    Index (IPNI,&nbsp;<a href="https://www.ipni.org/">https://www.ipni.org</a>) for vascular plants, and Tropicos (<a
-        href="https://www.tropicos.org/">https://www.tropicos.org</a>) for bryophytes.</p>
-
-<p>Classification and nomenclatural updates have been incorporated from WFO TENs, and classification data for taxonomic
-    groups not yet covered by a TEN have been incorporated from the World Checklist of Vascular Plants (WCVP,
-    <a href=" https://wcvp.science.kew.org">https://wcvp.science.kew.org</a>), facilitated by the Royal Botanic Gardens,
-    Kew.
-</p>
-
-<p>New versions of this global consensus classification are released every six months, in June and December. Detail of
-    the changes since June 2023, incorporated this December 2023 release, are given here: <a
-        href="https://about.worldfloraonline.org/december-2023-release">https://about.worldfloraonline.org/december-2023-release</a>.
-</p>
+<p>The consensus taxonomy of plants used as the backbone for the <a href="https://www.worldfloraonline.org/">World
+        Flora Online</a> (WFO) portal, and issued as editions of the <a href="https://wfoplantlist.org/">WFO Plant
+        List</a>.</p>
+<p>New versions of this checklist are released every six months in June and December: this is release
+    2024-06.</p>
+<p>The history of data development for the WFO taxonomic backbone is given on the WFO Plant List <a
+        href="https://wfoplantlist.org/background">background page</a>. Taxonomic names are incorporated into WFO from
+    nomenclators <a href="https://www.ipni.org/">International Plant Name Index</a> (IPNI) for vascular plants, and <a
+        href="https://www.tropicos.org/home">Tropicos</a> for bryophytes. Taxonomic and nomenclatural updates are
+    incorporated from the WFO's <a href="https://about.worldfloraonline.org/tens">Taxonomic Expert Networks</a> (TENs)
+    and
+    the <a href="https://powo.science.kew.org/about-wcvp">World Checklist of Vascular Plants</a> (WCVP), facilitated by
+    the Royal Botanic Gardens, Kew.</p>
 
 <p>This data repository includes the following files:</p>
 
 <ul>
-    <li><strong>wfo_plantlist_2023-12.zip</strong> The Catalogue of Life Data Package of the WFO Plant List. This is the
+    <li><strong>wfo_plantlist_2024-06.zip</strong> The Catalogue of Life Data Package of the WFO Plant List. This is the
         most expressive standards based form of the list.</li>
-    <li><strong>plant_list_2023-12.json.gz</strong> JSON formatted version of the WFO Plant List. This has been
+    <li><strong>plant_list_2024-06.json.gz</strong> JSON formatted version of the WFO Plant List. This has been
         designed for direct import into a schemaless instance of a SOLR index and is used to drive the WFO Plant List
         API (<a href="https://list.worldfloraonline.org">https://list.worldfloraonline.org</a>) which in turn drives the
         WFO Plant List in the portal. This is recommended if you want a local, read only version of the list rather than
         use the API.</li>
-    <li><strong>plant_list_2023-12.sql.gz</strong> This is the complete production database (minus logging data and API
+    <li><strong>plant_list_2024-06.sql.gz</strong> This is the complete production database (minus API
         keys) as a MySQL backup file. It can be restored directly to a MySQL 8.0 or later instance if you require the
         list in SQL format.</li>
     <li><strong>ipni_to_wfo.csv.gz</strong> A file mapping all the IPNI IDs we track to their associated WFO IDs.</li>
@@ -56,6 +32,5 @@
     <li><strong>_DwC_backbone_R.zip</strong> A single Darwin Core Archive file containing non deprecated names and taxa
         for use in the existing R package.</li>
     <li><strong>_uber.zip</strong> A single Darwin Core Archive file containing all names and taxa even those that are
-        deprecated along with some extra columns<br />
-        &nbsp;</li>
+        deprecated along with some extra columns</li>
 </ul>
