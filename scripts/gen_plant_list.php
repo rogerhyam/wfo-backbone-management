@@ -237,7 +237,7 @@ function process_name($name, $version_name){
     $taxon = Taxon::getTaxonForName($name);
     if($taxon->getId()){
         // we are placed in the taxonomy
-        if($taxon->getAcceptedName() == $name){
+        if($taxon->getAcceptedName()->getId() == $name->getId()){
 
             // because we are a taxon we use the taxon version of our full name strings
             // will include hybrids and multi level subspecifics
