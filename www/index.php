@@ -16,7 +16,13 @@ require_once("../bulk/include/functions.php");
 // only gods are allowed to see anything in the bulk loading place.
 // even that it exists!
 
-$user = unserialize( @$_SESSION['user']);
+if(@$_SESSION['user']){
+    $user = unserialize(@$_SESSION['user']);
+}else{
+    $user = null;
+}
+
+
 
 if(!$user || $user->getRole() != 'god'){
     header('HTTP/1.0 403 Forbidden');
@@ -42,7 +48,7 @@ function get_rhakhis_uri($wfo){
             $uri = 'http://localhost:3000/#' . $wfo;
             break;
 
-        // on the sandbox
+        // staging
         case 'rhakhis.rbge.info':
             $uri = 'https://rhakhis.rbge.info/rhakhis/ui/index.html#' . $wfo;
             break;
@@ -50,11 +56,6 @@ function get_rhakhis_uri($wfo){
         // live
         case 'list.worldfloraonline.org':
             $uri = 'https://list.worldfloraonline.org/rhakhis/ui/#' . $wfo;
-            break;
-        
-        // staging
-        case 'list-api-wfo-staging.rbge.info':
-            $uri = 'https://list-api-wfo-staging.rbge.info/rhakhis/ui/#' . $wfo;
             break;
         
         // unknown

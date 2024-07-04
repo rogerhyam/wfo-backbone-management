@@ -49,7 +49,6 @@ define("WFO_AUTONYM_REQUIRED", 6); // returned when this isn't the autonym and n
 define("WFO_AUTONYM_NA", 7); // returned when this isn't the autonym and no autonym exists at this rank
 define("WFO_RANK_REBALANCE", 8); // the ranks at this point are out of balance and need fixing.
 
-
 // the rank table - having this in code saves a lot of sql queries and joins because
 // it is used everywhere.
 // -- READ -- THIS --
