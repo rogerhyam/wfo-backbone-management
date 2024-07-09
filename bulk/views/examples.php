@@ -211,7 +211,7 @@ $number_ref_filters = 3;
             // also restrict by comment content
             if(@$_REQUEST["ref_filter_comment_$i"]){
                 $comment_safe = $mysqli->real_escape_string($_REQUEST["ref_filter_comment_$i"]);
-                $sql .=  " AND nrefs_$i.`comment` LIKE '%comment_safe%'";
+                $sql .=  " AND nrefs_$i.`comment` LIKE '%$comment_safe%'";
             } 
 
             // join to the references table so we can add other filters
