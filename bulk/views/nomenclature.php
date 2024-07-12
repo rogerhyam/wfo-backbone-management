@@ -4,20 +4,22 @@
 
 ?>
 <div>
-<strong>Nomenclature: </strong>
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_ranks">Ranks</a>
-|
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_status_mapping">Status Mapping</a>
-|
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_status_import">Status Import</a>
-|
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_authors">Authors</a>
-|
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_published_in">Published In</a>
-|
-<a href="index.php?action=view&phase=nomenclature&task=nomenclature_spelling">Fix Spelling</a>
+    <strong>Nomenclature: </strong>
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_ranks">Ranks</a>
+    |
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_status_mapping">Status Mapping</a>
+    |
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_status_import">Status Import</a>
+    |
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_authors">Authors</a>
+    |
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_published_in">Published In</a>
+    |
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_name_check">Name Check</a>
+    |
+    <a href="index.php?action=view&phase=nomenclature&task=nomenclature_spelling">Fix Spelling</a>
 </div>
-<hr/>
+<hr />
 <?php
     $task =  @$_GET['task'];
     if(!$task) $task = 'nomenclature_ranks';
@@ -26,7 +28,7 @@
 /**
  * 
  * Process page worth of rows 
- * used in both nomenclature_authors and nomenclature_published_in
+ * used in both nomenclature_authors and nomenclature_published_in and nomenclature_name_check
  * 
  */
 function process_page($table){
@@ -85,9 +87,13 @@ function process_page($table){
         $auto_render_next_page = "";
         echo "<hr/><h3>Reached end of table</h3><hr/>";
         render_form($table);
+
+        return true;
     }
 
     echo $auto_render_next_page;
+
+    return false;
 
 }
 
