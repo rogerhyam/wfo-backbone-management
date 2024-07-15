@@ -36,7 +36,7 @@
                 echo "<h2>Mismatched Names</h2>";
                 echo "<form action=\"index.php?action=nomenclature_name_change\" method=\"POST\" />";
                 echo "<table>";
-                echo "<tr><th>WFO ID</th><th>Full Name</th><th>Rhakhis</th><th>Table</th><th>Bulk</th><tr>";
+                echo "<tr><th>WFO ID</th><th>Full Name</th><th>Rhakhis</th><th>Table</th><th>Bulk&nbsp;<input type=\"checkbox\" name=\"select-all\" id=\"select-all\" /></th><tr>";
                 foreach($_SESSION['nomenclature_name_check']['mismatches'] as $mismatch){
                     echo "<tr>";
                     echo $mismatch;
@@ -87,7 +87,7 @@ function process_row($row, $table){
         $row .= "<td>$table_name_string";
         $row .= " (<a href=\"\" onclick=\"navigator.clipboard.writeText('$table_name_string');\">copy</a>)</td>";
         $row .= "<td style=\"text-align: center;\">";
-        $row .= "<input type=\"checkbox\" name=\"{$name->getPrescribedWfoId()}\" value=\"$table_name_string\"/>";
+        $row .= "<input type=\"checkbox\" class=\"wfo_check\" name=\"{$name->getPrescribedWfoId()}\" value=\"$table_name_string\"/>";
         $row .= "</td>";
 
         $_SESSION['nomenclature_name_check']['mismatches'][] = $row;
@@ -134,6 +134,15 @@ function render_form($table){
 }
 ?>
 
-
-
 </div>
+<script>
+document.getElementById('select-all').addEventListener('change', function(event) {
+    let checkboxes = document.querySelectorAll('.wfo_check');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.checked = this.checked;
+    }, this);
+    if (this.checked) {
+        alert("Careful Icarus!");
+    }
+});
+</script>
