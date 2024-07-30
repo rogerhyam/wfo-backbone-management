@@ -4,6 +4,7 @@
  * 
  * The logic for where we can and can't place names
  * Plus the ability to actually move them.
+ * See also SynonymMover
  * 
  */
 class NamePlacer{

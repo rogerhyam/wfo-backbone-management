@@ -66,6 +66,13 @@ class TaxonGqlType extends ObjectType
                             return $taxon->getHybridStatus();
                         }
                     ],
+                    'canEdit' => [
+                        'type' => Type::boolean(),
+                        'description' => "Whether the current user has permission to edit this taxon.",
+                        'resolve' => function($taxon){
+                            return $taxon->canEdit();
+                        }
+                    ],
                     'synonyms' => [
                         'type' => Type::listOf(TypeRegister::nameType()),
                         'description' => "The names that are considered synonyms of this taxon.",

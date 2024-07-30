@@ -9,6 +9,7 @@ require_once('../include/RankGqlType.php');
 require_once('../include/UpdateResponseGqlType.php');
 require_once('../include/NamePlacerGqlType.php');
 require_once('../include/NamePlacer.php');
+require_once('../include/SynonymMoverGqlType.php');
 require_once('../include/UnplacedFinderGqlType.php');
 require_once('../include/BasionymFinderGqlType.php');
 require_once('../include/IdentifierGqlType.php');
@@ -33,6 +34,7 @@ class TypeRegister {
     private static $rankType;
     private static $updateResponseType;
     private static $namePlacerType;
+    private static $synonymMoverType;
     private static $placementActionEnum;
     private static $unplacedFinderType;
     private static $basionymFinderType;
@@ -65,6 +67,10 @@ class TypeRegister {
 
     public static function namePlacerType(){
         return self::$namePlacerType ?: (self::$namePlacerType = new NamePlacerGqlType());
+    }
+
+    public static function synonymMoverType(){
+        return self::$synonymMoverType ?: (self::$synonymMoverType = new SynonymMoverGqlType());
     }
     
     public static function unplacedFinderType(){

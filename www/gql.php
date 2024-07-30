@@ -17,6 +17,7 @@ require_once('../include/NameMatches.php');
 require_once('../include/Rank.php');
 require_once('../include/UpdateResponse.php');
 require_once('../include/NamePlacer.php');
+require_once('../include/SynonymMover.php');
 require_once('../include/UnplacedFinder.php');
 require_once('../include/BasionymFinder.php');
 require_once('../include/Identifier.php');
@@ -157,6 +158,7 @@ $schema = new Schema([
                     return $ranks;
                 }
             ],
+
             'getNamePlacer' => [
                 'type' => TypeRegister::namePlacerType(),
                 'args' => [
@@ -178,6 +180,25 @@ $schema = new Schema([
                 ],
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return new NamePlacer($args['id'], $args['action'], $args['filter']);
+                }
+            ],
+            
+            'getSynonymMover' => [
+                'type' => TypeRegister::synonymMoverType(),
+                'args' => [
+                    'id' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID or database ID of the name the synonyms currently belong to.",
+                        'required' => true
+                    ],
+                    'filter' => [
+                        'type' => Type::string(),
+                        'description' => "Characters to use as a filter on the suggested placements",
+                        'defaultValue' => ''
+                    ],
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    return new SynonymMover($args['id'], $args['filter']);
                 }
             ],
             'getUnplacedNames' => [
@@ -537,6 +558,29 @@ $schema = new Schema([
                     return $placer->updatePlacement($args['destinationWfo']);
                 }
             ], // updatePlacement
+
+            'moveSynonyms' => [
+                'type' => TypeRegister::updateResponseType(),
+                'description' => "Move all the synonyms from one taxon to another or unplace them entirely. User must have edit rights for both source and target.",
+                'args' => [
+                    'sourceWfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name of the taxon that has the synonyms to be moved.",
+                        'required' => true
+                    ],
+                    'destinationWfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of the name of the taxon that the synonyms will be moved to. If not provided the synonyms will become unplaced names",
+                        'required' => false,
+                        'defaultValue' => null
+                    ]
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $mover = new SynonymMover($args['sourceWfo']); // load the mover with the source
+                    return $mover->moveAllSynonymsTo($args['destinationWfo']);
+                }
+            ], // moveSynonyms
+
             'updateBasionym' => [
                 'type' => TypeRegister::updateResponseType(),
                 'description' => "Update the basionym of this name.",
