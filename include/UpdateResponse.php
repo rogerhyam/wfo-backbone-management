@@ -13,6 +13,7 @@ class UpdateResponse{
     public Array $taxonIds = array();
     public Array $nameIds = array();
     public Array $names = array();
+    public Array $taxa = array();
 
     public function __construct($name, $success, $message){
         $this->name = $name;

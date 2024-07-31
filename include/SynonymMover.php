@@ -49,6 +49,7 @@ class SynonymMover{
             JOIN taxon_names AS tn ON tn.name_id = n.id
             JOIN taxa AS t ON t.taxon_name_id = tn.id
             WHERE `name_alpha` LIKE '{$this->filter}%' 
+            AND tn.taxon_id != {$this->taxon->getId()}
             ORDER BY `name_alpha`
             LIMIT 100;";
 
@@ -66,23 +67,63 @@ class SynonymMover{
 
     public function moveAllSynonymsTo($destination_wfo_id){
 
-        
+        // firstly check we have a source taxon
+        if(!$this->taxon){
+            return new UpdateResponse('MoveSynonyms', false, "Trying to move synonyms from non-existent taxon.");
+        }
 
-        // firstly check we have a source taxon and can edit it
+        // can we edit it?
+        if(!$this->taxon->canEdit()){
+            return new UpdateResponse('MoveSynonyms', false, "You don't have permission to edit the source taxon {$this->taxon->getAcceptedName()->getPrescribedWfoId()}");
+        }
 
+        // does it have any synonyms
+        $synonyms = $this->taxon->getSynonyms();
 
+        // no synonyms then nothing to do
+        if(!$synonyms){
+            return new UpdateResponse('MoveSynonyms', false, "No synonyms to move. Did you already do it?");
+        }
 
         // if we don't have a destination set then we unplace them all
         if(!$destination_wfo_id){
 
             // just run through the synonyms and unplace them
-
+            foreach($synonyms as $syn){
+                $this->taxon->removeSynonym($syn);
+            }
+            $n = count($synonyms);
+            $r = new UpdateResponse('MoveSynonyms', true, "Removed $n synonyms from {$this->taxon->getAcceptedName()->getPrescribedWfoId()}.");
+            $r->taxonIds[] = $this->taxon->getId();
+            return $r;
 
         }else{
 
             // we are in the land of moving the synonyms
-            // Check the destination is OK and we can edit it.
 
+            // Check the destination is OK and we can edit it.
+            $destination_name = Name::getName($destination_wfo_id);
+            $destination_taxon = Taxon::getTaxonForName($destination_name);
+
+            if(!$destination_taxon->getId()){
+                return new UpdateResponse('MoveSynonyms', false, "Trying to move synonyms to non-existent taxon.");
+            }
+
+            if(!$destination_taxon->canEdit()){
+                return new UpdateResponse('MoveSynonyms', false, "You don't have permission to edit the destination taxon {$destination_taxon->getAcceptedName()->getPrescribedWfoId()}");
+            }
+
+            // OK we have a destination and we can edit it so do the move
+            foreach($synonyms as $syn){
+                $this->taxon->removeSynonym($syn);
+                $destination_taxon->addSynonym($syn);
+            }
+            $n = count($synonyms);
+            $r = new UpdateResponse('MoveSynonyms', true, "Moved $n synonyms from {$this->taxon->getAcceptedName()->getPrescribedWfoId()} to {$destination_taxon->getAcceptedName()->getPrescribedWfoId()}.");
+            $r->taxonIds[] = $this->taxon->getId();
+            $r->taxonIds[] = $destination_taxon->getId();
+            return $r;
+            
         }
 
 
