@@ -26,6 +26,13 @@ class NameGqlType extends ObjectType
                             return $name->getPrescribedWfoId();
                         }
                     ],
+                    'ipni' => [
+                        'type' => Type::string(),
+                        'description' => "The preferred IPNI identifier associated with this name.",
+                        'resolve' => function($name){
+                            return $name->getPreferredIpniId();
+                        }
+                    ],
                     'identifiers' => [
                         'type' => Type::listOf(TypeRegister::identifierType()),
                         'description' => "A list of know identifiers (excluding the db on) for this name.",
@@ -265,6 +272,14 @@ class NameGqlType extends ObjectType
                         'description' => "The number of occurrences in GBIF for this name. Initially this is only available for unplaced species and will return null for other names.",
                         'resolve' => function($name){
                             return $name->getGbifOccurrenceCount();
+                        }
+                    ],
+
+                    'ipniDifferences' => [
+                        'type' => TypeRegister::nameIpniDifferencesType(),
+                        'description' => "The difference between this name and the IPNI record associated with it. Called live. MAY BE SLOW!",
+                        'resolve' => function($name){
+                            return new NameIpniDifferences($name);
                         }
                     ]
                 ];

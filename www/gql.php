@@ -13,6 +13,7 @@ require_once('../include/WfoDbObject.php');
 require_once('../include/Taxon.php');
 require_once('../include/Name.php');
 require_once('../include/NameMatcher.php');
+require_once('../include/NameIpniDifferences.php');
 require_once('../include/NameMatches.php');
 require_once('../include/Rank.php');
 require_once('../include/UpdateResponse.php');

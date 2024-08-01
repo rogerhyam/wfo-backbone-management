@@ -5,6 +5,7 @@ use GraphQL\Type\Definition\EnumType;
 require_once('../include/TaxonGqlType.php');
 require_once('../include/NameGqlType.php');
 require_once('../include/NameMatchesGqlType.php');
+require_once('../include/NameIpniDifferencesGqlType.php');
 require_once('../include/RankGqlType.php');
 require_once('../include/UpdateResponseGqlType.php');
 require_once('../include/NamePlacerGqlType.php');
@@ -19,6 +20,9 @@ require_once('../include/StatsBasicSummaryGqlType.php');
 require_once('../include/ReferenceGqlType.php');
 require_once('../include/ReferenceUsageGqlType.php');
 
+
+
+
 /*
 
     Register of types because the schema must only have one instance 
@@ -31,6 +35,7 @@ class TypeRegister {
     private static $taxonType;
     private static $nameType;
     private static $nameMatchesType;
+    private static $nameIpniDifferencesType;
     private static $rankType;
     private static $updateResponseType;
     private static $namePlacerType;
@@ -55,6 +60,10 @@ class TypeRegister {
     
     public static function nameMatchesType(){
         return self::$nameMatchesType ?: (self::$nameMatchesType = new NameMatchesGqlType());
+    }
+
+    public static function nameIpniDifferencesType(){
+        return self::$nameIpniDifferencesType ?: (self::$nameIpniDifferencesType = new NameIpniDifferencesGqlType());
     }
 
     public static function rankType(){
