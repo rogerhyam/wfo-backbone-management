@@ -19,6 +19,7 @@ class SPARQLQueryDispatcher
                     'Accept: application/sparql-results+json',
                     'User-Agent: wikilinker (http://list.WorldFloraOnline.org rhyam@rbge.org.uk) PHP/' . PHP_VERSION,
                 ],
+                'timeout' => 30  // short time out to stop the blocking
             ],
         ];
         $context = stream_context_create($opts);

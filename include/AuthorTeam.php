@@ -10,8 +10,9 @@ class AuthorTeam{
 
     public $authors = array();
     public $team_string;
+    private $name = null;
 
-    public function __construct($team_abbreviation, $call_wikidata = false){
+    public function __construct($team_abbreviation, $call_wikidata = false, $wfo = null){
         $matches = array();
         if(preg_match('/\((.*)\)(.*)/', $team_abbreviation ?? '', $matches)){
             $this->extractIndividualAuthors(trim($matches[1] ?? ''));
@@ -23,8 +24,16 @@ class AuthorTeam{
         $this->populateAuthors($call_wikidata);
         $this->team_string = $team_abbreviation;
 
+        if($wfo){
+            $this->name = Name::getName($wfo);
+        }
+
     }
 
+    /**
+     * Pulls out the author abbreviations
+     * 
+     */
     private function extractIndividualAuthors($team){
         // replace the &  with a comma so lists are uniform
         $t = str_replace(' & ',',',$team);
@@ -33,10 +42,15 @@ class AuthorTeam{
         $t = str_replace(';',',',$t);
         $authors = explode(',', $t);
         foreach($authors as $author){
-            $this->authors[trim($author)] = null;
+            $abbrev = trim($author);
+            if($abbrev) $this->authors[$abbrev] = null;
         }
     }
 
+    /**
+     * Fills in the author details
+     * 
+     */
     private function populateAuthors($call_wikidata){
 
         global $mysqli;
@@ -158,15 +172,16 @@ class AuthorTeam{
 
         $author = $this->authors[$author_abbrev];
 
+        // we don't attempt to save a person if they don't have a URI from wikidata
+        if(!$author['person']) return null;
+
         $stmt = $mysqli->prepare("INSERT INTO author_lookup (abbreviation, label, uri, image_uri, birth, death) VALUES (?,?,?,?,?,?)");
-        echo $mysqli->error;
         $birth_date = substr($author['birth'], 0, 10);
         if(!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $birth_date)) $birth_date = null;
         $death_date = substr($author['death'], 0, 10);
         if(!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $death_date)) $death_date = null;
         $stmt->bind_param("ssssss", $author_abbrev, $author['label'], $author['person'], $author['image'], $birth_date, $death_date);
         $stmt->execute();
-        echo $mysqli->error;
         $stmt->close(); 
 
     }
@@ -215,6 +230,53 @@ class AuthorTeam{
         foreach ($this->authors as $abbrev => $author) {
             if(!$author) continue;
             if($author['person']) $out[] = $author['person'];
+        }
+        return $out;
+    }
+
+
+    public function getMembers(){
+
+        $out = array();
+        
+        // we build a list of the uris for references this name has
+        // so we can tag them as present or not
+        $ref_uris = array();
+        if($this->name){
+            $refs = $this->name->getReferences('person'); 
+            foreach ($refs as $useage) {
+                $ref_uris[] = $useage->reference->getLinkUri();
+            }
+        }
+        
+        foreach ($this->authors as $abbrev => $author) {
+            if($author && $author['person']){
+                // we definitely have data for the abbreviation
+
+                // build a nice label
+                $label = $author['label'];
+                if($author['birth'] || $author['death']){
+                    $label .= " (" . substr($author['birth'] ?? '', 0, 4) . "-" . substr($author['death'] ?? '', 0, 4) . ")";
+                }
+
+                $out[] = new AuthorTeamMember(
+                    $abbrev,
+                    $label,
+                    $author['person'],
+                    $author['image'],
+                    in_array($author['person'], $ref_uris)
+                );
+            }else{
+                // we don't have details for the abbreviation
+                // so we return an empty version
+                $out[] = new AuthorTeamMember(
+                    $abbrev,
+                    null,
+                    null,
+                    null,
+                    false
+                );
+            }
         }
         return $out;
     }

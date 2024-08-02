@@ -37,12 +37,21 @@ class ReferenceUsage{
         }
 
         // how do we tell if they are updating or not?
+        $ref = null;
+        // try and get it by an id
         if($reference_id){
-
-
-            // OK -we have a reference 
-            // update the reference fields
             $ref = Reference::getReference($reference_id);
+        }
+
+        // try and get it by a linkUri
+        if(!$ref && $link_uri){
+            $ref = Reference::getReferenceByUri($link_uri);
+        }
+
+        if($ref){
+
+            // OK -we have an existing reference 
+            // update the reference fields
             $ref->setLinkUri($link_uri);
             $ref->setDisplayText($display_text);
             $ref->setKind($ref_kind);
@@ -69,6 +78,7 @@ class ReferenceUsage{
             return $response;
 
         }else{
+            
             // we have no reference so we need to create one
             // and the associated usage
 

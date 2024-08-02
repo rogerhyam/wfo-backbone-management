@@ -27,6 +27,9 @@ require_once('../include/DownloadFile.php');
 require_once('../include/StatsBasicSummary.php');
 require_once('../include/Reference.php');
 require_once('../include/ReferenceUsage.php');
+require_once('../include/AuthorTeam.php');
+require_once('../include/AuthorTeamMember.php');
+require_once('../include/SPARQLQueryDispatcher.php');
 
 $typeReg = new TypeRegister();
 
@@ -363,8 +366,28 @@ $schema = new Schema([
                 'resolve' => function($rootValue, $args, $context, $info) {
                     return Name::getMostActiveUsers((int)$args['limit'], (int)$args['offset'], (int)$args['days']);
                 }
+            ],
+            'getAuthorTeamMembersFromString' => [
+                'type' => Type::listOf(TypeRegister::authorTeamMemberType()),
+                'description' => "Parse an authors string and return a list of the recognised author abbreviations in it",
+                'args' =>[
+                    'authorsString' => [
+                        'type' => Type::string(),
+                        'description' => "The standard author string for a plant name.",
+                        'required' => true
+                    ],
+                    'wfo' => [
+                        'type' => Type::string(),
+                        'description' => "The WFO ID of an associated name. This will populate the results with a flag if the authors are represented as references in that name.",
+                        'required' => false,
+                        'defaultValue' => null
+                    ],
+                ],
+                'resolve' => function($rootValue, $args, $context, $info) {
+                    $team = new AuthorTeam($args['authorsString'], true, $args['wfo']); // true means we call wikidata if it isn't cached.
+                    return $team->getMembers();
+                }
             ]
-
         ]// fields
     ]), // query object type
 
@@ -761,6 +784,7 @@ $schema = new Schema([
                    return ReferenceUsage::updateUsage($args['kind'], $args['linkUri'], $args['displayText'], $args['comment'], $args['subjectType'], $args['wfo'], $args['referenceId']);
                 }
             ] // updateReference
+
         ]// fields
     ])// mutations
              
