@@ -111,7 +111,7 @@ $types_fields = array(
     "citation",
     "link"
 );
-fputcsv($synonyms_out, $synonym_fields, "\t");
+fputcsv($types_out, $types_fields, "\t");
 
 $counter = 0;
 $offset = 1; // offset is one because the first one is the root

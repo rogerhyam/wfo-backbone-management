@@ -93,6 +93,7 @@ if(isset($orcid_response->access_token) ){
     session_unset();
 
     $message = '<h2>Failed</h2><dl>';
+
     foreach ($orcid_response as $key => $value) {
         $message .= "<dt>$key<dt><dd>$value</dd>";
     }

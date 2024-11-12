@@ -162,6 +162,7 @@ function render_form($table){
                     <option value="ten">TEN</option>
                     <option value="ipni">IPNI</option>
                     <option value="tropicos">Tropicos</option>
+                    <option value="gbif">GBIF</option>
                     <option value="if">Index Fungorum</option>
                 </select>
             </td>
