@@ -241,6 +241,7 @@ class Reference{
         $file_name = str_replace(' ', '_', $file_name);
         $md5 = md5($file_name);
         if(!preg_match('/\.jpg$/', $file_name)) $file_name .= '.jpg';
+        $file_name = urlencode($file_name);
         $thumb_uri = "https://upload.wikimedia.org/wikipedia/commons/thumb/" . substr($md5,0,1) . "/" . substr($md5, 0, 2) . "/" . $file_name . '/200px-' . $file_name;
 
         return $thumb_uri;
