@@ -199,9 +199,52 @@ class Reference{
     /**
      * Get the value of thumbnailUri
      */ 
-    public function getThumbnailUri()
-    {
-        return $this->thumbnailUri;
+    public function getThumbnailUri(){
+        if(!$this->thumbnailUri) return null;
+        if(preg_match('/commons\.wikimedia\.org/', $this->thumbnailUri)) return $this->getThumbnailUriWikimedia();
+         return $this->thumbnailUri;
+    }
+
+    private function getThumbnailUriWikimedia(){
+
+        /*
+        we do some work if we know the "thumbnail" URI is likely to be to a larger file
+
+        Explanation from this page
+
+        https://stackoverflow.com/questions/33689980/get-thumbnail-image-from-wikimedia-commons
+        
+        --------------
+        
+        If you're okay to rely on the fact the current way of building the URL won't change in the future (which is not guaranteed), then you can do it.
+        
+        The URL looks like this:
+        
+        https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/200px-Tour_Eiffel_Wikimedia_Commons.jpg
+        
+        The first part is always the same: https://upload.wikimedia.org/wikipedia/commons/thumb
+        The second part is the first character of the MD5 hash of the file name. In this case, the MD5 hash of Tour_Eiffel_Wikimedia_Commons.jpg is a85d416ee427dfaee44b9248229a9cdd, so we get /a.
+        The third part is the first two characters of the MD5 hash from above: /a8.
+        The fourth part is the file name: /Tour_Eiffel_Wikimedia_Commons.jpg
+        The last part is the desired thumbnail width, and the file name again: /200px-Tour_Eiffel_Wikimedia_Commons.jpg
+        
+        --------------
+
+        e.g. from our things
+        http://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Rikli%2C%20Martin%20%281868-1951%29-Portrait-Portr%2015032.tif
+
+        */
+
+        // get the filename from the url
+        $file_name_encoded = basename($this->thumbnailUri);
+        $file_name = urldecode($file_name_encoded);
+        $file_name = str_replace(' ', '_', $file_name);
+        $md5 = md5($file_name);
+        if(!preg_match('/\.jpg$/', $file_name)) $file_name .= '.jpg';
+        $thumb_uri = "https://upload.wikimedia.org/wikipedia/commons/thumb/" . substr($md5,0,1) . "/" . substr($md5, 0, 2) . "/" . $file_name . '/200px-' . $file_name;
+
+        return $thumb_uri;
+
     }
 
     /**
