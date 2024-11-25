@@ -406,7 +406,12 @@ class Reference{
             } 
             
             // get the data for the entity from wikidata
-            $wiki_data = json_decode(file_get_contents($this->getLinkUri()));
+            // FIXME - catch no response.
+            $wiki_data = json_decode(@file_get_contents($this->getLinkUri()));
+            if(!$wiki_data){
+                echo "FAILED to get uri {$this->getLinkUri()}\n";
+                return;
+            }
 
             // if we've been redirected then update the q number.
             if(!isset($wiki_data->entities->{$q_number})){
