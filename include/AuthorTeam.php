@@ -12,7 +12,7 @@ class AuthorTeam{
     public $team_string;
     private $name = null;
 
-    public function __construct($team_abbreviation, $call_wikidata = false, $wfo = null){
+    public function __construct($team_abbreviation, $call_wikidata = false, $wfo = null, $replace = false){
         $matches = array();
         if(preg_match('/\((.*)\)(.*)/', $team_abbreviation ?? '', $matches)){
             $this->extractIndividualAuthors(trim($matches[1] ?? ''));
@@ -21,7 +21,7 @@ class AuthorTeam{
             $this->extractIndividualAuthors(trim($team_abbreviation ?? ''));
         }
 
-        $this->populateAuthors($call_wikidata);
+        $this->populateAuthors($call_wikidata, $replace);
         $this->team_string = $team_abbreviation;
 
         if($wfo){
@@ -51,7 +51,7 @@ class AuthorTeam{
      * Fills in the author details
      * 
      */
-    private function populateAuthors($call_wikidata){
+    private function populateAuthors($call_wikidata, $replace = false){
 
         global $mysqli;
 
@@ -61,37 +61,54 @@ class AuthorTeam{
         // try and do that
 
         foreach ($this->authors as $abbreviation => $author) {
+                // try and get it from the database
+                $author = $this->getAuthorFromDb($abbreviation);
 
-            if(!$author){
-
-                $stmt = $mysqli->prepare("SELECT id, label, uri, image_uri, birth, death from author_lookup WHERE abbreviation = ?");
-                echo $mysqli->error;
-                $stmt->bind_param("s", $abbreviation);
-                $stmt->execute();
-                $stmt->bind_result(
-                    $author['id'],
-                    $author['label'],
-                    $author['person'],
-                    $author['image'],
-                    $author['birth'],
-                    $author['death']
-                );
-                if($stmt->fetch() && $author){
-
-                    echo $mysqli->error;
-                    $this->authors[$abbreviation] = $author;
- 
+                if($author){
+                    // we have and author
+                    if($call_wikidata && $replace){
+                        // but we are in replace mode so delete it from the 
+                        // db then ask for it from wikidata
+                        $mysqli->query("DELETE FROM author_lookup WHERE id = {$author['id']}");
+                        $this->populateAuthorFromWikiData($abbreviation);
+                    }else{
+                        // we have an author and we aren't updating it
+                        $this->authors[$abbreviation] = $author;
+                    }
                 }else{
-                    // not got one in the db 
+                    // no author so nada to do unless
                     if($call_wikidata){
+                        // we have permission to call wikidata
                         $this->populateAuthorFromWikiData($abbreviation);
                     }
                 }
-                $stmt->close();
 
-            }
+        } // for each abbreviation
+
+    }
+
+    private function getAuthorFromDb($abbreviation){
+
+        global $mysqli;
+
+        $stmt = $mysqli->prepare("SELECT id, label, uri, image_uri, birth, death from author_lookup WHERE abbreviation = ?");
+        echo $mysqli->error;
+        $stmt->bind_param("s", $abbreviation);
+        $stmt->execute();
+        $stmt->bind_result(
+            $author['id'],
+            $author['label'],
+            $author['person'],
+            $author['image'],
+            $author['birth'],
+            $author['death']
+        );
+        if($stmt->fetch() && $author){
+            echo $mysqli->error;
+            return $author;
+        }else{
+            return null;
         }
-
     }
 
     private function populateAuthorFromWikiData($author){
@@ -176,10 +193,23 @@ class AuthorTeam{
         if(!$author['person']) return null;
 
         $stmt = $mysqli->prepare("INSERT INTO author_lookup (abbreviation, label, uri, image_uri, birth, death) VALUES (?,?,?,?,?,?)");
-        $birth_date = substr($author['birth'], 0, 10);
-        if(!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $birth_date)) $birth_date = null;
-        $death_date = substr($author['death'], 0, 10);
-        if(!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $death_date)) $death_date = null;
+        
+        // birth year
+        if($author['birth']){
+            $birth_date = substr($author['birth'], 0, 10);
+            if(!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $birth_date)) $birth_date = null;
+        }else{
+            $birth_date = null;
+        }
+        
+        // death year
+        if($author['death']){
+            $death_date = substr($author['death'], 0, 10);
+            if(!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $death_date)) $death_date = null;    
+        }else{
+            $death_date = null;
+        }
+        
         $stmt->bind_param("ssssss", $author_abbrev, $author['label'], $author['person'], $author['image'], $birth_date, $death_date);
         $stmt->execute();
         $stmt->close(); 

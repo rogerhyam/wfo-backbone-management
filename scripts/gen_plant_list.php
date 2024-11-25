@@ -10,6 +10,7 @@
     import the output into solr
     curl -X POST -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo/update?commit=true' --data-binary @plant_list_2022-12.json  --user wfo:****
 
+    // this version doesn't run out of memory
     curl -H 'Content-type:application/json' 'http://localhost:8983/solr/wfo/update?commit=true' -X POST -T plant_list_2023-06.json --user wfo:****
 
     clear down solr
@@ -248,6 +249,9 @@ function process_name($name, $version_name){
             // we are an accepted name
             $out['role_s'] = "accepted";
             
+            // flag if this is a hybrid taxon
+            $out['hybrid_taxon_b'] =  $taxon->getHybridStatus();
+
             // looking up the way - building links 
             $parent = $taxon->getParent();
 

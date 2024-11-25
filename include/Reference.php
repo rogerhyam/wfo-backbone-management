@@ -18,6 +18,7 @@ class Reference{
     private ?string $linkUri = null;
     private ?string $thumbnailUri = null;
     private ?int $userId = null;
+    private bool $thumbnailChecked = false; // flagged as true if we have done a thumbnail lookup to the source
     private ?string $created = null;
     private ?string $modified = null;
 
@@ -86,6 +87,12 @@ class Reference{
             // of course this could be ourselves in which case no harm as the id will be the same!
             $this->id = $dupe->getId();
         }
+
+        if($this->thumbnailChecked){
+            $thumbnail_last = 'now()';
+        }else{
+            $thumbnail_last = 'NULL';
+        }
         
         
         if($this->id){
@@ -101,7 +108,8 @@ class Reference{
                 `thumbnail_uri` = ? ,
                 `display_text` = ? ,
                 `kind` = ? ,
-                `user_id` = ?
+                `user_id` = ?,
+                `thumbnail_last_check` = $thumbnail_last
             WHERE `id` = ?");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $stmt->bind_param("ssssii", 
@@ -127,8 +135,8 @@ class Reference{
             
             // we have no id so this is an insert call
             $stmt = $mysqli->prepare("INSERT 
-                INTO `references`(`link_uri`, `thumbnail_uri`, `display_text`, `kind`, `user_id`) 
-                VALUES (?,?,?,?,?)");
+                INTO `references`(`link_uri`, `thumbnail_uri`, `display_text`, `kind`, `user_id`, `thumbnail_last_check`) 
+                VALUES (?,?,?,?,?, $thumbnail_last)");
             if($mysqli->error) echo $mysqli->error; // should only have prepare errors during dev
             $stmt->bind_param("ssssi", 
                 $this->linkUri,
@@ -201,7 +209,9 @@ class Reference{
      *
      */ 
     public function setThumbnailUri($thumbnailUri){
-        $this->thumbnailUri = $thumbnailUri;
+        if(filter_var($thumbnailUri, FILTER_VALIDATE_URL)){
+            $this->thumbnailUri = $thumbnailUri;
+        }
     }
 
     /**
@@ -357,6 +367,132 @@ class Reference{
 
     }
 
+    /**
+     * 
+     * This will call the link_uri and attempt to 
+     * fetch a thumbnail_uri from it.
+     * It only works for certain well known link_uri formats.
+     * 
+     */
+    public function updateThumbnailUri(){
+        if(preg_match('/wikidata.org/', $this->getLinkUri())) return $this->updateThumbnailUriWikiData();
+        if(preg_match('/gbif.org/', $this->getLinkUri())) return $this->updateThumbnailUriGbif();
+        throw new ErrorException("Unsupported link uri to extract a thumbnail from.");
+    }
+
+    private function updateThumbnailUriWikiData(){
+
+        global $mysqli;
+
+        echo "{$this->getId()}\tUpdating WikiData link\t";
+
+        if($this->getKind() == 'person'){
+        
+            // this is complex and maybe should be in the AuthorTeam object?
+            // keeping the author_lookup table in sync with the reference links
+            // suggests a bad
+
+            echo "is person\t";
+
+            // get the q number - we'll need it
+            $matches = array();
+            if(preg_match('/www.wikidata.org\/entity\/(Q[0-9]+)$/', $this->getLinkUri(), $matches));
+            $q_number = $matches[1];
+
+            // fail if we can't extract a qnumber
+            if(!$q_number){
+                echo "can't extract Q from {$this->getLinkUri()} \n";
+                return;
+            } 
+            
+            // get the data for the entity from wikidata
+            $wiki_data = json_decode(file_get_contents($this->getLinkUri()));
+
+            // if we've been redirected then update the q number.
+            if(!isset($wiki_data->entities->{$q_number})){
+                echo "old: {$q_number} \t";
+                $q_number = array_key_first(get_object_vars($wiki_data->entities));
+                echo "new: {$q_number} \t";
+
+                // change the uri of the reference.
+                // there is a chance that this will prevent saving because it 
+                // already exists - but very unlikely.
+                $this->setLinkUri('http://www.wikidata.org/entity/' . $q_number);
+
+            }
+
+            // or an author abbreviation
+            if(!isset($wiki_data->entities->{$q_number}->claims->P428)){
+                echo "no author abbreviation in the claims\n";
+                return;
+            } 
+
+            $prop = $wiki_data->entities->{$q_number}->claims->P428[0];
+            $author_abbreviation = $prop->mainsnak->datavalue->value;
+
+            echo "$author_abbreviation\t";
+           
+            // update that in author teams
+            
+            // are they in the authors table? 
+            $safe_uri = $mysqli->real_escape_string($this->getLinkUri());
+            $response = $mysqli->query("SELECT * FROM author_lookup WHERE uri = '{$safe_uri}';");
+            $rows = $response->fetch_all(MYSQLI_ASSOC);
+            if(count($rows)){
+                // delete them so we can recreate
+                foreach($rows as $row){
+                    $mysqli->query("DELETE FROM author_lookup WHERE id = {$row['id']};");
+                }
+            }
+            
+            // create a team flagging to call wikidata for data
+            $team = new AuthorTeam($author_abbreviation, true);
+
+            // author is now populated in the team
+            $member = $team->getMembers()[0];
+
+            if($member->imageUri){
+                $this->setThumbnailUri($member->imageUri); // will check it is a pucker uri
+                echo $member->imageUri;
+            }else{
+                echo "no media\t";
+            }
+
+        }else{
+            echo "not a person - we don't do that here\t";
+        }
+
+        echo "\n";
+        $this->thumbnailChecked = true;
+    }
+
+    private function updateThumbnailUriGbif(){
+        echo "{$this->getId()}\tUpdating gbif link\t";
+
+        // lets parse out the occurence id
+        $matches = array();
+        if(preg_match('/www.gbif.org\/occurrence\/([0-9]+)/', $this->getLinkUri(), $matches)){
+            $occurrence_id = $matches[1];
+
+            $api_uri = "https://api.gbif.org/v1/occurrence/$occurrence_id";
+            $gbif_data = json_decode(file_get_contents($api_uri));
+
+            if(isset($gbif_data->media) && count($gbif_data->media) > 0){
+                foreach($gbif_data->media as $medium){
+                    if(isset($medium->format) && $medium->format == 'image/jpeg' && isset($medium->identifier)){
+                        $this->setThumbnailUri($medium->identifier); // will check it is a pucker uri
+                        echo $medium->identifier;
+                        break;
+                    }
+                }
+            }else{
+                echo "no media\t";
+            }
+        }
+
+        echo "\n";
+        $this->thumbnailChecked = true;
+    }
 
     public static function resetSingletons(){
         self::$loaded = array();
