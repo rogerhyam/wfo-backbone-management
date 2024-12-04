@@ -71,14 +71,15 @@ function run_linking($table){
         if(count($id_rows) > 0){
             
             //  it does so is the name the same WFO ID as the row in the table?
-            $name = Name::getName($id_rows[0]['name_id']);
+            // we are just taking the same name - there may be more than one but they will be wiped out
+            $existing_name = Name::getName($id_rows[0]['name_id']);
 
-            if($name->getPrescribedWfoId() == $row['rhakhis_wfo']){
+            if($existing_name->knownByWfoId($row['rhakhis_wfo'])){
                 // name has same ID our work here is done.
-                echo "<p><strong>$id_value: </strong> already bound to " . $name->getPrescribedWfoId() . " - " . $name->getFullNameString() . "</p>"; 
+                echo "<p><strong>$id_value: </strong> already bound to " . $existing_name->getPrescribedWfoId() . " - " . $existing_name->getFullNameString() . "</p>"; 
             }else{
                 // bad shit - bound to a different wfo id
-                echo "<p><strong style=\"color: red\">$id_value: </strong> already bound to " . $name->getPrescribedWfoId() . " - " . $name->getFullNameString() . " but row had WFO ID " . $row['rhakhis_wfo'] ." </p>";
+                echo "<p><strong style=\"color: red\">$id_value: </strong> already bound to " . $existing_name->getPrescribedWfoId() . " - " . $existing_name->getFullNameString() . " but row had WFO ID " . $row['rhakhis_wfo'] ." </p>";
 
                 if(@$_GET['move_existing']){
 
@@ -86,12 +87,28 @@ function run_linking($table){
 
                     // remove these rows from the ids table so they are free to use
                     foreach($id_rows as $id_row){
-                        $mysqli->query("DELETE from `identifiers` WHERE `id` = {$id_row['id']}");
+
+                        // we do this for each row to be sure to remove it safely
+                        $existing_name = Name::getName($id_row['name_id']);
+
+                        // if it is an ipni id it might be set as the preferred one 
+                        // and needs to be removed or deletion will fail
+                        if($id_kind == 'ipni' && $existing_name->getPreferredIpniId() == $id_value){
+                            $existing_name->getPreferredIpniId(null);
+                            $existing_name->save();
+                        }
+
+                        $existing_name->removeIdentifier($id_value, $id_kind);
+
+                        echo "<p>...removed from {$existing_name->getPrescribedWfoId()} - {$existing_name->getFullNameString()}</p>";
+
                     } 
 
                     // add it to the name
-                    $name->addIdentifier($id_value, $id_kind); // no need to save as this writes straight to the identifiers table.
-                    echo "<p><strong>$id_value: </strong> now bound to " . $name->getPrescribedWfoId() . " - " . $name->getFullNameString() . "</p>";
+                    $new_name = Name::getName($row['rhakhis_wfo']);
+                    $new_name->addIdentifier($id_value, $id_kind); // no need to save as this writes straight to the identifiers table.
+
+                    echo "<p><strong>$id_value: </strong> now bound to " . $new_name->getPrescribedWfoId() . " - " . $new_name->getFullNameString() . "</p>";
 
                 }else{
                     echo "<p>Stopping here as we can't proceed if two names have the same ID. If you would like to move IDs instead then check the 'Move existing IDs' box and run again.</p>";
@@ -115,10 +132,11 @@ function run_linking($table){
             $name->save();
         }
 
+
     }
 
     // load the next page or stop.
-    echo $auto_render_next_page;
+   echo $auto_render_next_page;
 
 }
 

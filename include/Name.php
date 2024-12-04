@@ -606,6 +606,24 @@ class Name extends WfoDbObject{
         return $this->prescribed_wfo_id; 
     } 
 
+
+    /**
+      *  check if this name is known by this wfo_id either
+      *  as its prescribed id or as a deduplicated one
+    */
+    public function knownByWfoId($wfo_id){
+        global $mysqli;
+
+        // double check this is a wfo id and safe from sql injection
+        if(!preg_match('/^wfo-[0-9]{10}$/', $wfo_id)) return false;
+
+        // simply 
+        $response = $mysqli->query( "SELECT `id` FROM `identifiers` WHERE `kind` = 'wfo' AND `name_id` = {$this->id} AND `value` = '$wfo_id';" );
+        if($response->num_rows > 0) return true;
+        else return false;
+
+    }
+
     private function generateWfoId(){
 
         global $mysqli;
@@ -636,6 +654,13 @@ class Name extends WfoDbObject{
         }
 
         if(!$this->id) throw new ErrorException("Attempt to add preferred IPNI identifier to Name which doesn't have a db id.");
+
+        // if we are being passed null or false then we set it to nothing
+        if(!$ipni_id){
+            $this->preferredIpniIdentifierId = null;
+            $this->preferredIpniIdentifier = null;
+            return;
+        }
         
         // identifiers may not be sql friendly strings
         $identifier_safe = $mysqli->real_escape_string($ipni_id);
