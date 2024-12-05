@@ -37,6 +37,8 @@
     } // if table
 ?>
 <a href="index.php?action=view&phase=taxonomy&task=taxonomy_unplace">Unplace</a>
+|
+<a href="index.php?action=view&phase=taxonomy&task=taxonomy_remove_basionyms">Remove Basionyms</a>
 </div>
 <hr />
 <?php
