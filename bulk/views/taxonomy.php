@@ -44,7 +44,7 @@
 <?php
     $table = @$_SESSION['selected_table'];
     $task =  @$_GET['task'];
-    if(!$table && $task != 'taxonomy_unplace'){
+    if(!$table && $task != 'taxonomy_unplace' && $task != 'taxonomy_remove_basionyms'){
         echo '<p style="color: red;">You need to select a table before you can do much more here.</p>';
     }else{
         $task =  @$_GET['task'];

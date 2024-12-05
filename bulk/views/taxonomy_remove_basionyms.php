@@ -1,6 +1,4 @@
-<?php
-    require_once('../include/NamePlacer.php');
-?>
+
 <div style="width: 1000px">
     <h3>Remove Basionyms</h3>
     <p>
