@@ -15,7 +15,7 @@ if(@$_GET['tdwg_geo'] && preg_match('/^[0-9A-Z]+$/', $_GET['tdwg_geo'])){
     header("Content-Disposition: attachment; filename=tdwg_geo_{$_GET['tdwg_geo']}.csv");
 
 
-    $response = $mysqli->query("SELECT w.wfo_id, w.*, g.*
+    $response = $mysqli->query("SELECT w.*, g.*
             FROM kew.wcvp_geo as g 
             JOIN kew.wcvp as w on g.plant_name_id = w.plant_name_id and w.wfo_id is not null and w.taxon_rank in ('Species', 'Variety', 'Subspecies')
             WHERE g.locationid = '$code';");
@@ -47,7 +47,7 @@ if(@$_GET['life_form']){
     header("Content-Type: text/csv");
     header("Content-Disposition: attachment; filename=life_form_{$life_form}.csv");
 
-    $response = $mysqli->query("SELECT wfo_id, kew.wcvp.*
+    $response = $mysqli->query("SELECT kew.wcvp.*
             FROM kew.wcvp
             WHERE lifeform_description rlike '^{$life_form_safe}| {$life_form_safe}'
             AND taxon_rank IN ('Species', 'Variety', 'Subspecies')");
