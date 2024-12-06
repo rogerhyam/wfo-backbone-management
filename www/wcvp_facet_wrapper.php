@@ -22,7 +22,7 @@ if(@$_GET['tdwg_geo'] && preg_match('/^[0-9A-Z]+$/', $_GET['tdwg_geo'])){
 
     $fields = $response->fetch_fields();
     $header = array();
-    foreach ($fields as $field) $header[] = $field->name;
+    foreach ($fields as $field) $header[] = $field->table . '_' . $field->name;
 
     $f = fopen('php://memory', 'r+');
     fputcsv($f, $header);
@@ -54,7 +54,7 @@ if(@$_GET['life_form']){
 
     $fields = $response->fetch_fields();
     $header = array();
-    foreach ($fields as $field) $header[] = $field->name;
+    foreach ($fields as $field) $header[] = $field->table . '_' . $field->name;
  
     $f = fopen('php://memory', 'r+');
     fputcsv($f, $header);
