@@ -255,29 +255,29 @@ while(true){
             $ancestors = $taxon->getAncestors();
             array_unshift($ancestors,$taxon); // add self
 
-            /*
 
-                accordingToID - same for accepted and synonym
 
-                "A reference ID to the publication that established the taxonomic concept used by this taxon. 
-                The author & year of the reference will be used to qualify the name with sensu AUTHOR, YEAR. 
-                The ID must refer to an existing Reference.ID within this data package."
+                // accordingToID - same for accepted and synonym
 
-                Work our way up the taxonomy till we find a literature reference
-                Or are above Genus level - we don't assume that a literature ref at family 
-                family and above we a
+                // "A reference ID to the publication that established the taxonomic concept used by this taxon. 
+                // The author & year of the reference will be used to qualify the name with sensu AUTHOR, YEAR. 
+                // The ID must refer to an existing Reference.ID within this data package."
 
-                referenceID
+                // Work our way up the taxonomy till we find a literature reference
+                // Or are above Genus level - we don't assume that a literature ref at family 
+                // family and above we a
+
+                // referenceID
                     
-                - for accepted taxon
-                A comma concatenated list of reference IDs supporting the taxonomic concept that has been reviewed 
-                by the scrutinizer. Each ID must refer to an existing Reference.ID 
-                within this data package. 
+                // - for accepted taxon
+                // A comma concatenated list of reference IDs supporting the taxonomic concept that has been reviewed 
+                // by the scrutinizer. Each ID must refer to an existing Reference.ID 
+                // within this data package. 
 
-                - for synonym
-                A comma concatenated list of reference IDs supporting the synonym status of the name. Each ID must refer to an existing Reference.ID within this data package.
+                // - for synonym
+                // A comma concatenated list of reference IDs supporting the synonym status of the name. Each ID must refer to an existing Reference.ID within this data package.
                 
-            */
+
             $ref_ids = array();
             $according_to_ref = null;
             $start_level = array_search($name->getRank(), array_keys($ranks_table));
@@ -354,20 +354,18 @@ while(true){
 
                 $taxon_row['referenceID'] = implode(',',array_unique($ref_ids));
                 
-                /*  
 
-                    Only accepted taxa have scrutinizers
+                    // Only accepted taxa have scrutinizers
 
-                    scrutinizer
-                    Name of the person who is the latest scrutinizer who revised or reviewed the taxonomic concept.
+                    // scrutinizer
+                    // Name of the person who is the latest scrutinizer who revised or reviewed the taxonomic concept.
                     
-                    scrutinizer_id$scrutinizer_id
+                    // scrutinizer_id$scrutinizer_id
                     
-                    Identifier for the scrutinizer. Highly recommended are ORCID ids.
+                    // Identifier for the scrutinizer. Highly recommended are ORCID ids.
 
-                    - work up the ancestor tree and find who is responsible for this
+                    // - work up the ancestor tree and find who is responsible for this
                 
-                */
                $scrutinizer = null;
                $scrutinizer_id = null;
                foreach($ancestors as $anc){
@@ -539,6 +537,8 @@ fclose($names_out);
 fclose($taxa_out);
 fclose($synonyms_out);
 
+
+
 echo "\nWriting References\n";
 
 // we export the people and databases who are associated with taxa
@@ -592,12 +592,21 @@ while($row = $response->fetch_assoc()){
     fputcsv($refs_out, $csv_row, "\t");
 
 }
-
+$response->close();
 fclose($refs_out);
+
 
 // type material is just exported as a separate job
 
 echo "\nWriting Types\n";
+
+/*
+    coldp expects the id of the specimens (link_uri for us) to be unique (poss primary key)
+    a type might apply to multiple names so we need to have multivalued
+    nameID field.
+
+    The rows are ordered by link_uri so we only right one out when it changes.
+*/
 
 $response = $mysqli->query(
     "SELECT i.`value` as wfo, r.* 
@@ -607,16 +616,48 @@ $response = $mysqli->query(
     JOIN `identifiers` AS i ON i.id = n.prescribed_id
     WHERE r.kind = 'specimen'
     AND nr.`role` = 'nomenclatural'
-    AND i.kind = 'wfo'", 
+    AND i.kind = 'wfo'
+    ORDER BY r.`link_uri`", 
     MYSQLI_USE_RESULT);
 
-while($row = $response->fetch_assoc()){
-    
+$cohort = array();
+$last_row = null;
+while($row = $response->fetch_assoc()) {
+
+    // if we don't have a cohort we are on the first row so just add it in and start over
+    // if we have an ongoing cohort and our link is the same then just continue
+    if(!$cohort || $cohort[0]['link_uri'] == $row['link_uri']){
+        $cohort[] = $row;
+        continue;
+    }
+
+    // we get to here so we have a cohort but it is out of date
+    // because we have moved on to another link_uri
+
+    // write it out
+    write_out_type_row($types_out, $cohort, $types_fields);
+
+    // start a new one
+    $cohort = array();
+    $cohort[] = $row;
+
+}// while row
+
+// write out the last cohort 
+write_out_type_row($types_out, $cohort, $types_fields);
+
+// bad practice defining a function on the fly in global space...
+function write_out_type_row($types_out, $cohort, $types_fields){
+
+    // cohort is a batch of rows with the same link_uri (and other data)
+    $name_ids = array();
+    foreach($cohort as $member) $name_ids[] = $member['wfo'];
+
     $type = array();
-    $type["ID"] = $row['link_uri'];
-    $type["nameID"] = $row['wfo'];
-    $type["citation"] = $row['display_text'];
-    $type["link"] = $row['link_uri'];
+    $type["ID"] = $cohort[0]['link_uri'];
+    $type["nameID"] = implode(',', $name_ids);
+    $type["citation"] = $cohort[0]['display_text'];
+    $type["link"] = $cohort[0]['link_uri'];
 
     $csv_row = array();
     foreach($types_fields as $field){
@@ -631,6 +672,7 @@ while($row = $response->fetch_assoc()){
 
 }
 
+$response->close();
 fclose($types_out);
 
 // build the metadata file
