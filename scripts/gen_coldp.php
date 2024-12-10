@@ -603,7 +603,7 @@ $response = $mysqli->query(
     "SELECT i.`value` as wfo, r.* 
     FROM `references` AS r 
     JOIN `name_references` AS nr ON nr.reference_id = r.id
-    JOIN `names` AS n ON n.id = nr.name_id
+    JOIN `names` AS n ON n.id = nr.name_id AND n.`status` != 'deprecated'
     JOIN `identifiers` AS i ON i.id = n.prescribed_id
     WHERE r.kind = 'specimen'
     AND nr.`role` = 'nomenclatural'
