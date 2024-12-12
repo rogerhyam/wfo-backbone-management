@@ -1505,7 +1505,7 @@ class Name extends WfoDbObject{
             // add to the target and save so it is in the identifiers table.
             $target_name->setPreferredIpniId($ipni_id);
             $target_name->save();
-            
+
         }
 
         // we have to be severed 
@@ -1537,6 +1537,25 @@ class Name extends WfoDbObject{
                 }
                 
             }
+        }
+
+        // at the end of messing about with identifiers if the target name 
+        // doesn't have a preferred ipni id but it does have a single ipni id 
+        // then that id should become the preferred one.
+        if(!$target_name->getPreferredIpniId()){
+
+            $target_name->getIdentifiers();
+            foreach ($identifiers as $identifier) {
+
+                if($identifier->getKind() != 'ipni') continue;
+
+                if(count($identifier->getValues()) == 1){
+                    $target_name->setPreferredIpniId($identifier->getValues()[0]);
+                    $target_name->save();
+                }
+
+            }
+
         }
 
         $references = $this->getReferences();
