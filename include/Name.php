@@ -1490,8 +1490,25 @@ class Name extends WfoDbObject{
             echo "\nTarget name is rubbish - failing\n";
             return false;
         }
-        // we have to be severed 
 
+        // What about preferred IPNI IDs?
+        // need to do this before we mess with the identifiers table
+        // if the target name already has one then we don't even both checking the remove name
+        if(!$target_name->getPreferredIpniId() && $this->getPreferredIpniId()){
+            
+            // remove it and make sure it is commmitted in case of any
+            // foreign key constraints
+            $ipni_id = $this->getPreferredIpniId();
+            $this->setPreferredIpniId(null);
+            $this->save();
+            
+            // add to the target and save so it is in the identifiers table.
+            $target_name->setPreferredIpniId($ipni_id);
+            $target_name->save();
+            
+        }
+
+        // we have to be severed 
         $identifiers = $this->getIdentifiers();
         $target_identifiers = $target_name->getIdentifiers();
         foreach ($identifiers as $identifier) {
