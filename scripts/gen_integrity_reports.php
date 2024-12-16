@@ -46,6 +46,7 @@ if(count($argv) > 1){
     check_missing_children($downloads_dir);
     check_author_string_contains_in($downloads_dir);
     check_author_string_characters($downloads_dir);
+    check_name_string_characters($downloads_dir);
 }
 
 
@@ -364,6 +365,39 @@ function check_author_string_characters($downloads_dir){
         "Certain combinations of characters in author strings are errors e.g. a dot before an ampersand.", //$title,
         "No names were found with incorrect character combinations.", // $success,
         "Names were found with suspicious character combinations.", // $failure,
+        $sql,
+        $downloads_dir);
+
+}
+
+
+function check_name_string_characters($downloads_dir){
+
+    $sql = "SELECT
+        n.id as name_id,
+        i.`value`,
+        n.`genus`,
+        n.`species`,
+        n.`name`,
+        n.`status`
+        FROM `names` as n
+        JOIN identifiers as i on n.prescribed_id = i.id and i.kind = 'wfo'
+        WHERE  
+			(
+			regexp_like(`name`, '[^A-Za-z-]')
+            or
+            regexp_like(`species`, '[^A-Za-z-]')
+            or
+            regexp_like(`genus`, '[^A-Za-z-]')
+            )
+            and n.`status` != 'deprecated'
+		order by n.name_alpha";
+
+    run_sql_check(
+        "check_name_string_characters", // $name,
+        "Only a limited number of characters (alpha numerics plus -) are permitted in the name parts of non-deprecated names.", //$title,
+        "No names were found with incorrect characters.", // $success,
+        "Names were found with suspicious characters.", // $failure,
         $sql,
         $downloads_dir);
 
