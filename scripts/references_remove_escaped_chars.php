@@ -22,6 +22,7 @@ foreach($rows as $row){
     $old = $row['display_text'];
     // weird error 
     $new = str_replace('&Apos;', '&apos;', $old);
+    $new = str_replace('&nbsp;', ' ', $new);
     $new = html_entity_decode($new, ENT_QUOTES | ENT_XML1, 'UTF-8');
     $new = strip_tags($new);
     $new_safe = $mysqli->real_escape_string($new);
