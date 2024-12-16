@@ -172,7 +172,8 @@ function fetch_citation($uri, $doi){
         // clean up the citation which may have markup in it
         $citation = str_replace('&Apos;', '&apos;', $citation);
         $citation = str_replace('&nbsp;', ' ', $citation);
-        $citation = html_entity_decode($citation, ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+        $citation = html_entity_decode($citation, ENT_QUOTES, 'UTF-8');
         $citation = strip_tags($citation); 
 
         // OK we have a string that looks good return that

@@ -23,7 +23,7 @@ foreach($rows as $row){
     // weird error 
     $new = str_replace('&Apos;', '&apos;', $old);
     $new = str_replace('&nbsp;', ' ', $new);
-    $new = html_entity_decode($new, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    $new = html_entity_decode($new, ENT_QUOTES, 'UTF-8');
     $new = strip_tags($new);
     $new_safe = $mysqli->real_escape_string($new);
     $mysqli->query("UPDATE `references` SET display_text = '$new_safe' WHERE id = $id ");
