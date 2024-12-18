@@ -48,7 +48,7 @@ function generate_metadata($file_path, $pub_date, $version){
             $users[$row['orcid']]['taxa'][] = $row['taxon_name'];
         }else{
 
-            $parts = explode(' ', $row['user_name']);
+            $parts = explode(' ', trim($row['user_name']));
             $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
             $given =  mb_ucfirst(mb_strtolower(implode(' ', $parts)));
 
