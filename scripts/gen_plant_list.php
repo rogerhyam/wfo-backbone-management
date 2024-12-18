@@ -244,7 +244,7 @@ function process_name($name, $version_name){
             // will include hybrids and multi level subspecifics
             $out['full_name_string_html_s'] = $taxon->getFullNameString();
             $out['full_name_string_plain_s'] = strip_tags($taxon->getFullNameString());
-            $out['full_name_string_no_authors_plain_s'] = strip_tags($name->getFullNameString(false, false, true,false));
+            $out['full_name_string_no_authors_plain_s'] = strip_tags($taxon->getFullNameString(false, false, true,false));
 
             // we are an accepted name
             $out['role_s'] = "accepted";
