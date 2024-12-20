@@ -15,8 +15,8 @@ if(file_exists('../data/versions/zenodo_metadata.json')){
 
 foreach($zenodo_file_map as $name => $path){
     if(file_exists($path)){
-      echo "$name\t\t".date("d F Y H:i:s.", filemtime($path)). "\n";
+      echo "$name\t\t\t\t\t".date("d F Y H:i:s.", filemtime($path)). "\n";
     }else{
-        echo "$name\t\tMISSING!\n";
+        echo "$name\t\t\t\t\tMISSING!\n";
     }
 }
