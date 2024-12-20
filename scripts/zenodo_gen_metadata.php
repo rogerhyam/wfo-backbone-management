@@ -41,7 +41,7 @@ foreach($users as $user){
         $meta = array();
        // $meta['type'] = "DataCurator";
         $meta['orcid'] = $user->getOrcidId();
-        $parts = explode(' ', $user->getName());
+        $parts = explode(' ', trim($user->getName()));
         $family = mb_ucfirst(mb_strtolower(array_pop($parts)));
 
         // We need to get capitalisation consistent in given names
