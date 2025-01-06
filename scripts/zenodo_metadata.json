@@ -1,6 +1,6 @@
 {
     "upload_type": "dataset",
-    "publication_date": "2024-12-21",
+    "publication_date": "2024-06-20",
     "title": "World Flora Online Plant List December 2024",
     "version": "2024-12",
     "description": "",
@@ -46,17 +46,17 @@
         },
         {
             "orcid": "0009-0005-9205-1351",
-            "name": " Hartley, Helen",
+            "name": "Hartley, Helen",
             "affiliation": "IPNI (International Plant Names Index)"
         },
         {
             "orcid": "0000-0002-6507-8293",
-            "name": " Krieger, Jonathan",
+            "name": "Krieger, Jonathan",
             "affiliation": "IPNI (International Plant Names Index)"
         },
         {
             "orcid": "0000-0002-2205-0610",
-            "name": " Gandhi, Kanchi",
+            "name": "Gandhi, Kanchi",
             "affiliation": "IPNI (International Plant Names Index)"
         }
     ]

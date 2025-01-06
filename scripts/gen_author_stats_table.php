@@ -7,7 +7,7 @@
     YOU PROBABLY DON'T WANT TO RUN THIS ON LIVE
 
     The table is just for data analysis and isn't part or the Rhakhis application
-    so can safely be dropped when not needed.
+    so can safely be dropped when not needed. 
 
 */
 
@@ -67,7 +67,8 @@ while(true){
         echo "{$authors}\t";
 
         // parse the remaining author string
-        $team = new AuthorTeam($authors, true, null, true);
+        //$team = new AuthorTeam($authors, true, null, true); // updating the authors
+        $team = new AuthorTeam($authors);
 
         // add a row for each of the members of the team
         $members = $team->getMembers();
@@ -92,7 +93,29 @@ while(true){
 
 }
 
+/*
 
+SQL for common queries
+
+# Unique author names per decade
+SELECT `year`, count(distinct(ast.abbreviation)) as authors
+FROM author_stats_temp AS ast
+JOIN author_lookup as al on al.abbreviation = ast.abbreviation
+WHERE `year` is not null
+GROUP BY `year`
+ORDER BY `year`
+
+# Productivity - number of names/taxonomist/decade 
+with decades as (select abbreviation, floor(`year` / 10) * 10 as decade from author_stats_temp where `year` is not null)
+select decade, count(distinct(abbreviation)) as authors, count(*) as 'names', round(count(*)/count(distinct(abbreviation))) as per_author from decades group by decade order by decade asc;
+
+
+
+
+
+
+
+*/
 
 
 
