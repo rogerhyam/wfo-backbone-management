@@ -112,6 +112,39 @@ select decade, count(distinct(abbreviation)) as authors, count(*) as 'names', ro
 
 
 
+with career_starts as (
+select 
+	abbreviation,
+    min(`year`) as 'first'
+FROM author_stats_temp
+WHERE `year` is not null
+GROUP BY `abbreviation`),
+
+
+career_full as (select 
+	ast.abbreviation, min(ast.`year`) as 'first',
+    max(ast.`year`) AS 'last', 
+    max(ast.`year`) - min(ast.`year`) + 1 AS 'duration',
+    stddev(ast.`year`) as standard_deviation,
+    count(*) as 'names'
+FROM author_stats_temp as ast
+JOIN career_starts as cs on cs.abbreviation = ast.abbreviation and ast.`year` < cs.`first` + 70
+WHERE ast.`year` is not null
+GROUP BY ast.`abbreviation`
+ORDER BY max(ast.`year`) - min(ast.`year`) desc)
+
+#select `last` as 'last_year',  avg(`duration`) from career_full group by `last` order by `last`;
+select `first` as 'first_year',  avg(`duration`) from career_full group by `first` order by `first`;
+
+SELECT `year`, count(distinct(ast.abbreviation)) as authors
+FROM author_stats_temp AS ast
+JOIN author_lookup as al on al.abbreviation = ast.abbreviation
+WHERE `year` is not null
+GROUP BY `year`
+ORDER BY `year`
+
+with decades as (select abbreviation, floor(`year` / 10) * 10 as decade from author_stats_temp where `year` is not null)
+select decade, count(distinct(abbreviation)) as authors, count(*) as 'names', round(count(*)/count(distinct(abbreviation))) as per_author from decades group by decade order by decade asc;
 
 
 

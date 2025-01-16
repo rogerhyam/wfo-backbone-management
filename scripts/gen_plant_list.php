@@ -295,7 +295,7 @@ function process_name($name, $version_name){
         // editors
         $out['editors_name_ss'] = array();
         $out['editors_orcid_ss'] = array();
-        $editors = $taxon->getCurators();
+        $editors = $taxon->getEditors();
         foreach ($editors as $editor) {
             if($editor->getOrcidId()){
                 // real person
