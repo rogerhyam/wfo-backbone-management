@@ -14,11 +14,17 @@ if(@$_GET['tdwg_geo'] && preg_match('/^[0-9A-Z]+$/', $_GET['tdwg_geo'])){
     header("Content-Type: text/csv");
     header("Content-Disposition: attachment; filename=tdwg_geo_{$_GET['tdwg_geo']}.csv");
 
-
-    $response = $mysqli->query("SELECT w.*, g.*
+   $sql = "SELECT w.*, g.*
             FROM kew.wcvp_geo as g 
             JOIN kew.wcvp as w on g.plant_name_id = w.plant_name_id and w.wfo_id is not null and w.taxon_rank in ('Species', 'Variety', 'Subspecies')
-            WHERE g.locationid = '$code';");
+            WHERE g.locationid = '$code'";
+
+    // if they pass the establishment means then we flag that.
+    if(@$_GET['establishment_means']){
+        $sql .= "AND establishmentmeans = '" . $mysqli->real_escape_string(trim($_GET['establishment_means'])) . "'";  
+    }
+
+    $response = $mysqli->query($sql);
 
     $fields = $response->fetch_fields();
     $header = array();
@@ -81,3 +87,13 @@ if(@$_GET['life_form']){
 */
 
 echo "You must pass a query...";
+
+/*
+
+// adding botanical areas to a facet
+INSERT INTO facet_values (`facet_id`, `name`, `description`, `link_uri`, `code`)
+SELECT 11, `name`, `description`, `link_uri`, `code` FROM facet_values where facet_id = 8;
+
+
+
+*/

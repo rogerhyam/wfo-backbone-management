@@ -856,7 +856,8 @@ if(!isset($_SESSION['user'])){
 
     // we have a token so lets load the user
     $user = User::loadUserForWfoToken($wfo_access_token);
-    error_log("got user from db via token: " .  $user->getId());
+    
+    if($user) error_log("got user from db via token: " .  $user->getId());
     if(!$user){
         http_response_code(403);
         die('Forbidden: Failed to load user for access token: ' . $wfo_access_token);
